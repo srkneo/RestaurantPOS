@@ -8,3 +8,4 @@ dotnet new sln -n RestaurantPOS
 
 # Add the project to the solution
 dotnet sln add RestaurantPOS.csproj
+dotnet sln add Data/RestaurantPOS.Data.csproj
