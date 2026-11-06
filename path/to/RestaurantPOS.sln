@@ -5,7 +5,7 @@ MinimumVisualStudioVersion = 17.0.33003.139
 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestaurantPOS", "path\to\RestaurantPOS.csproj", "{YOUR_PROJECT_GUID}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestaurantPOS.Data", "path\to\Data\RestaurantPOS.Data.csproj", "{YOUR_DATA_PROJECT_GUID}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestaurantPOS.Data", "Data\RestaurantPOS.Data.csproj", "{YOUR_DATA_PROJECT_GUID}"
 EndProject
 
 Global
