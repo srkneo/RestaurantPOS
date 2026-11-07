@@ -18,19 +18,19 @@ const POSMenu = () => {
     const addToCart = (item) => {
         setCart((prevCart) => {
             // Check if item already exists in cart to increment quantity (optional logic)
-            const existingItem = prevCart.find(i => i.Id === item.Id);
+            const existingItem = prevCart.find(i => i.id === item.id);
             if (existingItem) {
-                return prevCart.map(i => i.Id === item.Id ? { ...i, quantity: (i.quantity || 1) + 1 } : i);
+                return prevCart.map(i => i.id === item.id ? { ...i, quantity: (i.quantity || 1) + 1 } : i);
             }
             return [...prevCart, { ...item, quantity: 1 }];
         });
     };
 
     const removeFromCart = (itemId) => {
-        setCart(prevCart => prevCart.filter(item => item.Id !== itemId));
+        setCart(prevCart => prevCart.filter(item => item.id !== itemId));
     };
 
-    const totalAmount = cart.reduce((sum, item) => sum + (item.Price * (item.quantity || 1)), 0);
+    const totalAmount = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
 
     return (
         <div style={styles.container}>
@@ -44,15 +44,15 @@ const POSMenu = () => {
                 <div style={styles.grid}>
                     {menuItems.map((item) => (
                         <div 
-                            key={item.Id} 
+                            key={item.id} 
                             style={styles.card} 
                             onClick={() => addToCart(item)}
                             onMouseOver={(e) => (e.currentTarget.style.borderColor = '#27ae60')}
                             onMouseOut={(e) => (e.currentTarget.style.borderColor = '#e0e0e0')}
                         >
-                            <span style={styles.categoryTag}>{item.Category}</span>
-                            <h2 style={styles.itemName}>{item.Name}</h2>
-                            <p style={styles.itemPrice}>₹{item.Price.toFixed(2)}</p>
+                            <span style={styles.categoryTag}>{item.category}</span>
+                            <h2 style={styles.itemName}>{item.name}</h2>
+                            <p style={styles.itemPrice}>₹{item.price.toFixed(2)}</p>
                         </div>
                     ))}
                 </div>
@@ -66,15 +66,15 @@ const POSMenu = () => {
                         <p style={styles.emptyMsg}>Your cart is empty</p>
                     ) : (
                         cart.map((item) => (
-                            <div key={item.Id} style={styles.cartItem}>
+                            <div key={item.id} style={styles.cartItem}>
                                 <div style={styles.cartItemInfo}>
-                                    <span style={styles.cartItemName}>{item.Name}</span>
+                                    <span style={styles.cartItemName}>{item.name}</span>
                                     <span style={styles.cartItemQty}>x{item.quantity}</span>
                                 </div>
                                 <div style={styles.cartItemPrice}>
-                                    ₹{(item.Price * item.quantity).toFixed(2)}
+                                    ₹{(item.price * item.quantity).toFixed(2)}
                                     <button 
-                                        onClick={() => removeFromCart(item.Id)} 
+                                        onClick={() => removeFromCart(item.id)} 
                                         style={styles.removeBtn}
                                     >
                                         ✕
