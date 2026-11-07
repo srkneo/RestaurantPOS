@@ -45,6 +45,8 @@ const styles = {
     borderRadius: '4px',
     cursor: 'pointer',
     transition: 'all 0.2s ease-in-out',
+    color: '#2c3e50', // Set text color to dark
+    fontWeight: 'bold', // Make text bold
   },
 };
 
