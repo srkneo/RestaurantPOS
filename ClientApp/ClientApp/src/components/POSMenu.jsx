@@ -4,6 +4,7 @@ const POSMenu = () => {
     const [menuItems, setMenuItems] = useState([]);
     const [cart, setCart] = useState([]);
     const [activeCategory, setActiveCategory] = useState('All');
+    const [selectedTable, setSelectedTable] = useState('');
 
     useEffect(() => {
         fetch('http://localhost:5197/api/menuitems')
@@ -32,7 +33,10 @@ const POSMenu = () => {
     };
 
     const handlePlaceOrder = async () => {
-        if (cart.length === 0) return;
+        if (cart.length === 0 || selectedTable === '') {
+            alert("Please select a table and add items to the cart.");
+            return;
+        }
 
         // Expand cart quantities into a flat array of IDs for the backend
         const itemIds = [];
@@ -46,12 +50,13 @@ const POSMenu = () => {
             const response = await fetch("http://localhost:5197/api/orders", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(itemIds)
+                body: JSON.stringify({ table: selectedTable, items: itemIds })
             });
 
             if (response.ok) {
                 alert("Order placed successfully!");
                 setCart([]); // Clear the cart
+                setSelectedTable(''); // Reset selected table
             } else {
                 alert("Failed to place order.");
             }
@@ -77,6 +82,23 @@ const POSMenu = () => {
                     <h1 style={styles.title}>POS Menu</h1>
                     <p style={styles.subtitle}>Select items to add to the order</p>
                 </header>
+
+                {/* Table Selection */}
+                <div style={styles.tableSelection}>
+                    <label style={styles.label}>Select Table:</label>
+                    <select 
+                        value={selectedTable} 
+                        onChange={(e) => setSelectedTable(e.target.value)} 
+                        style={styles.select}
+                    >
+                        <option value="">Select a table</option>
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map(tableNumber => (
+                            <option key={tableNumber} value={tableNumber}>
+                                Table {tableNumber}
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
                 {/* Category Filter */}
                 <div style={styles.categoryFilter}>
@@ -171,6 +193,20 @@ const styles = {
     subtitle: {
         color: '#7f8c8d',
         fontSize: '1.1rem',
+    },
+    tableSelection: {
+        marginBottom: '20px',
+    },
+    label: {
+        marginRight: '10px',
+        fontSize: '1rem',
+        color: '#333',
+    },
+    select: {
+        padding: '8px',
+        fontSize: '1rem',
+        border: '1px solid #e0e0e0',
+        borderRadius: '4px',
     },
     categoryFilter: {
         display: 'flex',
