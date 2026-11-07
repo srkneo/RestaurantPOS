@@ -17,7 +17,7 @@ const POSMenu = () => {
 
     const addToCart = (item) => {
         setCart((prevCart) => {
-            // Check if item already exists in cart to increment quantity (optional logic)
+            // Check if item already exists in cart to increment quantity
             const existingItem = prevCart.find(i => i.id === item.id);
             if (existingItem) {
                 return prevCart.map(i => i.id === item.id ? { ...i, quantity: (i.quantity || 1) + 1 } : i);
@@ -28,6 +28,36 @@ const POSMenu = () => {
 
     const removeFromCart = (itemId) => {
         setCart(prevCart => prevCart.filter(item => item.id !== itemId));
+    };
+
+    const handlePlaceOrder = async () => {
+        if (cart.length === 0) return;
+
+        // Expand cart quantities into a flat array of IDs for the backend
+        const itemIds = [];
+        cart.forEach(item => {
+            for (let i = 0; i < item.quantity; i++) {
+                itemIds.push(item.id);
+            }
+        });
+
+        try {
+            const response = await fetch("http://localhost:5197/api/orders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(itemIds)
+            });
+
+            if (response.ok) {
+                alert("Order placed successfully!");
+                setCart([]); // Clear the cart
+            } else {
+                alert("Failed to place order.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Network error.");
+        }
     };
 
     const totalAmount = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
@@ -89,7 +119,7 @@ const POSMenu = () => {
                         <span>Total:</span>
                         <span>₹{totalAmount.toFixed(2)}</span>
                     </div>
-                    <button style={styles.checkoutBtn}>Place Order</button>
+                    <button style={styles.checkoutBtn} onClick={handlePlaceOrder}>Place Order</button>
                 </div>
             </div>
         </div>
