@@ -83,9 +83,8 @@ const POSMenu = () => {
                     {uniqueCategories.map(category => (
                         <button 
                             key={category} 
-                            style={styles.filterButton}
+                            style={activeCategory === category ? styles.activeCategoryBtn : styles.filterButton}
                             onClick={() => handleCategoryFilter(category)}
-                            className={activeCategory === category ? 'active' : ''}
                         >
                             {category}
                         </button>
@@ -187,10 +186,14 @@ const styles = {
         transition: 'all 0.2s ease-in-out',
         color: '#333', // Ensure text color is dark enough
     },
-    'filterButton.active': {
+    activeCategoryBtn: {
+        padding: '8px 16px',
         backgroundColor: '#27ae60',
         color: '#ffffff',
         border: '1px solid #27ae60',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease-in-out',
     },
     grid: {
         display: 'grid',
