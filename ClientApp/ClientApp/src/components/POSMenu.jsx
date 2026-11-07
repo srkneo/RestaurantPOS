@@ -185,6 +185,7 @@ const styles = {
         borderRadius: '4px',
         cursor: 'pointer',
         transition: 'all 0.2s ease-in-out',
+        color: '#333', // Ensure text color is dark enough
     },
     'filterButton.active': {
         backgroundColor: '#27ae60',
