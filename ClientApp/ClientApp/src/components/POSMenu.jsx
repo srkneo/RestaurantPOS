@@ -5,7 +5,7 @@ const POSMenu = () => {
     const [cart, setCart] = useState([]);
 
     useEffect(() => {
-        fetch('http://localhost:5000/api/menuitems')
+        fetch('http://localhost:5197/api/menuitems')
             .then(response => response.json())
             .then(data => {
                 setMenuItems(data);
