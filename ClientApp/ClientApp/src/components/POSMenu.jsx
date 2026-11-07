@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const POSMenu = () => {
-    // Mock data based on MenuItem.cs properties
-    const [menuItems] = useState([
-        { Id: 1, Name: "Paneer Tikka", Price: 250.00, Category: "Starters" },
-        { Id: 2, Name: "Butter Chicken", Price: 450.00, Category: "Main Course" },
-        { Id: 3, Name: "Dal Makhani", Price: 300.00, Category: "Main Course" },
-        { Id: 4, Name: "Gulab Jamun", Price: 120.00, Category: "Desserts" },
-        { Id: 5, Name: "Veg Biryani", Price: 350.00, Category: "Main Course" },
-        { Id: 6, Name: "Garlic Naan", Price: 60.00, Category: "Breads" },
-        { Id: 7, Name: "Chana Masala", Price: 280.00, Category: "Main Course" },
-        { Id: 8, Name: "Mango Lassi", Price: 150.00, Category: "Beverages" },
-    ]);
-
+    const [menuItems, setMenuItems] = useState([]);
     const [cart, setCart] = useState([]);
+
+    useEffect(() => {
+        fetch('http://localhost:5000/api/menuitems')
+            .then(response => response.json())
+            .then(data => {
+                setMenuItems(data);
+            })
+            .catch(error => {
+                console.error('Error fetching menu items:', error);
+            });
+    }, []);
 
     const addToCart = (item) => {
         setCart((prevCart) => {
