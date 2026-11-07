@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 const POSMenu = () => {
     const [menuItems, setMenuItems] = useState([]);
     const [cart, setCart] = useState([]);
+    const [activeCategory, setActiveCategory] = useState('All');
 
     useEffect(() => {
         fetch('http://localhost:5197/api/menuitems')
@@ -62,6 +63,12 @@ const POSMenu = () => {
 
     const totalAmount = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
 
+    const uniqueCategories = ['All', ...new Set(menuItems.map(item => item.category))];
+
+    const handleCategoryFilter = (category) => {
+        setActiveCategory(category);
+    };
+
     return (
         <div style={styles.container}>
             {/* Main Menu Section */}
@@ -71,20 +78,36 @@ const POSMenu = () => {
                     <p style={styles.subtitle}>Select items to add to the order</p>
                 </header>
 
-                <div style={styles.grid}>
-                    {menuItems.map((item) => (
-                        <div 
-                            key={item.id} 
-                            style={styles.card} 
-                            onClick={() => addToCart(item)}
-                            onMouseOver={(e) => (e.currentTarget.style.borderColor = '#27ae60')}
-                            onMouseOut={(e) => (e.currentTarget.style.borderColor = '#e0e0e0')}
+                {/* Category Filter */}
+                <div style={styles.categoryFilter}>
+                    {uniqueCategories.map(category => (
+                        <button 
+                            key={category} 
+                            style={styles.filterButton}
+                            onClick={() => handleCategoryFilter(category)}
+                            className={activeCategory === category ? 'active' : ''}
                         >
-                            <span style={styles.categoryTag}>{item.category}</span>
-                            <h2 style={styles.itemName}>{item.name}</h2>
-                            <p style={styles.itemPrice}>₹{item.price.toFixed(2)}</p>
-                        </div>
+                            {category}
+                        </button>
                     ))}
+                </div>
+
+                <div style={styles.grid}>
+                    {menuItems
+                        .filter(item => activeCategory === 'All' || item.category === activeCategory)
+                        .map((item) => (
+                            <div 
+                                key={item.id} 
+                                style={styles.card} 
+                                onClick={() => addToCart(item)}
+                                onMouseOver={(e) => (e.currentTarget.style.borderColor = '#27ae60')}
+                                onMouseOut={(e) => (e.currentTarget.style.borderColor = '#e0e0e0')}
+                            >
+                                <span style={styles.categoryTag}>{item.category}</span>
+                                <h2 style={styles.itemName}>{item.name}</h2>
+                                <p style={styles.itemPrice}>₹{item.price.toFixed(2)}</p>
+                            </div>
+                        ))}
                 </div>
             </div>
 
@@ -149,6 +172,24 @@ const styles = {
     subtitle: {
         color: '#7f8c8d',
         fontSize: '1.1rem',
+    },
+    categoryFilter: {
+        display: 'flex',
+        gap: '10px',
+        marginBottom: '20px',
+    },
+    filterButton: {
+        padding: '8px 16px',
+        backgroundColor: '#ffffff',
+        border: '1px solid #e0e0e0',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease-in-out',
+    },
+    'filterButton.active': {
+        backgroundColor: '#27ae60',
+        color: '#ffffff',
+        border: '1px solid #27ae60',
     },
     grid: {
         display: 'grid',
