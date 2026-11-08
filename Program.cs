@@ -82,12 +82,12 @@ try
             .Include(o => o.Table)
             .ToListAsync());
 	
-    app.MapPost("/api/orders", async (List<int> itemIds, AppDbContext db) =>
+    app.MapPost("/api/orders", async (OrderRequest orderRequest, AppDbContext db) =>
     {
-        var items = await db.MenuItems.Where(m => itemIds.Contains(m.Id)).ToListAsync();
+        var items = await db.MenuItems.Where(m => orderRequest.Items.Contains(m.Id)).ToListAsync();
         var order = new KitchenOrder 
         { 
-            TableId = 1, 
+            TableId = orderRequest.Table, 
             Status = "Pending", 
             MenuItems = items 
         };
@@ -138,4 +138,10 @@ finally
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+}
+
+public class OrderRequest
+{
+    public int Table { get; set; }
+    public List<int> Items { get; set; }
 }

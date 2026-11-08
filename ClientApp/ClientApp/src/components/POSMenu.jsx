@@ -50,7 +50,7 @@ const POSMenu = () => {
             const response = await fetch("http://localhost:5197/api/orders", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ table: selectedTable, items: itemIds })
+                body: JSON.stringify({ table: parseInt(selectedTable), items: itemIds })
             });
 
             if (response.ok) {
