@@ -7,7 +7,7 @@ const POSMenu = () => {
     const [selectedTable, setSelectedTable] = useState('');
 
     useEffect(() => {
-        fetch('http://localhost:5197/api/menuitems')
+        fetch('/api/menuitems')
             .then(response => response.json())
             .then(data => {
                 setMenuItems(data);
@@ -47,7 +47,7 @@ const POSMenu = () => {
         });
 
         try {
-            const response = await fetch("http://localhost:5197/api/orders", {
+            const response = await fetch("/api/orders", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ table: parseInt(selectedTable), items: itemIds })
