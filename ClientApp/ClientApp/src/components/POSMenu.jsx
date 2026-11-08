@@ -58,7 +58,9 @@ const POSMenu = () => {
                 setCart([]); // Clear the cart
                 setSelectedTable(''); // Reset selected table
             } else {
-                alert("Failed to place order.");
+                const errorData = await response.json();
+                console.error('Order placement failed:', errorData);
+                alert(`Failed to place order: ${errorData.message || 'Unknown error'}`);
             }
         } catch (error) {
             console.error(error);
