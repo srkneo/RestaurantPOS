@@ -22,7 +22,7 @@ try
 
     // Add services to the container.
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlite("Data Source=restaurant.db"));
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
     builder.Services.AddCors(options =>
     {
@@ -99,22 +99,17 @@ try
         return Results.Ok(orders);
     });
 
-    app.MapPost("/api/orders", async (OrderRequest orderRequest, IOrderService orderService, AppDbContext db) =>
+    app.MapPost("/api/orders", async (OrderRequest orderRequest, IOrderService orderService, ILogger<OrderService> logger) =>
     {
-        var items = await db.MenuItems.Where(m => orderRequest.Items.Contains(m.Id)).ToListAsync();
-        var order = new KitchenOrder
-        {
-            TableId = orderRequest.Table,
-            Status = "Pending",
-            MenuItems = items
-        };
-        await orderService.CreateOrder(order);
-        return Results.Ok(new { message = "Order placed successfully" });
+        var order = await orderService.CreateOrder(orderRequest);
+        logger.Info("Order placed: OrderId={OrderId}, TokenNumber={TokenNumber}, TableId={TableId}", order.Id, order.TokenNumber, order.TableId);
+        return Results.Ok(new { message = "Order placed", orderId = order.Id, tokenNumber = order.TokenNumber });
     });
 
-    app.MapPut("/api/orders/{id}/complete", async (int id, IOrderService orderService) =>
+    app.MapPut("/api/orders/{id}/status", async (int id, StatusUpdateRequest statusRequest, IOrderService orderService, ILogger<OrderService> logger) =>
     {
-        await orderService.CompleteOrder(id);
+        await orderService.UpdateOrderStatus(id, statusRequest.Status);
+        logger.Info("Order status updated: OrderId={OrderId}, NewStatus={NewStatus}", id, statusRequest.Status);
         return Results.Ok();
     });
 
@@ -154,4 +149,9 @@ public class OrderRequest
 {
     public int Table { get; set; }
     public List<int> Items { get; set; }
+}
+
+public class StatusUpdateRequest
+{
+    public string Status { get; set; }
 }

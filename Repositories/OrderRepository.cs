@@ -3,6 +3,7 @@ using POSSystem.Data;
 using POSSystem.Interfaces;
 using POSSystem.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace POSSystem.Repositories
@@ -36,6 +37,16 @@ namespace POSSystem.Repositories
             if (order != null)
             {
                 order.Status = "Completed";
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task UpdateOrderStatus(int id, string status)
+        {
+            var order = await _context.KitchenOrders.FindAsync(id);
+            if (order != null)
+            {
+                order.Status = status;
                 await _context.SaveChangesAsync();
             }
         }

@@ -7,7 +7,8 @@ namespace POSSystem.Interfaces
     public interface IOrderService
     {
         Task<List<KitchenOrder>> GetOrders();
-        Task CreateOrder(KitchenOrder order);
+        Task<KitchenOrder> CreateOrder(OrderRequest orderRequest);
         Task CompleteOrder(int id);
+        Task UpdateOrderStatus(int id, string status);
     }
 }

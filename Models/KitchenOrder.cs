@@ -16,6 +16,10 @@ namespace POSSystem.Models
 
         public List<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
 
-        public string Status { get; set; } = "Pending";
+        public string Status { get; set; } = "Received";
+
+        public int TokenNumber { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
