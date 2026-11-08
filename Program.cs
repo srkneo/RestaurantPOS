@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using POSSystem.Data;
+using POSSystem.Interfaces;
 using POSSystem.Models;
+using POSSystem.Repositories;
+using POSSystem.Services;
 using NLog;
 using NLog.Web;
 using System.IO;
@@ -24,6 +27,9 @@ try
     }); 
 
     builder.Services.AddOpenApi();
+
+    builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+    builder.Services.AddScoped<IOrderService, OrderService>();
 
     var app = builder.Build();
 
@@ -75,14 +81,11 @@ try
 
     app.MapGet("/api/menuitems", async (AppDbContext db) =>
         await db.MenuItems.ToListAsync());
-	
-    app.MapGet("/api/orders", async (AppDbContext db) =>
-        await db.KitchenOrders
-            .Include(o => o.MenuItems)
-            .Include(o => o.Table)
-            .ToListAsync());
-	
-    app.MapPost("/api/orders", async (OrderRequest orderRequest, AppDbContext db) =>
+
+    app.MapGet("/api/orders", async (IOrderService orderService) =>
+        await orderService.GetOrders());
+
+    app.MapPost("/api/orders", async (OrderRequest orderRequest, IOrderService orderService, AppDbContext db) =>
     {
         var items = await db.MenuItems.Where(m => orderRequest.Items.Contains(m.Id)).ToListAsync();
         var order = new KitchenOrder 
@@ -91,21 +94,14 @@ try
             Status = "Pending", 
             MenuItems = items 
         };
-        db.KitchenOrders.Add(order);
-        await db.SaveChangesAsync();
+        await orderService.CreateOrder(order);
         return Results.Ok(new { message = "Order placed successfully" });
     });
 
-    app.MapPut("/api/orders/{id}/complete", async (int id, AppDbContext db) =>
+    app.MapPut("/api/orders/{id}/complete", async (int id, IOrderService orderService) =>
     {
-        var order = await db.KitchenOrders.FindAsync(id);
-        if (order != null)
-        {
-            order.Status = "Completed";
-            await db.SaveChangesAsync();
-            return Results.Ok();
-        }
-        return Results.NotFound();
+        await orderService.CompleteOrder(id);
+        return Results.Ok();
     });
 
     app.MapGet("/weatherforecast", () =>
