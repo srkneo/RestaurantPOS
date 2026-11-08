@@ -3,6 +3,7 @@ using POSSystem.Data;
 using POSSystem.Models;
 using NLog;
 using NLog.Web;
+using System.IO;
 
 var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
 
@@ -25,6 +26,13 @@ try
     builder.Services.AddOpenApi();
 
     var app = builder.Build();
+
+    // Ensure the logs directory exists
+    var logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "logs");
+    if (!Directory.Exists(logDirectory))
+    {
+        Directory.CreateDirectory(logDirectory);
+    }
 
     using (var scope = app.Services.CreateScope())
     {
