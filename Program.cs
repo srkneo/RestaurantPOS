@@ -8,11 +8,17 @@ using NLog;
 using NLog.Web;
 using System.IO;
 
-var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+// Setup NLog for Dependency injection
+var logger = NLog.LogManager.Setup().LoadConfigurationFromFile("nlog.config").GetCurrentClassLogger();
+logger.Info("Starting the Restaurant POS server...");
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+
+    // NLog: Setup NLog for Dependency injection
+    builder.Logging.ClearProviders();
+    builder.Host.UseNLog();
 
     // Add services to the container.
     builder.Services.AddDbContext<AppDbContext>(options =>
@@ -24,7 +30,7 @@ try
             policy.WithOrigins("http://localhost:5173")
                    .AllowAnyMethod()
                    .AllowAnyHeader());
-    }); 
+    });
 
     builder.Services.AddOpenApi();
 
@@ -96,11 +102,11 @@ try
     app.MapPost("/api/orders", async (OrderRequest orderRequest, IOrderService orderService, AppDbContext db) =>
     {
         var items = await db.MenuItems.Where(m => orderRequest.Items.Contains(m.Id)).ToListAsync();
-        var order = new KitchenOrder 
-        { 
-            TableId = orderRequest.Table, 
-            Status = "Pending", 
-            MenuItems = items 
+        var order = new KitchenOrder
+        {
+            TableId = orderRequest.Table,
+            Status = "Pending",
+            MenuItems = items
         };
         await orderService.CreateOrder(order);
         return Results.Ok(new { message = "Order placed successfully" });
@@ -136,7 +142,7 @@ catch (Exception exception)
 finally
 {
     // Ensure to flush and stop internal timers/threads before application-exit (Avoid segmentation fault on Linux)
-    LogManager.Shutdown();
+    NLog.LogManager.Shutdown();
 }
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
