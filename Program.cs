@@ -13,11 +13,36 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
         policy.WithOrigins("http://localhost:5173")
                .AllowAnyMethod()
-               .AllowAnyHeader()));
+               .AllowAnyHeader());
+}); 
 
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+
+    // Seed Table 1 so the KitchenOrder has a valid foreign key
+    if (!db.RestaurantTables.Any())
+    {
+        db.RestaurantTables.Add(new RestaurantTable { TableNumber = "1", QRCodeString = "table-1-qr" });
+        db.SaveChanges();
+    }
+
+    if (!db.MenuItems.Any())
+    {
+        db.MenuItems.AddRange(
+            new MenuItem { Name = "Classic Burger", Price = 9.99m, Category = "Mains" },
+            new MenuItem { Name = "Fries", Price = 3.99m, Category = "Sides" },
+            new MenuItem { Name = "Coke", Price = 1.99m, Category = "Beverages" },
+            new MenuItem { Name = "Caesar Salad", Price = 7.99m, Category = "Mains" }
+        );
+        db.SaveChanges();
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -36,6 +61,38 @@ var summaries = new[]
 
 app.MapGet("/api/menuitems", async (AppDbContext db) =>
     await db.MenuItems.ToListAsync());
+	
+app.MapGet("/api/orders", async (AppDbContext db) =>
+    await db.KitchenOrders
+        .Include(o => o.MenuItems)
+        .Include(o => o.Table)
+        .ToListAsync());
+	
+app.MapPost("/api/orders", async (List<int> itemIds, AppDbContext db) =>
+{
+    var items = await db.MenuItems.Where(m => itemIds.Contains(m.Id)).ToListAsync();
+    var order = new KitchenOrder 
+    { 
+        TableId = 1, 
+        Status = "Pending", 
+        MenuItems = items 
+    };
+    db.KitchenOrders.Add(order);
+    await db.SaveChangesAsync();
+    return Results.Ok(new { message = "Order placed successfully" });
+});
+
+app.MapPut("/api/orders/{id}/complete", async (int id, AppDbContext db) =>
+{
+    var order = await db.KitchenOrders.FindAsync(id);
+    if (order != null)
+    {
+        order.Status = "Completed";
+        await db.SaveChangesAsync();
+        return Results.Ok();
+    }
+    return Results.NotFound();
+});
 
 app.MapGet("/weatherforecast", () =>
 {
