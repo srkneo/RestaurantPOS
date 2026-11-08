@@ -1,6 +1,7 @@
 import './App.css';
 import POSMenu from './components/POSMenu';
 import KitchenDisplay from './components/KitchenDisplay';
+import OrderHistory from './components/OrderHistory';
 import React, { useState } from 'react';
 
 function App() {
@@ -14,6 +15,10 @@ function App() {
     setCurrentView('admin');
   };
 
+  const handleOrderHistoryClick = () => {
+    setCurrentView('orderHistory');
+  };
+
   return (
     <div>
       <div style={styles.navBar}>
@@ -23,9 +28,13 @@ function App() {
         <button style={styles.navButton} onClick={handleKitchenAdminClick}>
           Kitchen Admin
         </button>
+        <button style={styles.navButton} onClick={handleOrderHistoryClick}>
+          Order History
+        </button>
       </div>
       {currentView === 'pos' && <POSMenu />}
       {currentView === 'admin' && <KitchenDisplay />}
+      {currentView === 'orderHistory' && <OrderHistory />}
     </div>
   );
 }
