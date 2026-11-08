@@ -30,6 +30,8 @@ try
 
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
     builder.Services.AddScoped<IOrderService, OrderService>();
+    builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
+    builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 
     var app = builder.Build();
 
@@ -79,8 +81,8 @@ try
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
     };
 
-    app.MapGet("/api/menuitems", async (AppDbContext db) =>
-        await db.MenuItems.ToListAsync());
+    app.MapGet("/api/menuitems", async (IMenuItemService menuItemService) =>
+        await menuItemService.GetMenuItems());
 
     app.MapGet("/api/orders", async (IOrderService orderService) =>
         await orderService.GetOrders());
