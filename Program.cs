@@ -82,10 +82,16 @@ try
     };
 
     app.MapGet("/api/menuitems", async (IMenuItemService menuItemService) =>
-        await menuItemService.GetMenuItems());
+    {
+        var menuItems = await menuItemService.GetMenuItems();
+        return Results.Ok(menuItems);
+    });
 
     app.MapGet("/api/orders", async (IOrderService orderService) =>
-        await orderService.GetOrders());
+    {
+        var orders = await orderService.GetOrders();
+        return Results.Ok(orders);
+    });
 
     app.MapPost("/api/orders", async (OrderRequest orderRequest, IOrderService orderService, AppDbContext db) =>
     {
