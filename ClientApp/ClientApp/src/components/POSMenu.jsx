@@ -59,7 +59,8 @@ const POSMenu = () => {
             });
 
             if (response.ok) {
-                alert("Order placed successfully!");
+                const responseData = await response.json(); // Parse response as JSON
+                alert("Order placed successfully! Token Number: " + responseData.tokenNumber); // Update success alert
                 setCart([]); // Clear the cart
                 setSelectedTable(''); // Reset selected table
             } else {

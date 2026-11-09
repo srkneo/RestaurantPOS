@@ -29,10 +29,12 @@ try
         options.AddPolicy("AllowFrontend", policy =>
             policy.WithOrigins("http://localhost:5173")
                    .AllowAnyMethod()
-                   .AllowAnyHeader());
+                   .AllowAnyHeader()
+                   .AllowCredentials()); // AllowCredentials added for SignalR
     });
 
     builder.Services.AddOpenApi();
+    builder.Services.AddSignalR(); // Add SignalR
 
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
     builder.Services.AddScoped<IOrderService, OrderService>();
@@ -126,6 +128,8 @@ try
         return forecast;
     })
     .WithName("GetWeatherForecast");
+
+    app.MapHub<OrderHub>("/orderHub"); // Map SignalR Hub
 
     app.Run();
 }

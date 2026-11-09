@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using POSSystem.Data;
+using POSSystem.Hubs;
 using POSSystem.Interfaces;
 using POSSystem.Models;
 using System.Collections.Generic;
@@ -12,11 +13,13 @@ namespace POSSystem.Services
     {
         private readonly IOrderRepository _orderRepository;
         private readonly AppDbContext _context;
+        private readonly IHubContext<OrderHub> _hubContext; // Injected HubContext
 
-        public OrderService(IOrderRepository orderRepository, AppDbContext context)
+        public OrderService(IOrderRepository orderRepository, AppDbContext context, IHubContext<OrderHub> hubContext)
         {
             _orderRepository = orderRepository;
             _context = context;
+            _hubContext = hubContext; // Assign HubContext
         }
 
         public async Task<List<KitchenOrder>> GetOrders()
@@ -41,6 +44,9 @@ namespace POSSystem.Services
             order.TokenNumber = existingOrdersToday.Any() ? existingOrdersToday.Max(o => o.TokenNumber) + 1 : 101;
 
             await _orderRepository.CreateOrder(order);
+
+            await _hubContext.Clients.All.SendAsync("ReceiveNewOrder", order); // Send new order to all clients
+
             return order;
         }
 
