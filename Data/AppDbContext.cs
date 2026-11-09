@@ -17,13 +17,7 @@ namespace POSSystem.Data
         public DbSet<RestaurantTable> RestaurantTables { get; set; }
         public DbSet<KitchenOrder> KitchenOrders { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlite("Data Source=pos_system.db");
-            }
-        }
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -102,14 +102,14 @@ try
     app.MapPost("/api/orders", async (OrderRequest orderRequest, IOrderService orderService, ILogger<OrderService> logger) =>
     {
         var order = await orderService.CreateOrder(orderRequest);
-        logger.Info("Order placed: OrderId={OrderId}, TokenNumber={TokenNumber}, TableId={TableId}", order.Id, order.TokenNumber, order.TableId);
+        logger.LogInformation("Order placed: OrderId={OrderId}, TokenNumber={TokenNumber}, TableId={TableId}", order.Id, order.TokenNumber, order.TableId);
         return Results.Ok(new { message = "Order placed", orderId = order.Id, tokenNumber = order.TokenNumber });
     });
 
     app.MapPut("/api/orders/{id}/status", async (int id, StatusUpdateRequest statusRequest, IOrderService orderService, ILogger<OrderService> logger) =>
     {
         await orderService.UpdateOrderStatus(id, statusRequest.Status);
-        logger.Info("Order status updated: OrderId={OrderId}, NewStatus={NewStatus}", id, statusRequest.Status);
+        logger.LogInformation("Order status updated: OrderId={OrderId}, NewStatus={NewStatus}", id, statusRequest.Status);
         return Results.Ok();
     });
 
