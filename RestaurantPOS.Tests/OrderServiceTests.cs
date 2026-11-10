@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using NLog;
 using POSSystem.Data;
 using POSSystem.Hubs;
 using POSSystem.Interfaces;
@@ -22,12 +21,15 @@ namespace RestaurantPOS.Tests
         {
             // Arrange
             var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName: "TestDatabase")
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
             var mockOrderRepository = new Mock<IOrderRepository>();
             var mockHubContext = new Mock<IHubContext<OrderHub>>();
-            var mockLogger = new Mock<ILogger<OrderService>>();
+            var mockClients = new Mock<IHubClients>();
+            var mockClientProxy = new Mock<IClientProxy>();
+            mockClients.Setup(c => c.All).Returns(mockClientProxy.Object);
+            mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
 
             using (var context = new AppDbContext(options))
             {
@@ -53,7 +55,7 @@ namespace RestaurantPOS.Tests
 
                 // Assert
                 Assert.Equal(101, order.TokenNumber);
-                mockHubContext.Verify(hub => hub.Clients.All.SendAsync("ReceiveNewOrder", It.IsAny<KitchenOrder>()), Times.Once);
+                mockClientProxy.Verify(c => c.SendCoreAsync("ReceiveNewOrder", It.IsAny<object[]>(), default), Times.Once);
             }
         }
 
@@ -62,12 +64,15 @@ namespace RestaurantPOS.Tests
         {
             // Arrange
             var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName: "TestDatabase")
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
             var mockOrderRepository = new Mock<IOrderRepository>();
             var mockHubContext = new Mock<IHubContext<OrderHub>>();
-            var mockLogger = new Mock<ILogger<OrderService>>();
+            var mockClients = new Mock<IHubClients>();
+            var mockClientProxy = new Mock<IClientProxy>();
+            mockClients.Setup(c => c.All).Returns(mockClientProxy.Object);
+            mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
 
             using (var context = new AppDbContext(options))
             {
@@ -83,7 +88,7 @@ namespace RestaurantPOS.Tests
                 await orderService.UpdateOrderStatus(1, "Ready");
 
                 // Assert
-                mockHubContext.Verify(hub => hub.Clients.All.SendAsync("OrderStatusChanged", It.IsAny<object[]>()), Times.Once);
+                mockClientProxy.Verify(c => c.SendCoreAsync("OrderStatusChanged", It.IsAny<object[]>(), default), Times.Once);
             }
         }
     }
