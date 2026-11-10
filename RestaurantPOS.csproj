@@ -20,4 +20,11 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="RestaurantPOS.Tests\**" />
+    <Content Remove="RestaurantPOS.Tests\**" />
+    <EmbeddedResource Remove="RestaurantPOS.Tests\**" />
+    <None Remove="RestaurantPOS.Tests\**" />
+  </ItemGroup>
+
 </Project>
