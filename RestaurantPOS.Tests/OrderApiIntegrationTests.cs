@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Newtonsoft.Json;
 using POSSystem.Data;
 using POSSystem.Models;
@@ -29,6 +31,7 @@ namespace RestaurantPOS.Tests
                 builder.ConfigureServices(services =>
                 {
                     services.RemoveAll(typeof(DbContextOptions<AppDbContext>));
+                    services.RemoveAll(typeof(IDbContextOptionsConfiguration<AppDbContext>));
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseInMemoryDatabase("TestDatabase"));
                 });
@@ -52,7 +55,7 @@ namespace RestaurantPOS.Tests
             var responseOrder = JsonConvert.DeserializeObject<dynamic>(responseContent);
 
             Assert.Equal(200, (int)response.StatusCode);
-            Assert.Equal(101, responseOrder.tokenNumber);
+            Assert.Equal(101, (int)responseOrder.tokenNumber);
         }
     }
 }
