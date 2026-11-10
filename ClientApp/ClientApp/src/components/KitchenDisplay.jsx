@@ -17,17 +17,15 @@ const KitchenDisplay = () => {
         return () => clearInterval(interval);
     }, []);
 	
-	const completeOrder = async (id) => {
+	const markReady = async (id) => {
     try {
-        const response = await fetch(`/api/orders/${id}/complete`, {
-            method: 'PUT'
-        });
+        const response = await fetch(`/api/orders/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'Ready' }) });
         if (response.ok) {
             // Remove the completed order from the screen instantly
             setOrders(prev => prev.filter(o => o.id !== id));
         }
     } catch (err) {
-        console.error("Error completing order:", err);
+        console.error("Error marking order as ready:", err);
     }
 	};
 
@@ -45,9 +43,9 @@ const KitchenDisplay = () => {
 							<div>
 								<span style={styles.tableBadge}>Table {order.table?.tableNumber ?? order.tableId}</span>
 								<button 
-									onClick={() => completeOrder(order.id)}
+									onClick={() => markReady(order.id)}
 									style={{marginLeft: '15px', padding: '8px 15px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold'}}>
-									Complete
+									Mark Ready
 								</button>
 							</div>
 						</div>
