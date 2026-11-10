@@ -160,3 +160,5 @@ public class StatusUpdateRequest
 {
     public string Status { get; set; }
 }
+
+public partial class Program { }
