@@ -10,6 +10,8 @@ using POSSystem.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 
 namespace RestaurantPOS.Tests
 {
