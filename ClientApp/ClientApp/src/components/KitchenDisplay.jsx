@@ -24,6 +24,12 @@ const KitchenDisplay = () => {
             setOrders(prev => prev.some(o => o.id === order.id) ? prev : [...prev, order]);
         });
 
+        connection.on('OrderStatusChanged', (data) => {
+            if (data.status !== 'Received') {
+                setOrders(prev => prev.filter(o => o.id !== data.orderId));
+            }
+        });
+
         connection.onreconnected(() => {
             fetchOrders();
         });
