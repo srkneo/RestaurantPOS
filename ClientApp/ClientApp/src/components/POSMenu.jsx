@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import * as signalR from '@microsoft/signalr';
 
 const POSMenu = () => {
     const [menuItems, setMenuItems] = useState([]);
     const [cart, setCart] = useState([]);
     const [activeCategory, setActiveCategory] = useState('All');
     const [selectedTable, setSelectedTable] = useState('');
+    const [readyMessage, setReadyMessage] = useState('');
 
     useEffect(() => {
         fetch('/api/menuitems')
@@ -20,6 +22,26 @@ const POSMenu = () => {
             .catch(error => {
                 console.error('Error fetching menu items:', error);
             });
+    }, []);
+
+    useEffect(() => {
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl('/orderHub')
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on('OrderStatusChanged', (data) => {
+            if (data.status === 'Ready') {
+                setReadyMessage(`Order ${data.tokenNumber} is Ready`);
+                setTimeout(() => setReadyMessage(''), 5000);
+            }
+        });
+
+        connection.start().catch(err => console.error(err));
+
+        return () => {
+            connection.stop();
+        };
     }, []);
 
     const addToCart = (item) => {
@@ -174,6 +196,7 @@ const POSMenu = () => {
                     <button style={styles.checkoutBtn} onClick={handlePlaceOrder}>Place Order</button>
                 </div>
             </div>
+            {readyMessage && <div style={styles.readyMessage}>{readyMessage}</div>}
         </div>
     );
 };
@@ -352,6 +375,17 @@ const styles = {
         fontWeight: 'bold',
         cursor: 'pointer',
         transition: 'background 0.2s',
+    },
+    readyMessage: {
+        position: 'fixed',
+        bottom: '20px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        backgroundColor: '#27ae60',
+        color: 'white',
+        padding: '10px 20px',
+        borderRadius: '5px',
+        zIndex: 1000,
     },
 };
 
