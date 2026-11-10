@@ -59,6 +59,12 @@ namespace POSSystem.Services
         public async Task UpdateOrderStatus(int id, string status)
         {
             await _orderRepository.UpdateOrderStatus(id, status);
+
+            var order = await _context.KitchenOrders.FindAsync(id);
+            if (order != null)
+            {
+                await _hubContext.Clients.All.SendAsync("OrderStatusChanged", new { orderId = order.Id, tokenNumber = order.TokenNumber, status = status });
+            }
         }
     }
 }
