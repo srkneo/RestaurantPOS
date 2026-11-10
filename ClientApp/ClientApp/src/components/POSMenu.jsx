@@ -106,6 +106,7 @@ const POSMenu = () => {
 
     return (
         <div style={styles.container}>
+            {readyMessage && <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '14px', backgroundColor: '#27ae60', color: 'white', textAlign: 'center', fontSize: '1.3rem', fontWeight: 'bold', zIndex: 1000 }}>{readyMessage}</div>}
             {/* Main Menu Section */}
             <div style={styles.mainSection}>
                 <header style={styles.header}>
@@ -196,7 +197,6 @@ const POSMenu = () => {
                     <button style={styles.checkoutBtn} onClick={handlePlaceOrder}>Place Order</button>
                 </div>
             </div>
-            {readyMessage && <div style={styles.readyMessage}>{readyMessage}</div>}
         </div>
     );
 };
@@ -375,17 +375,6 @@ const styles = {
         fontWeight: 'bold',
         cursor: 'pointer',
         transition: 'background 0.2s',
-    },
-    readyMessage: {
-        position: 'fixed',
-        bottom: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        backgroundColor: '#27ae60',
-        color: 'white',
-        padding: '10px 20px',
-        borderRadius: '5px',
-        zIndex: 1000,
     },
 };
 
