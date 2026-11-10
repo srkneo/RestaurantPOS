@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using POSSystem.Data;
+using POSSystem.Hubs; // Added missing using directive
 using POSSystem.Interfaces;
 using POSSystem.Models;
 using POSSystem.Repositories;
