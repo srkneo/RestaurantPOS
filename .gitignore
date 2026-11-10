@@ -481,3 +481,8 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 .aider*
+
+restaurant.db*
+logs/
+.aider*
+appsettings.Development.json
