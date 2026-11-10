@@ -56,21 +56,13 @@ try
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         db.Database.EnsureCreated();
 
-        // Seed Table 1 so the KitchenOrder has a valid foreign key
+        // Seed Table 1 to 10 so the KitchenOrder has a valid foreign key
         if (!db.RestaurantTables.Any())
         {
-            db.RestaurantTables.Add(new RestaurantTable { TableNumber = "1", QRCodeString = "table-1-qr" });
-            db.SaveChanges();
-        }
-
-        if (!db.MenuItems.Any())
-        {
-            db.MenuItems.AddRange(
-                new MenuItem { Name = "Classic Burger", Price = 9.99m, Category = "Mains" },
-                new MenuItem { Name = "Fries", Price = 3.99m, Category = "Sides" },
-                new MenuItem { Name = "Coke", Price = 1.99m, Category = "Beverages" },
-                new MenuItem { Name = "Caesar Salad", Price = 7.99m, Category = "Mains" }
-            );
+            for (var i = 1; i <= 10; i++)
+            {
+                db.RestaurantTables.Add(new RestaurantTable { TableNumber = i.ToString(), QRCodeString = $"table-{i}-qr" });
+            }
             db.SaveChanges();
         }
     }

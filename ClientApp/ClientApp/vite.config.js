@@ -1,14 +1,19 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5197', // This must match your backend port
+        target: 'https://localhost:7266',
         changeOrigin: true,
+        secure: false
+      },
+      '/orderHub': {
+        target: 'https://localhost:7266',
+        changeOrigin: true,
+        ws: true,
         secure: false
       }
     }
