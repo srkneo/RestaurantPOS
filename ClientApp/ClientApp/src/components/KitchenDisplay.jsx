@@ -6,9 +6,9 @@ const KitchenDisplay = () => {
     // Fetch orders every 5 seconds to keep the kitchen updated
     useEffect(() => {
         const fetchOrders = () => {
-            fetch('http://localhost:5197/api/orders')
+            fetch('/api/orders')
                 .then(res => res.json())
-                .then(data => setOrders(data))
+                .then(data => setOrders(data.filter(o => o.status === "Received")))
                 .catch(err => console.error("Error fetching orders:", err));
         };
         
@@ -19,7 +19,7 @@ const KitchenDisplay = () => {
 	
 	const completeOrder = async (id) => {
     try {
-        const response = await fetch(`http://localhost:5197/api/orders/${id}/complete`, {
+        const response = await fetch(`/api/orders/${id}/complete`, {
             method: 'PUT'
         });
         if (response.ok) {
@@ -41,9 +41,9 @@ const KitchenDisplay = () => {
                     orders.map(order => (
                         <div key={order.id} style={styles.card}>
                             <div style={styles.cardHeader}>
-							<h3 style={styles.orderId}>Order #{order.id}</h3>
+							<h3 style={styles.orderId}>Token #{order.tokenNumber}</h3>
 							<div>
-								<span style={styles.tableBadge}>Table {order.table?.tableNumber || 'N/A'}</span>
+								<span style={styles.tableBadge}>Table {order.table?.tableNumber ?? order.tableId}</span>
 								<button 
 									onClick={() => completeOrder(order.id)}
 									style={{marginLeft: '15px', padding: '8px 15px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold'}}>
