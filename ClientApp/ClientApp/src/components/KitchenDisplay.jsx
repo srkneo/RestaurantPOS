@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import * as signalR from '@microsoft/signalr';
 
 const KitchenDisplay = () => {
     const [orders, setOrders] = useState([]);
@@ -11,23 +12,40 @@ const KitchenDisplay = () => {
                 .then(data => setOrders(data.filter(o => o.status === "Received")))
                 .catch(err => console.error("Error fetching orders:", err));
         };
-        
+
         fetchOrders(); // Initial fetch
-        const interval = setInterval(fetchOrders, 5000);
-        return () => clearInterval(interval);
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl('/orderHub')
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on('ReceiveNewOrder', (order) => {
+            setOrders(prev => prev.some(o => o.id === order.id) ? prev : [...prev, order]);
+        });
+
+        connection.onreconnected(() => {
+            fetchOrders();
+        });
+
+        connection.start().catch(err => console.error(err));
+
+        return () => {
+            connection.stop();
+        };
     }, []);
-	
-	const markReady = async (id) => {
-    try {
-        const response = await fetch(`/api/orders/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'Ready' }) });
-        if (response.ok) {
-            // Remove the completed order from the screen instantly
-            setOrders(prev => prev.filter(o => o.id !== id));
+
+    const markReady = async (id) => {
+        try {
+            const response = await fetch(`/api/orders/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'Ready' }) });
+            if (response.ok) {
+                // Remove the completed order from the screen instantly
+                setOrders(prev => prev.filter(o => o.id !== id));
+            }
+        } catch (err) {
+            console.error("Error marking order as ready:", err);
         }
-    } catch (err) {
-        console.error("Error marking order as ready:", err);
-    }
-	};
+    };
 
     return (
         <div style={styles.container}>
@@ -39,16 +57,16 @@ const KitchenDisplay = () => {
                     orders.map(order => (
                         <div key={order.id} style={styles.card}>
                             <div style={styles.cardHeader}>
-							<h3 style={styles.orderId}>Token #{order.tokenNumber}</h3>
-							<div>
-								<span style={styles.tableBadge}>Table {order.table?.tableNumber ?? order.tableId}</span>
-								<button 
-									onClick={() => markReady(order.id)}
-									style={{marginLeft: '15px', padding: '8px 15px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold'}}>
-									Mark Ready
-								</button>
-							</div>
-						</div>
+                                <h3 style={styles.orderId}>Token #{order.tokenNumber}</h3>
+                                <div>
+                                    <span style={styles.tableBadge}>Table {order.table?.tableNumber ?? order.tableId}</span>
+                                    <button 
+                                        onClick={() => markReady(order.id)}
+                                        style={{marginLeft: '15px', padding: '8px 15px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold'}}>
+                                        Mark Ready
+                                    </button>
+                                </div>
+                            </div>
                             <p style={styles.status}>Status: <strong>{order.status}</strong></p>
                             <ul style={styles.itemList}>
                                 {order.menuItems && order.menuItems.map((item, index) => (
