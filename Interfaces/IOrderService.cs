@@ -9,6 +9,6 @@ namespace POSSystem.Interfaces
         Task<List<KitchenOrder>> GetOrders();
         Task<KitchenOrder> CreateOrder(OrderRequest orderRequest);
         Task CompleteOrder(int id);
-        Task UpdateOrderStatus(int id, string status);
+        Task UpdateOrderStatus(int id, OrderStatus status);
     }
 }
