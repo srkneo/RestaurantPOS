@@ -36,12 +36,12 @@ namespace POSSystem.Repositories
             var order = await _context.KitchenOrders.FindAsync(id);
             if (order != null)
             {
-                order.Status = "Completed";
+                order.Status = OrderStatus.Completed;
                 await _context.SaveChangesAsync();
             }
         }
 
-        public async Task UpdateOrderStatus(int id, string status)
+        public async Task UpdateOrderStatus(int id, OrderStatus status)
         {
             var order = await _context.KitchenOrders.FindAsync(id);
             if (order != null)
