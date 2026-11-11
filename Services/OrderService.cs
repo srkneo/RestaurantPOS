@@ -40,12 +40,16 @@ namespace POSSystem.Services
 
         public async Task<KitchenOrder> CreateOrder(OrderRequest orderRequest)
         {
-            var items = await _context.MenuItems.Where(m => orderRequest.Items.Contains(m.Id)).ToListAsync();
+            var ids = orderRequest.Items.Select(i => i.MenuItemId).Distinct().ToList();
+            var menu = await _context.MenuItems.Where(m => ids.Contains(m.Id)).ToDictionaryAsync(m => m.Id);
+            var orderItems = orderRequest.Items.Where(i => i.Quantity > 0 && menu.ContainsKey(i.MenuItemId)).Select(i => new OrderItem { MenuItemId = i.MenuItemId, ItemName = menu[i.MenuItemId].Name, UnitPrice = Convert.ToDecimal(menu[i.MenuItemId].Price), Quantity = i.Quantity }).ToList();
+            if (!orderItems.Any()) throw new ArgumentException("Order must contain at least one valid item");
+
             var order = new KitchenOrder
             {
                 TableId = orderRequest.Table,
                 Status = OrderStatus.Received,
-                MenuItems = items
+                Items = orderItems
             };
 
             var existingOrdersToday = await _context.KitchenOrders
