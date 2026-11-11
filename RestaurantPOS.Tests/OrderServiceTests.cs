@@ -6,6 +6,7 @@ using POSSystem.Hubs;
 using POSSystem.Interfaces;
 using POSSystem.Models;
 using POSSystem.Services;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
@@ -76,7 +77,7 @@ namespace RestaurantPOS.Tests
 
             using (var context = new AppDbContext(options))
             {
-                context.KitchenOrders.Add(new KitchenOrder { Id = 1, TokenNumber = 101, Status = "Received" });
+                context.KitchenOrders.Add(new KitchenOrder { Id = 1, TokenNumber = 101, Status = OrderStatus.Received });
                 context.SaveChanges();
             }
 
@@ -85,10 +86,40 @@ namespace RestaurantPOS.Tests
                 var orderService = new OrderService(mockOrderRepository.Object, context, mockHubContext.Object);
 
                 // Act
-                await orderService.UpdateOrderStatus(1, "Ready");
+                await orderService.UpdateOrderStatus(1, OrderStatus.Ready);
 
                 // Assert
                 mockClientProxy.Verify(c => c.SendCoreAsync("OrderStatusChanged", It.IsAny<object[]>(), default), Times.Once);
+            }
+        }
+
+        [Fact]
+        public async Task UpdateOrderStatus_InvalidTransition_Throws()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            var mockOrderRepository = new Mock<IOrderRepository>();
+            var mockHubContext = new Mock<IHubContext<OrderHub>>();
+            var mockClients = new Mock<IHubClients>();
+            var mockClientProxy = new Mock<IClientProxy>();
+            mockClients.Setup(c => c.All).Returns(mockClientProxy.Object);
+            mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
+
+            using (var context = new AppDbContext(options))
+            {
+                context.KitchenOrders.Add(new KitchenOrder { Id = 1, TokenNumber = 101, Status = OrderStatus.Completed });
+                context.SaveChanges();
+            }
+
+            using (var context = new AppDbContext(options))
+            {
+                var orderService = new OrderService(mockOrderRepository.Object, context, mockHubContext.Object);
+
+                // Act & Assert
+                await Assert.ThrowsAsync<InvalidOperationException>(() => orderService.UpdateOrderStatus(1, OrderStatus.Preparing));
             }
         }
     }
