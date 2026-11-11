@@ -4,6 +4,7 @@ using POSSystem.Data;
 using POSSystem.Hubs;
 using POSSystem.Interfaces;
 using POSSystem.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,6 +16,15 @@ namespace POSSystem.Services
         private readonly IOrderRepository _orderRepository;
         private readonly AppDbContext _context;
         private readonly IHubContext<OrderHub> _hubContext; // Injected HubContext
+
+        private static readonly Dictionary<OrderStatus, OrderStatus[]> AllowedTransitions = new()
+        {
+            [OrderStatus.Received] = new[] { OrderStatus.Preparing, OrderStatus.Ready, OrderStatus.Cancelled },
+            [OrderStatus.Preparing] = new[] { OrderStatus.Ready, OrderStatus.Cancelled },
+            [OrderStatus.Ready] = new[] { OrderStatus.Completed },
+            [OrderStatus.Completed] = Array.Empty<OrderStatus>(),
+            [OrderStatus.Cancelled] = Array.Empty<OrderStatus>()
+        };
 
         public OrderService(IOrderRepository orderRepository, AppDbContext context, IHubContext<OrderHub> hubContext)
         {
@@ -34,7 +44,7 @@ namespace POSSystem.Services
             var order = new KitchenOrder
             {
                 TableId = orderRequest.Table,
-                Status = "Received",
+                Status = OrderStatus.Received,
                 MenuItems = items
             };
 
@@ -56,15 +66,14 @@ namespace POSSystem.Services
             await _orderRepository.CompleteOrder(id);
         }
 
-        public async Task UpdateOrderStatus(int id, string status)
+        public async Task UpdateOrderStatus(int id, OrderStatus status)
         {
-            await _orderRepository.UpdateOrderStatus(id, status);
-
             var order = await _context.KitchenOrders.FindAsync(id);
-            if (order != null)
-            {
-                await _hubContext.Clients.All.SendAsync("OrderStatusChanged", new { orderId = order.Id, tokenNumber = order.TokenNumber, status = status });
-            }
+            if (order == null) return;
+            if (!AllowedTransitions[order.Status].Contains(status))
+                throw new InvalidOperationException($"Cannot change status from {order.Status} to {status}");
+            await _orderRepository.UpdateOrderStatus(id, status);
+            await _hubContext.Clients.All.SendAsync("OrderStatusChanged", new { orderId = order.Id, tokenNumber = order.TokenNumber, status = status.ToString() });
         }
     }
 }
