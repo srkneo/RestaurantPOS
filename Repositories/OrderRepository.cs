@@ -20,7 +20,7 @@ namespace POSSystem.Repositories
         public async Task<List<KitchenOrder>> GetOrders()
         {
             return await _context.KitchenOrders
-                .Include(o => o.MenuItems)
+                .Include(o => o.Items)
                 .Include(o => o.Table)
                 .ToListAsync();
         }
