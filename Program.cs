@@ -8,6 +8,7 @@ using POSSystem.Services;
 using NLog;
 using NLog.Web;
 using System.IO;
+using System.Text.Json.Serialization;
 
 // Setup NLog for Dependency injection
 var logger = NLog.LogManager.Setup().LoadConfigurationFromFile("nlog.config").GetCurrentClassLogger();
@@ -35,7 +36,8 @@ try
     });
 
     builder.Services.AddOpenApi();
-    builder.Services.AddSignalR(); // Add SignalR
+    builder.Services.AddSignalR().AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+    builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
     builder.Services.AddScoped<IOrderService, OrderService>();
@@ -103,8 +105,15 @@ try
 
     app.MapPut("/api/orders/{id}/status", async (int id, StatusUpdateRequest statusRequest, IOrderService orderService, ILogger<OrderService> logger) =>
     {
-        await orderService.UpdateOrderStatus(id, statusRequest.Status);
-        logger.LogInformation("Order status updated: OrderId={OrderId}, NewStatus={NewStatus}", id, statusRequest.Status);
+        try
+        {
+            await orderService.UpdateOrderStatus(id, statusRequest.Status);
+            logger.LogInformation("Order status updated: OrderId={OrderId}, NewStatus={NewStatus}", id, statusRequest.Status);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { message = ex.Message });
+        }
         return Results.Ok();
     });
 
@@ -150,7 +159,7 @@ public class OrderRequest
 
 public class StatusUpdateRequest
 {
-    public string Status { get; set; }
+    public OrderStatus Status { get; set; }
 }
 
 public partial class Program { }
