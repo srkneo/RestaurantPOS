@@ -16,7 +16,7 @@ namespace POSSystem.Models
 
         public List<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
 
-        public string Status { get; set; } = "Received";
+        public OrderStatus Status { get; set; } = OrderStatus.Received;
 
         public int TokenNumber { get; set; }
 
