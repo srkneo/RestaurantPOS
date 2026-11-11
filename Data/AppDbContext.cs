@@ -17,10 +17,10 @@ namespace POSSystem.Data
         public DbSet<RestaurantTable> RestaurantTables { get; set; }
         public DbSet<KitchenOrder> KitchenOrders { get; set; }
 
-        
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<KitchenOrder>().Property(o => o.Status).HasConversion<string>();
+
             // Configuring the many-to-many relationship between KitchenOrder and MenuItem
             modelBuilder.Entity<KitchenOrder>()
                 .HasMany(o => o.MenuItems)
