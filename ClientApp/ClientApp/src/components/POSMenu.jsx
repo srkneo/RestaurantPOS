@@ -37,10 +37,10 @@ const POSMenu = () => {
             }
         });
 
-        connection.start().catch(err => console.error(err));
+        const startPromise = connection.start().catch(err => console.error(err));
 
         return () => {
-            connection.stop();
+            startPromise.then(() => connection.stop());
         };
     }, []);
 
