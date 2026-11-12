@@ -71,5 +71,73 @@ namespace RestaurantPOS.Tests
             Assert.Equal(200, (int)response.StatusCode);
             Assert.Equal(101, (int)responseOrder.tokenNumber);
         }
+
+        [Fact]
+        public async Task PostOrder_EmptyItems_Returns400()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var factory = _factory.WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+                    services.RemoveAll(typeof(DbContextOptions<AppDbContext>));
+                    services.RemoveAll(typeof(IDbContextOptionsConfiguration<AppDbContext>));
+                    services.AddDbContext<AppDbContext>(options =>
+                        options.UseInMemoryDatabase(dbName));
+                });
+            });
+
+            var client = factory.CreateClient();
+
+            // Seed one menu item so CreateOrder can validate the request
+            using (var scope = factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                db.MenuItems.Add(new MenuItem { Id = 1, Name = "Test Burger", Price = 10, Category = "Main" });
+                db.SaveChanges();
+            }
+
+            var orderRequest = new
+            {
+                Table = 1,
+                Items = new List<object>()
+            };
+
+            var jsonContent = JsonConvert.SerializeObject(orderRequest);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await client.PostAsync("/api/orders", content);
+
+            // Assert
+            Assert.Equal(400, (int)response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetTables_Returns200()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var factory = _factory.WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+                    services.RemoveAll(typeof(DbContextOptions<AppDbContext>));
+                    services.RemoveAll(typeof(IDbContextOptionsConfiguration<AppDbContext>));
+                    services.AddDbContext<AppDbContext>(options =>
+                        options.UseInMemoryDatabase(dbName));
+                });
+            });
+
+            var client = factory.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("/api/tables");
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            Assert.Equal(200, (int)response.StatusCode);
+        }
     }
 }
