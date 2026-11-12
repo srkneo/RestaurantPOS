@@ -40,6 +40,12 @@ namespace POSSystem.Services
 
         public async Task<KitchenOrder> CreateOrder(OrderRequest orderRequest)
         {
+            if (orderRequest.ClientOrderId.HasValue)
+            {
+                var existing = await _context.KitchenOrders.Include(o => o.Items).FirstOrDefaultAsync(o => o.ClientOrderId == orderRequest.ClientOrderId.Value);
+                if (existing != null) return existing;
+            }
+
             var ids = orderRequest.Items.Select(i => i.MenuItemId).Distinct().ToList();
             var menu = await _context.MenuItems.Where(m => ids.Contains(m.Id)).ToDictionaryAsync(m => m.Id);
             var orderItems = orderRequest.Items.Where(i => i.Quantity > 0 && menu.ContainsKey(i.MenuItemId)).Select(i => new OrderItem { MenuItemId = i.MenuItemId, ItemName = menu[i.MenuItemId].Name, UnitPrice = Convert.ToDecimal(menu[i.MenuItemId].Price), Quantity = i.Quantity }).ToList();
@@ -49,7 +55,8 @@ namespace POSSystem.Services
             {
                 TableId = orderRequest.Table,
                 Status = OrderStatus.Received,
-                Items = orderItems
+                Items = orderItems,
+                ClientOrderId = orderRequest.ClientOrderId ?? Guid.NewGuid()
             };
 
             var existingOrdersToday = await _context.KitchenOrders
