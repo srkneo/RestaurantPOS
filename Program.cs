@@ -98,9 +98,16 @@ try
 
     app.MapPost("/api/orders", async (OrderRequest orderRequest, IOrderService orderService, ILogger<OrderService> logger) =>
     {
-        var order = await orderService.CreateOrder(orderRequest);
-        logger.LogInformation("Order placed: OrderId={OrderId}, TokenNumber={TokenNumber}, TableId={TableId}", order.Id, order.TokenNumber, order.TableId);
-        return Results.Ok(new { message = "Order placed", orderId = order.Id, tokenNumber = order.TokenNumber });
+        try
+        {
+            var order = await orderService.CreateOrder(orderRequest);
+            logger.LogInformation("Order placed: OrderId={OrderId}, TokenNumber={TokenNumber}, TableId={TableId}", order.Id, order.TokenNumber, order.TableId);
+            return Results.Ok(new { message = "Order placed", orderId = order.Id, tokenNumber = order.TokenNumber });
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.BadRequest(new { message = ex.Message });
+        }
     });
 
     app.MapPut("/api/orders/{id}/status", async (int id, StatusUpdateRequest statusRequest, IOrderService orderService, ILogger<OrderService> logger) =>
@@ -154,7 +161,13 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 public class OrderRequest
 {
     public int Table { get; set; }
-    public List<int> Items { get; set; }
+    public List<OrderItemRequest> Items { get; set; } = new();
+}
+
+public class OrderItemRequest
+{
+    public int MenuItemId { get; set; }
+    public int Quantity { get; set; } = 1;
 }
 
 public class StatusUpdateRequest
