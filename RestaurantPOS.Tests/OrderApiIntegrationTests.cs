@@ -40,7 +40,10 @@ namespace RestaurantPOS.Tests
             var orderRequest = new
             {
                 Table = 1,
-                Items = new List<int> { 1, 2 }
+                Items = new List<object>
+                {
+                    new { MenuItemId = 1, Quantity = 1 }
+                }
             };
 
             var jsonContent = JsonConvert.SerializeObject(orderRequest);

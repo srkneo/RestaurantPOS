@@ -35,8 +35,7 @@ namespace RestaurantPOS.Tests
             using (var context = new AppDbContext(options))
             {
                 context.MenuItems.AddRange(
-                    new MenuItem { Id = 1, Name = "Classic Burger", Price = 9.99m, Category = "Mains" },
-                    new MenuItem { Id = 2, Name = "Fries", Price = 3.99m, Category = "Sides" }
+                    new MenuItem { Id = 1, Name = "Test Burger", Price = 10, Category = "Main" }
                 );
                 context.SaveChanges();
             }
@@ -48,7 +47,10 @@ namespace RestaurantPOS.Tests
                 var orderRequest = new OrderRequest
                 {
                     Table = 1,
-                    Items = new List<int> { 1, 2 }
+                    Items = new List<OrderItemRequest>
+                    {
+                        new OrderItemRequest { MenuItemId = 1, Quantity = 1 }
+                    }
                 };
 
                 // Act
