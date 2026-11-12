@@ -63,6 +63,7 @@ try
     {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         if (db.Database.IsRelational()) { db.Database.Migrate(); } else { db.Database.EnsureCreated(); }
+        SeedData.EnsureMenu(db);
 
         // Seed Table 1 to 10 so the KitchenOrder has a valid foreign key
         if (!db.RestaurantTables.Any())
