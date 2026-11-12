@@ -100,6 +100,9 @@ try
 
     app.MapPost("/api/orders", async (OrderRequest orderRequest, IOrderService orderService, ILogger<OrderService> logger) =>
     {
+        if (orderRequest.Table <= 0 || orderRequest.Items == null || orderRequest.Items.Count == 0 || orderRequest.Items.Any(i => i.MenuItemId <= 0 || i.Quantity < 1 || i.Quantity > 99))
+            return Results.BadRequest(new { message = "Invalid order request" });
+
         try
         {
             var order = await orderService.CreateOrder(orderRequest);
