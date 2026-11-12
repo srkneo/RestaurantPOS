@@ -1,0 +1,13 @@
+**/bin
+**/obj
+**/node_modules
+.git
+.github
+ClientApp
+RestaurantPOS.Tests
+e2e
+logs
+*.db
+*.db-shm
+*.db-wal
+.aider*

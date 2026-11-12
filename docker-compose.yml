@@ -1,0 +1,33 @@
+name: pos
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: restaurant_pos
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d restaurant_pos"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build: .
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=restaurant_pos;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: ./ClientApp/ClientApp
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
