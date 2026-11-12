@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using POSSystem.Dtos;
 using POSSystem.Data;
 using POSSystem.Hubs; // Added missing using directive
 using POSSystem.Interfaces;
@@ -98,7 +99,7 @@ try
     app.MapGet("/api/orders", async (IOrderService orderService) =>
     {
         var orders = await orderService.GetOrders();
-        return Results.Ok(orders);
+        return Results.Ok(orders.Select(o => o.ToDto()));
     });
 
     app.MapPost("/api/orders", async (OrderRequest orderRequest, IOrderService orderService, ILogger<OrderService> logger) =>
