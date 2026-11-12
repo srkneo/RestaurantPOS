@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using POSSystem.Dtos;
 using Microsoft.EntityFrameworkCore;
 using POSSystem.Data;
 using POSSystem.Hubs;
@@ -67,7 +68,7 @@ namespace POSSystem.Services
 
             await _orderRepository.CreateOrder(order);
 
-            await _hubContext.Clients.All.SendAsync("ReceiveNewOrder", order); // Send new order to all clients
+            await _hubContext.Clients.All.SendAsync("ReceiveNewOrder", order.ToDto()); // Send new order to all clients
 
             return order;
         }
