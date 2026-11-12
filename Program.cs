@@ -90,6 +90,8 @@ try
         return Results.Ok(menuItems);
     });
 
+    app.MapGet("/api/tables", async (AppDbContext db) => Results.Ok(await db.RestaurantTables.OrderBy(t => t.Id).Select(t => new { t.Id, t.TableNumber }).ToListAsync()));
+
     app.MapGet("/api/orders", async (IOrderService orderService) =>
     {
         var orders = await orderService.GetOrders();
