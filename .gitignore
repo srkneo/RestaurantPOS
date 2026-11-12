@@ -486,3 +486,5 @@ restaurant.db*
 logs/
 .aider*
 appsettings.Development.json
+
+backup*.sql
