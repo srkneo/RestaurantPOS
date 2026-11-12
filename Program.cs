@@ -37,6 +37,7 @@ try
 
     builder.Services.AddOpenApi();
     builder.Services.AddSignalR().AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+    builder.Services.AddProblemDetails(); // Added
     builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -45,6 +46,8 @@ try
     builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 
     var app = builder.Build();
+
+    app.UseExceptionHandler(); // Added
 
     // Ensure the logs directory exists
     var logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "logs");
