@@ -65,19 +65,11 @@ const POSMenu = () => {
             return;
         }
 
-        // Expand cart quantities into a flat array of IDs for the backend
-        const itemIds = [];
-        cart.forEach(item => {
-            for (let i = 0; i < item.quantity; i++) {
-                itemIds.push(item.id);
-            }
-        });
-
         try {
             const response = await fetch("/api/orders", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ table: parseInt(selectedTable), items: itemIds })
+                body: JSON.stringify({ table: parseInt(selectedTable), items: cart.map(item => ({ menuItemId: item.id, quantity: item.quantity })) })
             });
 
             if (response.ok) {
