@@ -5,6 +5,7 @@ using POSSystem.Data;
 using POSSystem.Hubs;
 using POSSystem.Interfaces;
 using POSSystem.Models;
+using POSSystem.Repositories;
 using POSSystem.Services;
 using System;
 using System.Collections.Generic;
@@ -122,6 +123,53 @@ namespace RestaurantPOS.Tests
 
                 // Act & Assert
                 await Assert.ThrowsAsync<InvalidOperationException>(() => orderService.UpdateOrderStatus(1, OrderStatus.Preparing));
+            }
+        }
+
+        [Fact]
+        public async Task CreateOrder_SameClientOrderId_ReturnsSameOrder()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            var mockHubContext = new Mock<IHubContext<OrderHub>>();
+            var mockClients = new Mock<IHubClients>();
+            var mockClientProxy = new Mock<IClientProxy>();
+            mockClients.Setup(c => c.All).Returns(mockClientProxy.Object);
+            mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
+
+            using (var context = new AppDbContext(options))
+            {
+                context.MenuItems.AddRange(
+                    new MenuItem { Id = 1, Name = "Burger", Price = 10, Category = "Main" }
+                );
+                context.SaveChanges();
+            }
+
+            using (var context = new AppDbContext(options))
+            {
+                var orderRepository = new OrderRepository(context);
+                var orderService = new OrderService(orderRepository, context, mockHubContext.Object);
+
+                var orderRequest = new OrderRequest
+                {
+                    Table = 1,
+                    ClientOrderId = Guid.NewGuid(),
+                    Items = new List<OrderItemRequest>
+                    {
+                        new OrderItemRequest { MenuItemId = 1, Quantity = 1 }
+                    }
+                };
+
+                // Act
+                var firstOrder = await orderService.CreateOrder(orderRequest);
+                var secondOrder = await orderService.CreateOrder(orderRequest);
+
+                // Assert
+                Assert.Equal(firstOrder.Id, secondOrder.Id);
+                Assert.Equal(1, context.KitchenOrders.Count());
             }
         }
     }
