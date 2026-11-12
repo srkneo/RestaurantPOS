@@ -26,23 +26,34 @@ namespace RestaurantPOS.Tests
         public async Task PostOrder_Returns200AndGeneratedTokenNumber()
         {
             // Arrange
-            var client = _factory.WithWebHostBuilder(builder =>
+            var dbName = Guid.NewGuid().ToString();
+            var factory = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureServices(services =>
                 {
                     services.RemoveAll(typeof(DbContextOptions<AppDbContext>));
                     services.RemoveAll(typeof(IDbContextOptionsConfiguration<AppDbContext>));
                     services.AddDbContext<AppDbContext>(options =>
-                        options.UseInMemoryDatabase("TestDatabase"));
+                        options.UseInMemoryDatabase(dbName));
                 });
-            }).CreateClient();
+            });
+
+            var client = factory.CreateClient();
+
+            // Seed one menu item so CreateOrder can validate the request
+            using (var scope = factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                db.MenuItems.Add(new MenuItem { Id = 1, Name = "Test Burger", Price = 10, Category = "Main" });
+                db.SaveChanges();
+            }
 
             var orderRequest = new
             {
                 Table = 1,
                 Items = new List<object>
                 {
-                    new { MenuItemId = 1, Quantity = 1 }
+                    new { MenuItemId = 1, Quantity = 2 }
                 }
             };
 
@@ -55,7 +66,7 @@ namespace RestaurantPOS.Tests
             // Assert
             response.EnsureSuccessStatusCode();
             var responseContent = await response.Content.ReadAsStringAsync();
-            var responseOrder = JsonConvert.DeserializeObject<dynamic>(responseContent);
+            var responseOrder = JsonConvert.DeserializeObject<dynamic>(responseContent)!;
 
             Assert.Equal(200, (int)response.StatusCode);
             Assert.Equal(101, (int)responseOrder.tokenNumber);
