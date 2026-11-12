@@ -38,7 +38,8 @@ try
 
     builder.Services.AddOpenApi();
     builder.Services.AddSignalR().AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-    builder.Services.AddProblemDetails(); // Added
+    builder.Services.AddProblemDetails();
+    builder.Services.AddHealthChecks(); // Added
     builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -47,6 +48,7 @@ try
     builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 
     var app = builder.Build();
+    app.MapHealthChecks("/health");
 
     app.UseExceptionHandler(); // Added
 
