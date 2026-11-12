@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace POSSystem.Models
 {
-    public class KitchenOrder
+    public class KitchenOrder : TenantEntity
     {
         [Key]
         public int Id { get; set; }
@@ -20,6 +20,6 @@ namespace POSSystem.Models
 
         public int TokenNumber { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public Guid ClientOrderId { get; set; } = Guid.NewGuid();
     }
 }

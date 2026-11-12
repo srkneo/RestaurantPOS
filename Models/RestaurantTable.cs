@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace POSSystem.Models
 {
-    public class RestaurantTable
+    public class RestaurantTable : TenantEntity
     {
         [Key]
         public int Id { get; set; }
