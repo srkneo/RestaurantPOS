@@ -14,7 +14,7 @@ namespace POSSystem.Models
         [ForeignKey("TableId")]
         public RestaurantTable? Table { get; set; }
 
-        public List<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
+        public List<OrderItem> Items { get; set; } = new List<OrderItem>();
 
         public OrderStatus Status { get; set; } = OrderStatus.Received;
 
