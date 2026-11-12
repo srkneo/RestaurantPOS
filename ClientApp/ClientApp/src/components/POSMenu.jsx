@@ -7,6 +7,7 @@ const POSMenu = () => {
     const [activeCategory, setActiveCategory] = useState('All');
     const [selectedTable, setSelectedTable] = useState('');
     const [readyMessage, setReadyMessage] = useState('');
+    const [tables, setTables] = useState([]);
 
     useEffect(() => {
         fetch('/api/menuitems')
@@ -22,6 +23,11 @@ const POSMenu = () => {
             .catch(error => {
                 console.error('Error fetching menu items:', error);
             });
+
+        fetch('/api/tables')
+            .then(r => r.json())
+            .then(setTables)
+            .catch(err => console.error('Error fetching tables:', err));
     }, []);
 
     useEffect(() => {
@@ -115,9 +121,9 @@ const POSMenu = () => {
                         style={styles.select}
                     >
                         <option value="">Select a table</option>
-                        {Array.from({ length: 10 }, (_, i) => i + 1).map(tableNumber => (
-                            <option key={tableNumber} value={tableNumber}>
-                                Table {tableNumber}
+                        {tables.map(t => (
+                            <option key={t.id} value={t.id}>
+                                Table {t.tableNumber}
                             </option>
                         ))}
                     </select>
