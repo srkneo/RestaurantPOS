@@ -162,6 +162,7 @@ public class OrderRequest
 {
     public int Table { get; set; }
     public List<OrderItemRequest> Items { get; set; } = new();
+    public Guid? ClientOrderId { get; set; }
 }
 
 public class OrderItemRequest
