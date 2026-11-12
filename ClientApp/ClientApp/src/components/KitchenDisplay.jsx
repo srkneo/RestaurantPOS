@@ -75,8 +75,8 @@ const KitchenDisplay = () => {
                             </div>
                             <p style={styles.status}>Status: <strong>{order.status}</strong></p>
                             <ul style={styles.itemList}>
-                                {order.menuItems && order.menuItems.map((item, index) => (
-                                    <li key={index} style={styles.item}>{item.name}</li>
+                                {order.items && order.items.map((item, index) => (
+                                    <li key={item.id ?? index} style={styles.item}>{item.quantity} x {item.itemName}</li>
                                 ))}
                             </ul>
                         </div>
