@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -35,6 +36,8 @@ namespace RestaurantPOS.Tests
                     services.RemoveAll(typeof(IDbContextOptionsConfiguration<AppDbContext>));
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseInMemoryDatabase(dbName));
+                    services.AddAuthentication("Test").AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
+                    services.PostConfigure<AuthenticationOptions>(o => { o.DefaultScheme = "Test"; o.DefaultAuthenticateScheme = "Test"; o.DefaultChallengeScheme = "Test"; });
                 });
             });
 
@@ -85,6 +88,8 @@ namespace RestaurantPOS.Tests
                     services.RemoveAll(typeof(IDbContextOptionsConfiguration<AppDbContext>));
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseInMemoryDatabase(dbName));
+                    services.AddAuthentication("Test").AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
+                    services.PostConfigure<AuthenticationOptions>(o => { o.DefaultScheme = "Test"; o.DefaultAuthenticateScheme = "Test"; o.DefaultChallengeScheme = "Test"; });
                 });
             });
 
@@ -127,6 +132,8 @@ namespace RestaurantPOS.Tests
                     services.RemoveAll(typeof(IDbContextOptionsConfiguration<AppDbContext>));
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseInMemoryDatabase(dbName));
+                    services.AddAuthentication("Test").AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
+                    services.PostConfigure<AuthenticationOptions>(o => { o.DefaultScheme = "Test"; o.DefaultAuthenticateScheme = "Test"; o.DefaultChallengeScheme = "Test"; });
                 });
             });
 
