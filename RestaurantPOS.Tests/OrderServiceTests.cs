@@ -31,6 +31,10 @@ namespace RestaurantPOS.Tests
             var mockClients = new Mock<IHubClients>();
             var mockClientProxy = new Mock<IClientProxy>();
             mockClients.Setup(c => c.All).Returns(mockClientProxy.Object);
+            mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(mockClientProxy.Object);
+            mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(mockClientProxy.Object);
+            mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(mockClientProxy.Object);
+            mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(mockClientProxy.Object);
             mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
 
             using (var context = new AppDbContext(options))
