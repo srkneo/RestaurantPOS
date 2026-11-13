@@ -9,6 +9,7 @@ namespace POSSystem.Data
 {
     public class AppDbContext : IdentityDbContext<AppUser>
     {
+        public int CurrentTenantId { get; set; } = 1;
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
@@ -44,6 +45,10 @@ namespace POSSystem.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<OrderItem>().Property(i => i.UnitPrice).HasPrecision(10, 2);
+
+            modelBuilder.Entity<KitchenOrder>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
+            modelBuilder.Entity<MenuItem>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
+            modelBuilder.Entity<RestaurantTable>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
 
             base.OnModelCreating(modelBuilder);
         }
