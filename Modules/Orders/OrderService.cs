@@ -68,7 +68,7 @@ namespace POSSystem.Services
 
             await _orderRepository.CreateOrder(order);
 
-            await _hubContext.Clients.All.SendAsync("ReceiveNewOrder", order.ToDto()); // Send new order to all clients
+            await _hubContext.Clients.Group($"tenant-{order.TenantId}").SendAsync("ReceiveNewOrder", order.ToDto()); // Send new order to all clients
 
             return order;
         }
@@ -80,12 +80,12 @@ namespace POSSystem.Services
 
         public async Task UpdateOrderStatus(int id, OrderStatus status)
         {
-            var order = await _context.KitchenOrders.FindAsync(id);
+            var order = await _context.KitchenOrders.FirstOrDefaultAsync(o => o.Id == id);
             if (order == null) return;
             if (!AllowedTransitions[order.Status].Contains(status))
                 throw new InvalidOperationException($"Cannot change status from {order.Status} to {status}");
             await _orderRepository.UpdateOrderStatus(id, status);
-            await _hubContext.Clients.All.SendAsync("OrderStatusChanged", new { orderId = order.Id, tokenNumber = order.TokenNumber, status = status.ToString() });
+            await _hubContext.Clients.Group($"tenant-{order.TenantId}").SendAsync("OrderStatusChanged", new { orderId = order.Id, tokenNumber = order.TokenNumber, status = status.ToString() });
         }
     }
 }
