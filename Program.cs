@@ -52,7 +52,8 @@ try
     app.MapHealthChecks("/health").AllowAnonymous();
     app.MapPosAuth();
 
-    app.UseExceptionHandler(); // Added
+    app.UseExceptionHandler();
+    app.UsePosAuth(); // Added
 
     // Ensure the logs directory exists
     var logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "logs");
