@@ -67,6 +67,7 @@ namespace POSSystem.Data
 
         private void SetUpdatedAt()
         {
+            foreach (var entry in ChangeTracker.Entries<TenantEntity>().Where(e => e.State == EntityState.Added)) { entry.Entity.TenantId = CurrentTenantId; }
             foreach (var entry in ChangeTracker.Entries<TenantEntity>().Where(e => e.State == EntityState.Modified))
                 entry.Entity.UpdatedAt = DateTime.UtcNow;
         }
