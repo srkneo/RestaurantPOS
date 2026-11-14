@@ -1,0 +1,81 @@
+# Production stack on the server: Caddy (HTTPS) -> web (screens) and api -> PostgreSQL.
+# Secrets live in .env next to this file (copy .env.example). POS_VERSION comes from version.env (written by deploy.sh).
+name: pos
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: restaurant_pos
+      POSTGRES_USER: pos
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pos -d restaurant_pos"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging: *logging
+
+  api:
+    image: ghcr.io/srkneo/restaurantpos-api:${POS_VERSION:?Run deploy.sh with a version}
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Caddy is the only way in, so its X-Forwarded-For and X-Forwarded-Proto headers are trusted.
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=restaurant_pos;Username=pos;Password=${POSTGRES_PASSWORD}"
+      Platform__Email: ${PLATFORM_EMAIL:?Set PLATFORM_EMAIL in .env}
+      Platform__Password: ${PLATFORM_PASSWORD:?Set PLATFORM_PASSWORD in .env}
+      Admin__Email: ${ADMIN_EMAIL:-}
+      Admin__Password: ${ADMIN_PASSWORD:-}
+      Alerts__TelegramToken: ${TELEGRAM_TOKEN:-}
+      Alerts__TelegramChatId: ${TELEGRAM_CHAT_ID:-}
+      DataProtection__KeysPath: /app/keys
+    volumes:
+      - keys:/app/keys
+      - applogs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    logging: *logging
+
+  web:
+    image: ghcr.io/srkneo/restaurantpos-web:${POS_VERSION:?Run deploy.sh with a version}
+    restart: unless-stopped
+    depends_on:
+      - api
+    logging: *logging
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?Set SITE_ADDRESS in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - web
+    logging: *logging
+
+volumes:
+  pgdata:
+  keys:
+  applogs:
+  caddy_data:
+  caddy_config:

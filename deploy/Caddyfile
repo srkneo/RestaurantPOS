@@ -1,0 +1,24 @@
+# Public entry point. Caddy gets and renews the HTTPS certificate by itself.
+# SITE_ADDRESS comes from .env, e.g. 13-233-10-20.sslip.io (the server's static IP with dashes).
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	# The API gets the visitor's real address (X-Forwarded-For), which the sign-in limit needs.
+	@api path /api/* /health /health/* /orderHub /orderHub/*
+	handle @api {
+		reverse_proxy api:8080
+	}
+
+	handle {
+		reverse_proxy web:80
+	}
+}

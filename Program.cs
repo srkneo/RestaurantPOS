@@ -44,6 +44,7 @@ try
     builder.Services.AddSignalR().AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
     builder.Services.AddProblemDetails();
     builder.Services.AddPosAuth();
+    builder.Services.AddPosKeyStorage();
     builder.Services.AddPosRateLimits(builder.Configuration);
     builder.Services.AddTelegramErrorAlerts(builder.Configuration);
     builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database", tags: new[] { "ready" });

@@ -1,0 +1,33 @@
+name: Deploy files
+
+# Catches mistakes in the production stack files before a release tag is pushed.
+on:
+  pull_request:
+    paths: ['deploy/**', 'Dockerfile', 'ClientApp/ClientApp/Dockerfile', 'ClientApp/ClientApp/nginx.conf']
+  push:
+    branches: [master]
+    paths: ['deploy/**', 'Dockerfile', 'ClientApp/ClientApp/Dockerfile', 'ClientApp/ClientApp/nginx.conf']
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Compose file is valid
+        working-directory: deploy
+        run: |
+          cp .env.example .env
+          sed -i 's/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=x/; s/^PLATFORM_EMAIL=.*/PLATFORM_EMAIL=a@b.c/; s/^PLATFORM_PASSWORD=.*/PLATFORM_PASSWORD=x/' .env
+          echo "POS_VERSION=0.0.0" > version.env
+          docker compose --env-file .env --env-file version.env -f docker-compose.prod.yml config --quiet
+      - name: Caddyfile is valid
+        run: docker run --rm -e SITE_ADDRESS=example.sslip.io -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+      - name: deploy.sh has no syntax errors
+        run: bash -n deploy/deploy.sh
+      - name: Web image builds (nginx settings are valid)
+        run: |
+          docker build -t pos-web-check ClientApp/ClientApp
+          docker run --rm --add-host api:127.0.0.1 pos-web-check nginx -t
