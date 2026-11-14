@@ -94,6 +94,7 @@ namespace POSSystem.Data
 
             // Menu: existing items stay available and veg; GST 5% unless set. Sentinels let EF send false/0 explicitly.
             modelBuilder.Entity<MenuItem>().Property(m => m.IsAvailable).HasDefaultValue(true).HasSentinel(true);
+            modelBuilder.Entity<RestaurantTable>().Property(t => t.IsActive).HasDefaultValue(true).HasSentinel(true);
             modelBuilder.Entity<MenuItem>().Property(m => m.IsVeg).HasDefaultValue(true).HasSentinel(true);
             modelBuilder.Entity<MenuItem>().Property(m => m.TaxRate).HasPrecision(5, 2).HasDefaultValue(5m).HasSentinel(-1m);
             modelBuilder.Entity<MenuItem>().HasOne<MenuCategory>().WithMany().HasForeignKey(m => m.CategoryId).OnDelete(DeleteBehavior.Restrict);
