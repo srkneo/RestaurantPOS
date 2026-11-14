@@ -1,42 +1,56 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import { LanguageSwitch, useT } from '../i18n/I18nContext';
 
 const Login = () => {
   const { login } = useAuth();
+  const t = useT();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [failed, setFailed] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
-    setError('');
-    const ok = await login(email, password);
+    setFailed(false);
+    setBusy(true);
+    let ok = false;
+    try {
+      ok = await login(email, password);
+    } finally {
+      setBusy(false);
+    }
     if (ok) navigate('/', { replace: true });
-    else setError('Invalid email or password');
+    else setFailed(true);
   };
 
   return (
-    <div style={styles.wrap}>
-      <form onSubmit={submit} style={styles.card}>
-        <h1 style={styles.title}>Sign in</h1>
-        <input type="email" placeholder="Email" aria-label="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={styles.input} required />
-        <input type="password" placeholder="Password" aria-label="Password" value={password} onChange={(e) => setPassword(e.target.value)} style={styles.input} required />
-        {error && <p style={styles.error}>{error}</p>}
-        <button type="submit" style={styles.button}>Sign in</button>
+    <main className="pos-login">
+      <form className="pos-login-card" onSubmit={submit}>
+        <div className="d-flex justify-content-between align-items-center gap-2">
+          <span className="pos-brand">{t('app.name')}</span>
+          <LanguageSwitch />
+        </div>
+        <h1>{t('login.title')}</h1>
+        <div>
+          <label htmlFor="login-email" className="form-label">{t('login.email')}</label>
+          <input id="login-email" type="email" className="form-control" autoComplete="username" autoFocus required
+            value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <div>
+          <label htmlFor="login-password" className="form-label">{t('login.password')}</label>
+          <input id="login-password" type="password" className="form-control" autoComplete="current-password" required
+            value={password} onChange={(e) => setPassword(e.target.value)} />
+        </div>
+        {failed && <p className="text-danger mb-0" role="alert">{t('login.error')}</p>}
+        <button type="submit" className="btn btn-primary btn-lg" disabled={busy}>
+          {busy ? t('login.submitting') : t('login.submit')}
+        </button>
       </form>
-    </div>
+    </main>
   );
-};
-
-const styles = {
-  wrap: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f8f9fa' },
-  card: { display: 'flex', flexDirection: 'column', gap: '14px', width: '340px', padding: '30px', backgroundColor: '#ffffff', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' },
-  title: { margin: 0, color: '#2c3e50', textAlign: 'center' },
-  input: { padding: '12px', fontSize: '1rem', border: '1px solid #e0e0e0', borderRadius: '6px' },
-  button: { padding: '12px', fontSize: '1.1rem', fontWeight: 'bold', color: '#ffffff', backgroundColor: '#27ae60', border: 'none', borderRadius: '6px', cursor: 'pointer' },
-  error: { margin: 0, color: '#e74c3c', textAlign: 'center' },
 };
 
 export default Login;
