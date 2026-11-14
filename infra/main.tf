@@ -1,4 +1,4 @@
-# Production server (and optional staging) on Lightsail, Mumbai, plus the S3 bucket for nightly backups.
+# Production server (and optional staging) on Lightsail, plus an optional S3 bucket for nightly backups.
 
 resource "random_id" "suffix" {
   byte_length = 3
@@ -18,11 +18,13 @@ resource "aws_lightsail_key_pair" "deploy" {
 # ---------- Backups: S3 bucket, kept 30 days, and a key that can only add and read backups ----------
 
 resource "aws_s3_bucket" "backups" {
+  count  = var.backup_to_s3 ? 1 : 0
   bucket = "restaurantpos-backups-${random_id.suffix.hex}"
 }
 
 resource "aws_s3_bucket_public_access_block" "backups" {
-  bucket                  = aws_s3_bucket.backups.id
+  count  = var.backup_to_s3 ? 1 : 0
+  bucket                  = aws_s3_bucket.backups[0].id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -30,7 +32,8 @@ resource "aws_s3_bucket_public_access_block" "backups" {
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "backups" {
-  bucket = aws_s3_bucket.backups.id
+  count  = var.backup_to_s3 ? 1 : 0
+  bucket = aws_s3_bucket.backups[0].id
 
   rule {
     id     = "keep-nightly-30-days"
@@ -45,12 +48,14 @@ resource "aws_s3_bucket_lifecycle_configuration" "backups" {
 }
 
 resource "aws_iam_user" "backup" {
+  count = var.backup_to_s3 ? 1 : 0
   name = "pos-backup"
 }
 
 resource "aws_iam_user_policy" "backup" {
-  name = "pos-backup-write-read"
-  user = aws_iam_user.backup.name
+  count = var.backup_to_s3 ? 1 : 0
+  name  = "pos-backup-write-read"
+  user  = aws_iam_user.backup[0].name
   # No delete: a stolen server key cannot wipe the backups. Old ones expire by the lifecycle rule.
   policy = jsonencode({
     Version = "2012-10-17"
@@ -58,19 +63,20 @@ resource "aws_iam_user_policy" "backup" {
       {
         Effect   = "Allow"
         Action   = ["s3:PutObject", "s3:GetObject"]
-        Resource = "${aws_s3_bucket.backups.arn}/nightly/*"
+        Resource = "${aws_s3_bucket.backups[0].arn}/nightly/*"
       },
       {
         Effect   = "Allow"
         Action   = ["s3:ListBucket"]
-        Resource = aws_s3_bucket.backups.arn
+        Resource = aws_s3_bucket.backups[0].arn
       }
     ]
   })
 }
 
 resource "aws_iam_access_key" "backup" {
-  user = aws_iam_user.backup.name
+  count = var.backup_to_s3 ? 1 : 0
+  user  = aws_iam_user.backup[0].name
 }
 
 # ---------- Generated secrets for the servers' .env files ----------
@@ -110,9 +116,9 @@ locals {
     platform_password = random_password.platform["production"].result
     telegram_token    = var.telegram_token
     telegram_chat_id  = var.telegram_chat_id
-    backup_bucket     = aws_s3_bucket.backups.bucket
-    backup_key_id     = aws_iam_access_key.backup.id
-    backup_key_secret = aws_iam_access_key.backup.secret
+    backup_bucket     = var.backup_to_s3 ? aws_s3_bucket.backups[0].bucket : ""
+    backup_key_id     = var.backup_to_s3 ? aws_iam_access_key.backup[0].id : ""
+    backup_key_secret = var.backup_to_s3 ? aws_iam_access_key.backup[0].secret : ""
     region            = var.region
   })
 

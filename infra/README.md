@@ -1,13 +1,13 @@
 # Servers (OpenTofu)
 
-Creates in AWS Mumbai (ap-south-1):
+Creates in AWS Sydney (ap-southeast-2, the region this AWS account allows):
 - **pos-production**: Lightsail Ubuntu 24.04, 2 GB, static IP, firewall 22/80/443, Docker, swap, automatic security updates, and its `~/pos/.env`.
 - **pos-staging** (only when `staging_enabled = true`): the same, 1 GB.
-- **S3 bucket** for nightly backups (kept 30 days) and a key that can only add and read backups (no delete).
+- **S3 bucket** for nightly backups (only when `backup_to_s3 = true`; otherwise backups stay on the server, 7 days).
 - **Budget e-mail** when the month's cost is heading over `monthly_budget_usd`.
 
-Run it from **AWS CloudShell** (the `>_` icon at the top of the AWS console, region **Mumbai**). Nothing to install on your PC.
-State is kept in an S3 bucket, so it can be run again later from CloudShell or anywhere.
+Run it from **AWS CloudShell** (the `>_` icon at the top of the AWS console). Nothing to install on your PC.
+The state (what OpenTofu created) is the file `terraform.tfstate` in this folder: download a copy after every apply.
 
 ## 1. Install OpenTofu in CloudShell (once)
 
@@ -20,34 +20,36 @@ export PATH=$HOME/bin:$PATH
 tofu version
 ```
 
-## 2. Code and state bucket (once)
+## 2. Code and settings
 
 ```
-git clone https://github.com/srkneo/RestaurantPOS.git
-cd RestaurantPOS/infra
-STATE=restaurantpos-tfstate-$(aws sts get-caller-identity --query Account --output text)
-aws s3api create-bucket --bucket $STATE --region ap-south-1 --create-bucket-configuration LocationConstraint=ap-south-1
-aws s3api put-bucket-versioning --bucket $STATE --versioning-configuration Status=Enabled
-aws s3api put-public-access-block --bucket $STATE --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
-```
-
-## 3. Settings
-
-```
+git clone https://github.com/srkneo/RestaurantPOS.git    # or, if already there: cd ~/RestaurantPOS && git pull
+cd ~/RestaurantPOS/infra
 cp terraform.tfvars.example terraform.tfvars
 nano terraform.tfvars          # your e-mail; Ctrl+O, Enter, Ctrl+X
 read -s TF_VAR_telegram_token  # paste the bot token, press Enter (nothing is shown)
 export TF_VAR_telegram_token
 ```
 
+## 3. Check the server size exists
+
+```
+aws lightsail get-bundles --region ap-southeast-2 --query "bundles[?isActive && contains(supportedPlatforms,'LINUX_UNIX')].[bundleId,price,ramSizeInGb]" --output table
+```
+
+If the 2 GB / $12 size is not called `small_3_0`, add `production_bundle = "<its name>"` to `terraform.tfvars`.
+
 ## 4. Create
 
 ```
-tofu init -backend-config="bucket=$STATE"
+tofu init
 tofu plan -out plan            # read it: everything is "to add", nothing "to destroy"
 tofu apply plan
 tofu output
 ```
+
+CloudShell → **Actions → Download file** → `/home/cloudshell-user/RestaurantPOS/infra/terraform.tfstate`.
+Keep it somewhere private (it contains the passwords). Without it, OpenTofu cannot change these servers later.
 
 The server sets itself up in about 5 minutes after `apply` finishes.
 

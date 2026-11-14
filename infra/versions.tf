@@ -16,13 +16,9 @@ terraform {
     }
   }
 
-  # State lives in S3 (bucket made once by hand, see infra/README.md) so it can be run from anywhere.
-  backend "s3" {
-    key          = "restaurantpos/infra.tfstate"
-    region       = "ap-south-1"
-    encrypt      = true
-    use_lockfile = true
-  }
+  # State is kept in this folder (terraform.tfstate, not in git). Download a copy after each apply.
+  # Later it can move to S3 with: tofu init -migrate-state
+  backend "local" {}
 }
 
 provider "aws" {
