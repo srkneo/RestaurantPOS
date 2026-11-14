@@ -4,6 +4,8 @@
 .pos-page > * { max-width: 100%; min-width: 0; }
 .pos-page > * + * { margin-top: 16px; }
 .pos-card.table-responsive { overflow-x: auto; }
+/* Anchor for screen-reader-only text in table headers; without it that text is placed relative to the page and widens it. */
+.pos-card { position: relative; }
 .pos-page-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .pos-page-head h1 { margin: 0; font-size: 28px; }
 .pos-card { background: var(--pos-surface); border: 1px solid var(--pos-border); border-radius: 14px; }

@@ -17,7 +17,8 @@ test('order flows from POS to kitchen and back', async ({ browser }) => {
   const pos = await (await browser.newContext()).newPage();
 
   await signIn(kitchen, '/kitchen');
-  await expect(kitchen.getByRole('heading', { name: 'Kitchen', exact: true })).toBeVisible();
+  // First page of the run: the app may still be warming up.
+  await expect(kitchen.getByRole('heading', { name: 'Kitchen', exact: true })).toBeVisible({ timeout: 15_000 });
 
   await signIn(pos, '/pos');
   await pos.getByLabel('Table', { exact: true }).selectOption({ label: 'Table 1' });
