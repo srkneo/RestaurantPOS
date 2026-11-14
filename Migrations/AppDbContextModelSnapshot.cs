@@ -285,10 +285,16 @@ namespace RestaurantPOS.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OutletId");
+
                     b.HasIndex("TableId");
 
                     b.HasIndex("TenantId", "ClientOrderId")
                         .IsUnique();
+
+                    b.HasIndex("TenantId", "OutletId", "CreatedAt");
+
+                    b.HasIndex("TenantId", "OutletId", "Status");
 
                     b.ToTable("KitchenOrders");
                 });
@@ -323,7 +329,8 @@ namespace RestaurantPOS.Migrations
                         .HasDefaultValue(1);
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("numeric");
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
 
                     b.Property<int>("TenantId")
                         .ValueGeneratedOnAdd()
@@ -337,6 +344,10 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OutletId");
+
+                    b.HasIndex("TenantId", "OutletId");
 
                     b.ToTable("MenuItems");
                 });
@@ -362,15 +373,73 @@ namespace RestaurantPOS.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
+                    b.Property<int>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.Property<decimal>("UnitPrice")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)");
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("KitchenOrderId");
 
+                    b.HasIndex("TenantId", "KitchenOrderId");
+
                     b.ToTable("OrderItems");
+                });
+
+            modelBuilder.Entity("POSSystem.Models.Outlet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.HasIdentityOptions(b.Property<int>("Id"), 2L, null, null, null, null, null);
+
+                    b.Property<int>("BusinessDayStartHour")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Settings")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("Outlets");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BusinessDayStartHour = 4,
+                            CreatedAt = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Main",
+                            Settings = "{}",
+                            TenantId = 1,
+                            TimeZone = "Asia/Kolkata"
+                        });
                 });
 
             modelBuilder.Entity("POSSystem.Models.RestaurantTable", b =>
@@ -415,7 +484,46 @@ namespace RestaurantPOS.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OutletId");
+
+                    b.HasIndex("TenantId", "OutletId", "TableNumber")
+                        .IsUnique();
+
                     b.ToTable("RestaurantTables");
+                });
+
+            modelBuilder.Entity("POSSystem.Models.Tenant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.HasIdentityOptions(b.Property<int>("Id"), 2L, null, null, null, null, null);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Tenants");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "My Restaurant"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -471,13 +579,40 @@ namespace RestaurantPOS.Migrations
 
             modelBuilder.Entity("POSSystem.Models.KitchenOrder", b =>
                 {
+                    b.HasOne("POSSystem.Models.Outlet", null)
+                        .WithMany()
+                        .HasForeignKey("OutletId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("POSSystem.Models.RestaurantTable", "Table")
                         .WithMany()
                         .HasForeignKey("TableId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("POSSystem.Models.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Table");
+                });
+
+            modelBuilder.Entity("POSSystem.Models.MenuItem", b =>
+                {
+                    b.HasOne("POSSystem.Models.Outlet", null)
+                        .WithMany()
+                        .HasForeignKey("OutletId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("POSSystem.Models.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("POSSystem.Models.OrderItem", b =>
@@ -486,6 +621,30 @@ namespace RestaurantPOS.Migrations
                         .WithMany("Items")
                         .HasForeignKey("KitchenOrderId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("POSSystem.Models.Outlet", b =>
+                {
+                    b.HasOne("POSSystem.Models.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("POSSystem.Models.RestaurantTable", b =>
+                {
+                    b.HasOne("POSSystem.Models.Outlet", null)
+                        .WithMany()
+                        .HasForeignKey("OutletId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("POSSystem.Models.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

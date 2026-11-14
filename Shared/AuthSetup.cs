@@ -74,8 +74,10 @@ namespace POSSystem.Data
             {
                 if (ctx.User.Identity?.IsAuthenticated == true)
                 {
-                    if (int.TryParse(ctx.User.FindFirst("tenant_id")?.Value, out var tenantId))
-                        ctx.RequestServices.GetRequiredService<AppDbContext>().CurrentTenantId = tenantId;
+                    var db = ctx.RequestServices.GetRequiredService<AppDbContext>();
+                    if (int.TryParse(ctx.User.FindFirst("tenant_id")?.Value, out var tenantId)) db.CurrentTenantId = tenantId;
+                    if (int.TryParse(ctx.User.FindFirst("outlet_id")?.Value, out var outletId)) db.CurrentOutletId = outletId;
+                    db.CurrentUserId = ctx.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                     bool InAny(params string[] roles) => roles.Any(ctx.User.IsInRole);
                     if (ctx.Request.Path.StartsWithSegments("/api/orders"))

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using POSSystem.Models;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +10,11 @@ namespace POSSystem.Data
 {
     public class AppDbContext : IdentityDbContext<AppUser>
     {
+        // Set per request from the signed-in user's claims (see AuthSetup.UsePosAuth).
         public int CurrentTenantId { get; set; } = 1;
+        public int CurrentOutletId { get; set; } = 1;
+        public string? CurrentUserId { get; set; }
+
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
@@ -18,6 +23,8 @@ namespace POSSystem.Data
         {
         }
 
+        public DbSet<Tenant> Tenants { get; set; }
+        public DbSet<Outlet> Outlets { get; set; }
         public DbSet<MenuItem> MenuItems { get; set; }
         public DbSet<RestaurantTable> RestaurantTables { get; set; }
         public DbSet<KitchenOrder> KitchenOrders { get; set; }
@@ -25,30 +32,77 @@ namespace POSSystem.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            var seededAt = new DateTime(2026, 11, 14, 0, 0, 0, DateTimeKind.Utc);
+
+            // Existing data becomes restaurant 1, outlet 1. New ids start at 2.
+            modelBuilder.Entity<Tenant>(b =>
+            {
+                b.Property(t => t.Id).HasIdentityOptions(startValue: 2);
+                b.Property(t => t.Name).HasMaxLength(200);
+                b.HasData(new Tenant { Id = 1, Name = "My Restaurant", IsActive = true, CreatedAt = seededAt });
+            });
+
+            modelBuilder.Entity<Outlet>(b =>
+            {
+                b.Property(o => o.Id).HasIdentityOptions(startValue: 2);
+                b.Property(o => o.Name).HasMaxLength(200);
+                b.Property(o => o.TimeZone).HasMaxLength(64);
+                b.Property(o => o.Settings).HasColumnType("jsonb");
+                b.HasOne<Tenant>().WithMany().HasForeignKey(o => o.TenantId).OnDelete(DeleteBehavior.Restrict);
+                b.HasData(new Outlet
+                {
+                    Id = 1,
+                    TenantId = 1,
+                    Name = "Main",
+                    TimeZone = BusinessClock.DefaultTimeZone,
+                    BusinessDayStartHour = BusinessClock.DefaultDayStartHour,
+                    Settings = "{}",
+                    CreatedAt = seededAt
+                });
+            });
+
             modelBuilder.Entity<KitchenOrder>().Property(o => o.ClientOrderId).HasDefaultValueSql("gen_random_uuid()");
             modelBuilder.Entity<KitchenOrder>().HasIndex(o => new { o.TenantId, o.ClientOrderId }).IsUnique();
+            modelBuilder.Entity<KitchenOrder>().HasIndex(o => new { o.TenantId, o.OutletId, o.Status });
+            modelBuilder.Entity<KitchenOrder>().HasIndex(o => new { o.TenantId, o.OutletId, o.CreatedAt });
+            modelBuilder.Entity<MenuItem>().HasIndex(m => new { m.TenantId, m.OutletId });
+            modelBuilder.Entity<RestaurantTable>().HasIndex(t => new { t.TenantId, t.OutletId, t.TableNumber }).IsUnique();
 
             foreach (var type in new[] { typeof(KitchenOrder), typeof(MenuItem), typeof(RestaurantTable) })
             {
                 modelBuilder.Entity(type).Property(nameof(TenantEntity.TenantId)).HasDefaultValue(1);
                 modelBuilder.Entity(type).Property(nameof(TenantEntity.OutletId)).HasDefaultValue(1);
                 modelBuilder.Entity(type).Property(nameof(TenantEntity.CreatedAt)).HasDefaultValueSql("now()");
+                // A restaurant or outlet with data can never be deleted by accident.
+                modelBuilder.Entity(type).HasOne(typeof(Tenant)).WithMany().HasForeignKey(nameof(TenantEntity.TenantId)).OnDelete(DeleteBehavior.Restrict);
+                modelBuilder.Entity(type).HasOne(typeof(Outlet)).WithMany().HasForeignKey(nameof(TenantEntity.OutletId)).OnDelete(DeleteBehavior.Restrict);
             }
 
             modelBuilder.Entity<KitchenOrder>().Property(o => o.Status).HasConversion<string>();
 
-            // Configuring the one-to-many relationship between KitchenOrder and OrderItem
+            // Deleting a table must not delete its orders.
+            modelBuilder.Entity<KitchenOrder>()
+                .HasOne(o => o.Table)
+                .WithMany()
+                .HasForeignKey(o => o.TableId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<KitchenOrder>()
                 .HasMany(o => o.Items)
                 .WithOne()
                 .HasForeignKey(i => i.KitchenOrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<OrderItem>().Property(i => i.UnitPrice).HasPrecision(10, 2);
+            // Money: numeric(12,2).
+            modelBuilder.Entity<MenuItem>().Property(m => m.Price).HasPrecision(12, 2);
+            modelBuilder.Entity<OrderItem>().Property(i => i.UnitPrice).HasPrecision(12, 2);
+            modelBuilder.Entity<OrderItem>().Property(i => i.TenantId).HasDefaultValue(1);
+            modelBuilder.Entity<OrderItem>().HasIndex(i => new { i.TenantId, i.KitchenOrderId });
 
             modelBuilder.Entity<KitchenOrder>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
             modelBuilder.Entity<MenuItem>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
             modelBuilder.Entity<RestaurantTable>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
+            modelBuilder.Entity<OrderItem>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
 
             base.OnModelCreating(modelBuilder);
 
@@ -58,21 +112,37 @@ namespace POSSystem.Data
 
         public override int SaveChanges()
         {
-            SetUpdatedAt();
+            ApplyAuditFields();
             return base.SaveChanges();
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            SetUpdatedAt();
+            ApplyAuditFields();
             return base.SaveChangesAsync(cancellationToken);
         }
 
-        private void SetUpdatedAt()
+        // New rows get the current restaurant, outlet and user; changed rows get who and when.
+        private void ApplyAuditFields()
         {
-            foreach (var entry in ChangeTracker.Entries<TenantEntity>().Where(e => e.State == EntityState.Added)) { entry.Entity.TenantId = CurrentTenantId; }
-            foreach (var entry in ChangeTracker.Entries<TenantEntity>().Where(e => e.State == EntityState.Modified))
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            var now = DateTime.UtcNow;
+            foreach (var entry in ChangeTracker.Entries<TenantEntity>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.TenantId = CurrentTenantId;
+                    entry.Entity.OutletId = CurrentOutletId;
+                    entry.Entity.CreatedBy ??= CurrentUserId;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.UpdatedAt = now;
+                    entry.Entity.UpdatedBy = CurrentUserId;
+                }
+            }
+
+            foreach (var entry in ChangeTracker.Entries<OrderItem>().Where(e => e.State == EntityState.Added))
+                entry.Entity.TenantId = CurrentTenantId;
         }
     }
 }
