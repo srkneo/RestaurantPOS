@@ -77,7 +77,7 @@ try
         {
             for (var i = 1; i <= 10; i++)
             {
-                db.RestaurantTables.Add(new RestaurantTable { TableNumber = i.ToString(), QRCodeString = $"table-{i}-qr" });
+                db.RestaurantTables.Add(new RestaurantTable { TableNumber = i.ToString(), QRCodeString = $"table-{i}-qr", SortOrder = i });
             }
             db.SaveChanges();
         }

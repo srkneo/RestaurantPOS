@@ -605,6 +605,11 @@ namespace RestaurantPOS.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
                     b.Property<int>("OutletId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -614,9 +619,13 @@ namespace RestaurantPOS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
                     b.Property<string>("TableNumber")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<int>("TenantId")
                         .ValueGeneratedOnAdd()

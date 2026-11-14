@@ -20,7 +20,8 @@ namespace POSSystem.Orders
         public static WebApplication MapOrderEndpoints(this WebApplication app)
         {
             app.MapGet("/api/tables", async (AppDbContext db) =>
-                Results.Ok(await db.RestaurantTables.OrderBy(t => t.Id).Select(t => new { t.Id, t.TableNumber }).ToListAsync()))
+                Results.Ok(await db.RestaurantTables.Where(t => t.IsActive && t.OutletId == db.CurrentOutletId)
+                    .OrderBy(t => t.SortOrder).ThenBy(t => t.Id).Select(t => new { t.Id, t.TableNumber }).ToListAsync()))
                 .WithName("GetTables").WithSummary("List restaurant tables");
 
             app.MapGet("/api/orders", async (string? date, IOrderService orderService) =>
