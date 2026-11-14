@@ -44,7 +44,7 @@ jobs:
             INSERT INTO "__EFMigrationsHistory" VALUES ($$20261114120955_AddPlatformAdmin$$, $$10.0$$);'
           mkdir -p /tmp/pos
           cp deploy/backup.sh deploy/restore-test.sh /tmp/pos/
-          /tmp/pos/backup.sh
-          /tmp/pos/restore-test.sh | tee /tmp/restore.txt
+          bash /tmp/pos/backup.sh
+          bash /tmp/pos/restore-test.sh | tee /tmp/restore.txt
           grep -q "restore test passed" /tmp/restore.txt
           docker rm -f pos-db-1
