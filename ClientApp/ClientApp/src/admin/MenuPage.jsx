@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import ConfirmDialog from '../ui/ConfirmDialog';
@@ -161,7 +162,10 @@ export default function MenuPage() {
     <main className="pos-page">
       <div className="pos-page-head">
         <h1>{t('menu.title')}</h1>
-        <button type="button" className="btn btn-primary px-3" disabled={categories.length === 0} onClick={() => openItem(null)}>{t('menu.addItem')}</button>
+        <div className="d-flex flex-wrap gap-2">
+          <Link className="btn btn-outline-primary px-3" to="/admin/menu/scan">{t('menu.scan')}</Link>
+          <button type="button" className="btn btn-primary px-3" disabled={categories.length === 0} onClick={() => openItem(null)}>{t('menu.addItem')}</button>
+        </div>
       </div>
 
       {loadState === 'loading' && <StateMessage kind="loading" />}
