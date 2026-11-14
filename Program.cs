@@ -10,6 +10,7 @@ using NLog;
 using NLog.Web;
 using System.IO;
 using System.Text.Json.Serialization;
+using Scalar.AspNetCore;
 
 // Setup NLog for Dependency injection
 var logger = NLog.LogManager.Setup().LoadConfigurationFromFile("nlog.config").GetCurrentClassLogger();
@@ -83,7 +84,8 @@ try
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
-        app.MapOpenApi();
+        app.MapOpenApi().AllowAnonymous();
+        app.MapScalarApiReference().AllowAnonymous();
     }
 
     app.UseCors("AllowFrontend");

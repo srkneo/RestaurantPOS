@@ -19,6 +19,7 @@
     <PackageReference Include="NLog.Targets.Seq" Version="4.0.2" />
     <PackageReference Include="NLog.Web.AspNetCore" Version="6.3.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.21.0" />
   </ItemGroup>
 
   <ItemGroup>
