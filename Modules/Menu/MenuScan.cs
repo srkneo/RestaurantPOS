@@ -31,10 +31,17 @@ namespace POSSystem.Menu
         Task<IReadOnlyList<MenuDraftItem>> ReadAsync(IReadOnlyList<MenuPhoto> photos, CancellationToken ct);
     }
 
-    // Google Gemini vision model. Settings: Gemini__ApiKey (required), Gemini__Model (optional).
+    // Google Gemini vision model. Settings: Gemini__ApiKey (required), Gemini__Model and Gemini__FallbackModel (optional).
+    // Busy answers (429/500/503) are retried; then the fallback model is tried. A retired model (404) goes straight to the fallback.
     public class GeminiMenuReader : IMenuReader
     {
-        public const string DefaultModel = "gemini-2.5-flash";
+        public const string DefaultModel = "gemini-3.6-flash";
+        public const string DefaultFallbackModel = "gemini-3.5-flash";
+        public const int AttemptsPerModel = 2;
+        public const string BusyMessage = "Google's menu reader is busy right now. Try again in a few minutes.";
+
+        // Pause before retry number n (1-based). Tests set it to zero.
+        public Func<int, TimeSpan> RetryDelay { get; set; } = n => TimeSpan.FromSeconds(n * 3);
 
         public const string Prompt =
             "These photos are the pages of one restaurant's printed menu, in order. List every dish with its price.\n" +
@@ -50,40 +57,60 @@ namespace POSSystem.Menu
         private readonly HttpClient _http;
         private readonly string? _apiKey;
         private readonly string _model;
+        private readonly string? _fallbackModel;
 
         public GeminiMenuReader(HttpClient http, IConfiguration config)
         {
             _http = http;
             _apiKey = config["Gemini:ApiKey"];
-            _model = string.IsNullOrWhiteSpace(config["Gemini:Model"]) ? DefaultModel : config["Gemini:Model"]!;
+            _model = string.IsNullOrWhiteSpace(config["Gemini:Model"]) ? DefaultModel : config["Gemini:Model"]!.Trim();
+            var fallback = string.IsNullOrWhiteSpace(config["Gemini:FallbackModel"]) ? DefaultFallbackModel : config["Gemini:FallbackModel"]!.Trim();
+            _fallbackModel = string.Equals(fallback, _model, StringComparison.OrdinalIgnoreCase) ? null : fallback;
         }
+
+        private static bool IsBusy(int status) => status == 429 || status == 500 || status == 503;
 
         public async Task<IReadOnlyList<MenuDraftItem>> ReadAsync(IReadOnlyList<MenuPhoto> photos, CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(_apiKey))
                 throw new MenuScanUnavailableException("Menu scan is not set up on this server (Gemini__ApiKey is missing).");
 
-            using var request = new HttpRequestMessage(HttpMethod.Post,
-                $"https://generativelanguage.googleapis.com/v1beta/models/{Uri.EscapeDataString(_model)}:generateContent");
-            request.Headers.Add("x-goog-api-key", _apiKey);
-            request.Content = JsonContent.Create(BuildRequest(photos));
+            var payload = BuildRequest(photos);
+            var models = _fallbackModel == null ? new[] { _model } : new[] { _model, _fallbackModel };
+            var lastStatus = 0;
+            foreach (var model in models)
+            {
+                for (var attempt = 1; attempt <= AttemptsPerModel; attempt++)
+                {
+                    if (attempt > 1) await Task.Delay(RetryDelay(attempt - 1), ct);
+                    var (status, body) = await SendAsync(model, payload, ct);
+                    if (status is >= 200 and < 300) return ParseResponse(body);
+                    lastStatus = status;
+                    if (status == 404) break;           // this model is retired: try the next one
+                    if (!IsBusy(status) && status != 0)  // bad key, bad request: retrying will not help
+                        throw new MenuScanFailedException($"The menu reader refused the request ({status}). Check the Gemini key and model on the server.");
+                }
+            }
+            throw new MenuScanFailedException(lastStatus == 404
+                ? "The menu reader model is no longer available. Set Gemini__Model on the server to a current model."
+                : BusyMessage);
+        }
 
-            HttpResponseMessage response;
+        // Status 0 = no answer (network problem or timeout), treated like busy.
+        private async Task<(int Status, string Body)> SendAsync(string model, object payload, CancellationToken ct)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post,
+                $"https://generativelanguage.googleapis.com/v1beta/models/{Uri.EscapeDataString(model)}:generateContent");
+            request.Headers.Add("x-goog-api-key", _apiKey);
+            request.Content = JsonContent.Create(payload);
             try
             {
-                response = await _http.SendAsync(request, ct);
+                using var response = await _http.SendAsync(request, ct);
+                return ((int)response.StatusCode, await response.Content.ReadAsStringAsync(ct));
             }
             catch (Exception ex) when (ex is HttpRequestException || (ex is TaskCanceledException && !ct.IsCancellationRequested))
             {
-                throw new MenuScanFailedException("The menu reader did not answer. Try again in a minute.", ex);
-            }
-
-            using (response)
-            {
-                var body = await response.Content.ReadAsStringAsync(ct);
-                if (!response.IsSuccessStatusCode)
-                    throw new MenuScanFailedException($"The menu reader refused the request ({(int)response.StatusCode}). Try again later.");
-                return ParseResponse(body);
+                return (0, string.Empty);
             }
         }
 
