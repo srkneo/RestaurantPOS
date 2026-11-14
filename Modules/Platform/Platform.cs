@@ -72,6 +72,11 @@ namespace POSSystem.Models
         public OrderType DefaultOrderType { get; set; } = OrderType.DineIn;
         public bool KitchenScreenEnabled { get; set; } = true;
 
+        // Billing (v1.6). No GST until the owner sets the registration in billing settings.
+        public TaxMode TaxMode { get; set; } = TaxMode.None;
+        public bool PricesIncludeTax { get; set; }
+        public string BillPrefix { get; set; } = "INV";
+
         public static readonly string[] Presets = { "dine-in", "cafe", "takeaway-counter" };
 
         // Ready-made setups for common outlet types; quantity limit and first token are kept.

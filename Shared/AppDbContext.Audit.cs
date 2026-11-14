@@ -17,7 +17,7 @@ namespace POSSystem.Data
 
         private static readonly HashSet<string> AuditedTypes = new()
         {
-            nameof(MenuItem), nameof(MenuCategory), nameof(RestaurantTable), nameof(Outlet), nameof(Tenant), nameof(AppUser), nameof(OutletLogo)
+            nameof(MenuItem), nameof(MenuCategory), nameof(RestaurantTable), nameof(Outlet), nameof(Tenant), nameof(AppUser), nameof(OutletLogo), nameof(Bill)
         };
 
         private static readonly HashSet<string> HiddenProperties = new()

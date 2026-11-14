@@ -233,6 +233,8 @@ namespace POSSystem.Services
             if (order.Version != version) throw new OrderConflictException("This order was changed on another screen.");
             if (order.Status != OrderStatus.Received)
                 throw new OrderStateException("Cooking has started, so this order can no longer be changed.");
+            if (await _context.Bills.AnyAsync(b => b.KitchenOrderId == id && b.Status != BillStatus.Void))
+                throw new POSSystem.Billing.BilledOrderException();
             return order;
         }
 
