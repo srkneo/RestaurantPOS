@@ -59,6 +59,7 @@ try
     app.MapTableEndpoints();
     app.MapLogoAndAuditEndpoints();
     app.MapStoreEndpoints();
+    app.MapSettingsEndpoints();
 
     app.UseExceptionHandler();
     app.UsePosAuth();
