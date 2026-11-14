@@ -55,6 +55,7 @@ try
     app.MapStaffEndpoints();
     app.MapMenuEndpoints();
     app.MapOrderEndpoints();
+    app.MapTableEndpoints();
 
     app.UseExceptionHandler();
     app.UsePosAuth();
