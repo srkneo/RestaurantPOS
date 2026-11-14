@@ -6,6 +6,7 @@
 ClientApp
 RestaurantPOS.Tests
 e2e
+infra
 logs
 *.db
 *.db-shm

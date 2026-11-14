@@ -1,16 +1,16 @@
 name: Release
 
-# Push a tag like v1.5.0 to build the images, publish them to GitHub Packages and deploy them.
-# Deploy needs these repository secrets (set once the server exists, step V5):
-#   DEPLOY_HOST (server IP), DEPLOY_USER (e.g. ubuntu), DEPLOY_SSH_KEY (private key), SITE_URL (https://<ip-with-dashes>.sslip.io)
-# Optional: POS_TG_TOKEN and POS_TG_CHAT for a Telegram message after each deploy.
+# v1.5.0-rc.1  -> builds the images and deploys them to STAGING.
+# v1.5.0       -> deploys to PRODUCTION. If an rc tag is on the same commit, its tested images are reused (not rebuilt).
+# Secrets: repository DEPLOY_SSH_KEY and DEPLOY_USER (ubuntu); in each GitHub environment ("staging", "production")
+# DEPLOY_HOST and SITE_URL. Optional: POS_TG_TOKEN and POS_TG_CHAT for a Telegram message after each deploy.
 on:
   push:
     tags: ['v*.*.*']
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to deploy again (e.g. 1.5.0), images must already exist'
+        description: 'Version to deploy again (e.g. 1.5.0, or 1.5.0-rc.1 for staging); images must already exist'
         required: true
 
 permissions:
@@ -19,6 +19,10 @@ permissions:
 concurrency:
   group: release
   cancel-in-progress: false
+
+env:
+  API_IMAGE: ghcr.io/srkneo/restaurantpos-api
+  WEB_IMAGE: ghcr.io/srkneo/restaurantpos-web
 
 jobs:
   images:
@@ -29,32 +33,58 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Version from the tag
+      - name: Version, and the tested release candidate (if any)
         id: v
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          rc=""
+          if [[ "$version" != *-* ]]; then
+            # Newest rc tag of this version on the same commit, e.g. v1.5.0-rc.2
+            rc="$(git tag --points-at HEAD --list "v$version-rc.*" --sort=-v:refname | head -n 1)"
+            rc="${rc#v}"
+          fi
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          if [ -n "$rc" ]; then echo "::notice::Reusing the images tested on staging as $rc"; fi
+      - name: Reuse the release candidate's images
+        if: steps.v.outputs.rc != ''
+        run: |
+          for image in "$API_IMAGE" "$WEB_IMAGE"; do
+            docker buildx imagetools create -t "$image:${{ steps.v.outputs.version }}" -t "$image:latest" "$image:${{ steps.v.outputs.rc }}"
+          done
+      - name: Image tags
+        if: steps.v.outputs.rc == ''
+        id: tags
+        run: |
+          version="${{ steps.v.outputs.version }}"
+          if [[ "$version" == *-* ]]; then latest=false; else latest=true; fi
+          {
+            echo "api<<EOF"; echo "$API_IMAGE:$version"; [ "$latest" = true ] && echo "$API_IMAGE:latest"; echo "EOF"
+            echo "web<<EOF"; echo "$WEB_IMAGE:$version"; [ "$latest" = true ] && echo "$WEB_IMAGE:latest"; echo "EOF"
+          } >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@v6
+        if: steps.v.outputs.rc == ''
         with:
           context: .
           push: true
-          tags: |
-            ghcr.io/srkneo/restaurantpos-api:${{ steps.v.outputs.version }}
-            ghcr.io/srkneo/restaurantpos-api:latest
+          tags: ${{ steps.tags.outputs.api }}
           labels: org.opencontainers.image.source=https://github.com/srkneo/RestaurantPOS
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
       - uses: docker/build-push-action@v6
+        if: steps.v.outputs.rc == ''
         with:
           context: ClientApp/ClientApp
           push: true
-          tags: |
-            ghcr.io/srkneo/restaurantpos-web:${{ steps.v.outputs.version }}
-            ghcr.io/srkneo/restaurantpos-web:latest
+          tags: ${{ steps.tags.outputs.web }}
           labels: org.opencontainers.image.source=https://github.com/srkneo/RestaurantPOS
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
@@ -63,6 +93,8 @@ jobs:
     needs: images
     if: always() && (needs.images.result == 'success' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
+    # Release candidates go to staging, final versions to production.
+    environment: ${{ contains(github.event_name == 'push' && github.ref_name || inputs.version, '-') && 'staging' || 'production' }}
     permissions:
       contents: read
       packages: read
@@ -74,13 +106,14 @@ jobs:
       TG_TOKEN: ${{ secrets.POS_TG_TOKEN }}
       TG_CHAT: ${{ secrets.POS_TG_CHAT }}
       TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+      TARGET: ${{ contains(github.event_name == 'push' && github.ref_name || inputs.version, '-') && 'staging' || 'production' }}
     steps:
       - uses: actions/checkout@v7
       - name: Check the server is set up
         id: ready
         run: |
           if [ -z "$DEPLOY_HOST" ] || [ -z "$DEPLOY_USER" ] || [ -z "$DEPLOY_SSH_KEY" ]; then
-            echo "::notice::Images are published. No server secrets yet, so nothing was deployed."
+            echo "::notice::Images are published. No $TARGET server secrets yet, so nothing was deployed."
             echo "go=false" >> "$GITHUB_OUTPUT"
           else
             echo "go=true" >> "$GITHUB_OUTPUT"
@@ -89,7 +122,7 @@ jobs:
         if: steps.ready.outputs.go == 'true'
         run: |
           install -m 700 -d ~/.ssh
-          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy
+          printf '%s\n' "$DEPLOY_SSH_KEY" | tr -d '\r' > ~/.ssh/deploy
           chmod 600 ~/.ssh/deploy
           echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
       - name: Copy the stack files to the server
@@ -119,5 +152,5 @@ jobs:
       - name: Telegram message
         if: always() && steps.ready.outputs.go == 'true' && env.TG_TOKEN != '' && env.TG_CHAT != ''
         run: |
-          if [ "${{ job.status }}" = "success" ]; then text="✅ RestaurantPOS $VERSION is live: $SITE_URL"; else text="❌ RestaurantPOS $VERSION deploy FAILED. See GitHub Actions."; fi
+          if [ "${{ job.status }}" = "success" ]; then text="✅ RestaurantPOS $VERSION is live on $TARGET: $SITE_URL"; else text="❌ RestaurantPOS $VERSION deploy to $TARGET FAILED. See GitHub Actions."; fi
           curl -sS -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" -d chat_id="${TG_CHAT}" --data-urlencode text="$text" > /dev/null

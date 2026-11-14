@@ -1,0 +1,29 @@
+#!/bin/bash
+# Runs once when the server is created: swap, Docker, firewall-friendly defaults and the app's .env.
+set -euo pipefail
+
+# Swap, so a short memory peak does not stop the database.
+if [ ! -f /swapfile ]; then
+  fallocate -l ${swap_gb}G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
+# Docker with the compose plugin; the ubuntu user (used by deploys) may run it.
+curl -fsSL https://get.docker.com | sh
+usermod -aG docker ubuntu
+systemctl enable --now docker
+
+# Security updates install by themselves (Ubuntu default, made sure here).
+apt-get install -y unattended-upgrades
+dpkg-reconfigure -f noninteractive unattended-upgrades
+
+# App folder and settings; the first release copies the rest.
+install -d -o ubuntu -g ubuntu -m 700 /home/ubuntu/pos /home/ubuntu/pos/backups
+cat > /home/ubuntu/pos/.env <<'ENVFILE'
+${env_file}
+ENVFILE
+chown ubuntu:ubuntu /home/ubuntu/pos/.env
+chmod 600 /home/ubuntu/pos/.env
