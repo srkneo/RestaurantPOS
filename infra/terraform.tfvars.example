@@ -1,0 +1,4 @@
+# Copy to terraform.tfvars (not committed). The Telegram token is passed as TF_VAR_telegram_token instead.
+platform_email   = "you@example.com"
+telegram_chat_id = "7138708897"
+staging_enabled  = false

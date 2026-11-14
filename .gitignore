@@ -6,6 +6,13 @@
 # dotenv files
 .env
 
+# OpenTofu (servers): local working files and settings
+infra/.terraform/
+infra/terraform.tfvars
+infra/*.tfstate
+infra/*.tfstate.*
+infra/plan
+
 # User-specific files
 *.rsuser
 *.suo
