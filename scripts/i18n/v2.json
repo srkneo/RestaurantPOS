@@ -1,0 +1,114 @@
+{
+  "nav.platform": [
+    "Restaurants",
+    "રેસ્ટોરન્ટ"
+  ],
+  "role.platform": [
+    "POS owner",
+    "POS માલિક"
+  ],
+  "platform.title": [
+    "Restaurants",
+    "રેસ્ટોરન્ટ"
+  ],
+  "platform.add": [
+    "Add restaurant",
+    "રેસ્ટોરન્ટ ઉમેરો"
+  ],
+  "platform.create": [
+    "Create",
+    "બનાવો"
+  ],
+  "platform.restaurantName": [
+    "Restaurant name",
+    "રેસ્ટોરન્ટનું નામ"
+  ],
+  "platform.outletName": [
+    "First outlet name",
+    "પહેલા આઉટલેટનું નામ"
+  ],
+  "platform.outletHint": [
+    "For example the area or road.",
+    "ઉદાહરણ તરીકે વિસ્તાર અથવા રોડ."
+  ],
+  "platform.ownerName": [
+    "Owner's name",
+    "માલિકનું નામ"
+  ],
+  "platform.ownerEmail": [
+    "Owner's email (used to sign in)",
+    "માલિકનો ઈમેલ (સાઇન ઇન માટે)"
+  ],
+  "platform.ownerPassword": [
+    "Owner's first password",
+    "માલિકનો પહેલો પાસવર્ડ"
+  ],
+  "platform.passwordHint": [
+    "At least 8 characters with upper and lower case, a number and a symbol. Give it to the owner privately.",
+    "ઓછામાં ઓછા 8 અક્ષર: મોટા અને નાના અક્ષર, અંક અને ચિહ્ન. માલિકને ખાનગીમાં આપો."
+  ],
+  "platform.restaurant": [
+    "Restaurant",
+    "રેસ્ટોરન્ટ"
+  ],
+  "platform.outlets": [
+    "Outlets",
+    "આઉટલેટ"
+  ],
+  "platform.staff": [
+    "Staff",
+    "સ્ટાફ"
+  ],
+  "platform.lastOrder": [
+    "Last order",
+    "છેલ્લો ઓર્ડર"
+  ],
+  "platform.never": [
+    "No orders yet",
+    "હજુ કોઈ ઓર્ડર નથી"
+  ],
+  "platform.active": [
+    "Active",
+    "ચાલુ"
+  ],
+  "platform.disabled": [
+    "Disabled",
+    "બંધ"
+  ],
+  "platform.disable": [
+    "Disable",
+    "બંધ કરો"
+  ],
+  "platform.enable": [
+    "Enable",
+    "ચાલુ કરો"
+  ],
+  "platform.disableTitle": [
+    "Disable {name}?",
+    "{name} બંધ કરવું છે?"
+  ],
+  "platform.disableHint": [
+    "Its staff are signed out within a minute and cannot sign in until you enable it again. No data is deleted.",
+    "તેનો સ્ટાફ એક મિનિટમાં સાઇન આઉટ થશે અને તમે ફરી ચાલુ કરો ત્યાં સુધી સાઇન ઇન નહીં કરી શકે. કોઈ ડેટા કાઢી નખાતો નથી."
+  ],
+  "platform.added": [
+    "Restaurant added. The owner can sign in now.",
+    "રેસ્ટોરન્ટ ઉમેરાયું. માલિક હવે સાઇન ઇન કરી શકે છે."
+  ],
+  "platform.disabledToast": [
+    "{name} is disabled.",
+    "{name} બંધ કર્યું."
+  ],
+  "platform.enabledToast": [
+    "{name} is enabled.",
+    "{name} ચાલુ કર્યું."
+  ],
+  "platform.required": [
+    "Fill in this field.",
+    "આ ખાનું ભરો."
+  ],
+  "platform.empty": [
+    "No restaurants yet.",
+    "હજુ કોઈ રેસ્ટોરન્ટ નથી."
+  ]
+}
