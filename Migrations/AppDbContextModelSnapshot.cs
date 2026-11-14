@@ -373,6 +373,9 @@ namespace RestaurantPOS.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
@@ -538,6 +541,58 @@ namespace RestaurantPOS.Migrations
                     b.HasIndex("TenantId", "BillId");
 
                     b.ToTable("BillLines");
+                });
+
+            modelBuilder.Entity("POSSystem.Models.BillPayment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<int>("BillId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("Change")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReceivedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<int>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<decimal?>("Tendered")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BillId");
+
+                    b.HasIndex("TenantId", "BillId");
+
+                    b.ToTable("BillPayments");
                 });
 
             modelBuilder.Entity("POSSystem.Models.KitchenOrder", b =>
@@ -1112,6 +1167,15 @@ namespace RestaurantPOS.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("POSSystem.Models.BillPayment", b =>
+                {
+                    b.HasOne("POSSystem.Models.Bill", null)
+                        .WithMany("Payments")
+                        .HasForeignKey("BillId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("POSSystem.Models.KitchenOrder", b =>
                 {
                     b.HasOne("POSSystem.Models.Outlet", null)
@@ -1214,6 +1278,8 @@ namespace RestaurantPOS.Migrations
             modelBuilder.Entity("POSSystem.Models.Bill", b =>
                 {
                     b.Navigation("Lines");
+
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("POSSystem.Models.KitchenOrder", b =>

@@ -9,6 +9,7 @@ namespace POSSystem.Data
         public DbSet<Bill> Bills { get; set; }
         public DbSet<BillLine> BillLines { get; set; }
         public DbSet<BillCounter> BillCounters { get; set; }
+        public DbSet<BillPayment> BillPayments { get; set; }
 
         private void ConfigureBilling(ModelBuilder modelBuilder)
         {
@@ -21,6 +22,7 @@ namespace POSSystem.Data
                 b.HasOne<Outlet>().WithMany().HasForeignKey(x => x.OutletId).OnDelete(DeleteBehavior.Restrict);
                 b.HasOne<KitchenOrder>().WithMany().HasForeignKey(x => x.KitchenOrderId).OnDelete(DeleteBehavior.Restrict);
                 b.HasMany(x => x.Lines).WithOne().HasForeignKey(l => l.BillId).OnDelete(DeleteBehavior.Restrict);
+                b.HasMany(x => x.Payments).WithOne().HasForeignKey(p => p.BillId).OnDelete(DeleteBehavior.Restrict);
 
                 b.Property(x => x.TaxMode).HasConversion<string>().HasMaxLength(20);
                 b.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
@@ -43,6 +45,17 @@ namespace POSSystem.Data
                 foreach (var money in new[] { nameof(BillLine.UnitPrice), nameof(BillLine.Amount), nameof(BillLine.Discount),
                              nameof(BillLine.TaxableValue), nameof(BillLine.Cgst), nameof(BillLine.Sgst) })
                     b.Property(money).HasPrecision(12, 2);
+                b.HasIndex(x => new { x.TenantId, x.BillId });
+                b.HasQueryFilter(x => x.TenantId == CurrentTenantId);
+            });
+
+            modelBuilder.Entity<BillPayment>(b =>
+            {
+                b.Property(x => x.TenantId).HasDefaultValue(1);
+                b.Property(x => x.Method).HasConversion<string>().HasMaxLength(10);
+                b.Property(x => x.Amount).HasPrecision(12, 2);
+                b.Property(x => x.Tendered).HasPrecision(12, 2);
+                b.Property(x => x.Change).HasPrecision(12, 2);
                 b.HasIndex(x => new { x.TenantId, x.BillId });
                 b.HasQueryFilter(x => x.TenantId == CurrentTenantId);
             });

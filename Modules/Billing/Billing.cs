@@ -19,6 +19,13 @@ namespace POSSystem.Models
         Void
     }
 
+    public enum PaymentMethod
+    {
+        Cash,
+        Upi,
+        Card
+    }
+
     // A bill (invoice) for one order. Never deleted: a void bill keeps its number and shows as void.
     // Names, prices, tax rates and store details are copied when the bill is made, so later menu or store changes do not alter it.
     public class Bill : TenantEntity
@@ -47,6 +54,7 @@ namespace POSSystem.Models
         public BillStatus Status { get; set; } = BillStatus.Unpaid;
         [MaxLength(200)] public string? VoidReason { get; set; }
         public DateTime? VoidedAt { get; set; }
+        public DateTime? PaidAt { get; set; }
 
         [MaxLength(60)] public string OrderLabel { get; set; } = string.Empty;
         public int TokenNumber { get; set; }
@@ -65,6 +73,22 @@ namespace POSSystem.Models
         public int Version { get; set; } = 1;
 
         public List<BillLine> Lines { get; set; } = new();
+        public List<BillPayment> Payments { get; set; } = new();
+    }
+
+    // Money received for a bill. A bill can be paid in parts (split payment); it is Paid when the parts reach the total.
+    public class BillPayment
+    {
+        public int Id { get; set; }
+        public int TenantId { get; set; } = 1;
+        public int BillId { get; set; }
+        public PaymentMethod Method { get; set; }
+        public decimal Amount { get; set; }        // counts towards the bill
+        public decimal? Tendered { get; set; }     // cash handed over by the customer
+        public decimal? Change { get; set; }       // cash given back
+        [MaxLength(40)] public string? Reference { get; set; }  // UPI or card reference, optional
+        public DateTime ReceivedAt { get; set; } = DateTime.UtcNow;
+        public string? ReceivedBy { get; set; }
     }
 
     public class BillLine
