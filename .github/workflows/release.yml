@@ -97,7 +97,8 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy -o StrictHostKeyChecking=accept-new "$DEPLOY_USER@$DEPLOY_HOST" 'mkdir -p ~/pos'
           scp -i ~/.ssh/deploy -o StrictHostKeyChecking=accept-new \
-            deploy/docker-compose.prod.yml deploy/Caddyfile deploy/deploy.sh deploy/.env.example "$DEPLOY_USER@$DEPLOY_HOST:~/pos/"
+            deploy/docker-compose.prod.yml deploy/Caddyfile deploy/deploy.sh deploy/backup.sh deploy/restore-test.sh deploy/.env.example \
+            "$DEPLOY_USER@$DEPLOY_HOST:~/pos/"
       - name: Pull and start the new version
         if: steps.ready.outputs.go == 'true'
         env:

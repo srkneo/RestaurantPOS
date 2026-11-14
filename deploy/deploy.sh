@@ -25,4 +25,12 @@ echo "POS_VERSION=$VERSION" > version.env
 "${COMPOSE[@]}" pull
 "${COMPOSE[@]}" up -d --remove-orphans
 docker image prune -f > /dev/null
+
+# Nightly backup at 03:00 India time (21:30 UTC); restore test on Sunday 03:30 India time.
+chmod +x backup.sh restore-test.sh
+{
+  crontab -l 2>/dev/null | grep -v -e 'pos/backup.sh' -e 'pos/restore-test.sh' || true
+  echo "30 21 * * * $HOME/pos/backup.sh >> $HOME/pos/backups/backup.log 2>&1"
+  echo "0 22 * * 6 $HOME/pos/restore-test.sh >> $HOME/pos/backups/restore-test.log 2>&1"
+} | crontab -
 echo "Version $VERSION started."

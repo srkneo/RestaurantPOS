@@ -31,3 +31,20 @@ jobs:
         run: |
           docker build -t pos-web-check ClientApp/ClientApp
           docker run --rm --add-host api:127.0.0.1 pos-web-check nginx -t
+      - name: Backup and restore scripts work
+        run: |
+          bash -n deploy/backup.sh
+          bash -n deploy/restore-test.sh
+          docker run -d --name pos-db-1 -e POSTGRES_USER=pos -e POSTGRES_PASSWORD=x -e POSTGRES_DB=restaurant_pos postgres:17
+          for i in $(seq 1 60); do docker exec pos-db-1 pg_isready -h 127.0.0.1 -U pos -d restaurant_pos && break; sleep 2; done
+          docker exec pos-db-1 psql -U pos -d restaurant_pos -c '
+            CREATE TABLE "Tenants" ("Id" int); INSERT INTO "Tenants" VALUES (1);
+            CREATE TABLE "AspNetUsers" ("Id" text); INSERT INTO "AspNetUsers" VALUES ($$u1$$);
+            CREATE TABLE "__EFMigrationsHistory" ("MigrationId" varchar(150), "ProductVersion" varchar(32));
+            INSERT INTO "__EFMigrationsHistory" VALUES ($$20261114120955_AddPlatformAdmin$$, $$10.0$$);'
+          mkdir -p /tmp/pos
+          cp deploy/backup.sh deploy/restore-test.sh /tmp/pos/
+          bash /tmp/pos/backup.sh
+          bash /tmp/pos/restore-test.sh | tee /tmp/restore.txt
+          grep -q "restore test passed" /tmp/restore.txt
+          docker rm -f pos-db-1
