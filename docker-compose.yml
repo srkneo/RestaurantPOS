@@ -20,6 +20,8 @@ services:
       ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=restaurant_pos;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}"
       Admin__Email: "${ADMIN_EMAIL:-admin@pos.local}"
       Admin__Password: "${ADMIN_PASSWORD:-ChangeMe#12345}"
+      # Test setup only: the E2E tests sign in many times a minute. Production keeps the default of 10.
+      RateLimits__LoginPerMinute: "${LOGIN_LIMIT_PER_MINUTE:-1000}"
     depends_on:
       db:
         condition: service_healthy
