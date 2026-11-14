@@ -1,0 +1,210 @@
+{
+  "nav.tables": [
+    "Tables",
+    "ટેબલ"
+  ],
+  "nav.store": [
+    "Store",
+    "સ્ટોર"
+  ],
+  "nav.settings": [
+    "Settings",
+    "સેટિંગ્સ"
+  ],
+  "tables.title": [
+    "Tables",
+    "ટેબલ"
+  ],
+  "tables.add": [
+    "Add table",
+    "ટેબલ ઉમેરો"
+  ],
+  "tables.editTitle": [
+    "Edit table {name}",
+    "ટેબલ {name} બદલો"
+  ],
+  "tables.number": [
+    "Table number or name",
+    "ટેબલ નંબર અથવા નામ"
+  ],
+  "tables.position": [
+    "Position",
+    "ક્રમ"
+  ],
+  "tables.inUse": [
+    "In use",
+    "ઉપયોગમાં"
+  ],
+  "tables.notInUse": [
+    "Not in use",
+    "ઉપયોગમાં નથી"
+  ],
+  "tables.edit": [
+    "Edit",
+    "બદલો"
+  ],
+  "tables.saved": [
+    "Table saved.",
+    "ટેબલ સાચવ્યું."
+  ],
+  "tables.numberRequired": [
+    "Enter a table number.",
+    "ટેબલ નંબર લખો."
+  ],
+  "tables.empty": [
+    "No tables yet.",
+    "હજી કોઈ ટેબલ નથી."
+  ],
+  "store.title": [
+    "Store profile",
+    "સ્ટોર માહિતી"
+  ],
+  "store.restaurantName": [
+    "Restaurant name",
+    "રેસ્ટોરન્ટનું નામ"
+  ],
+  "store.outletName": [
+    "Outlet name",
+    "આઉટલેટનું નામ"
+  ],
+  "store.address": [
+    "Address",
+    "સરનામું"
+  ],
+  "store.phone": [
+    "Phone",
+    "ફોન"
+  ],
+  "store.gstin": [
+    "GSTIN",
+    "GSTIN"
+  ],
+  "store.gstinHint": [
+    "15 characters, e.g. 24AAACC1206D1ZM. Leave empty if not registered.",
+    "15 અક્ષર, દા.ત. 24AAACC1206D1ZM. નોંધણી ન હોય તો ખાલી રાખો."
+  ],
+  "store.fssai": [
+    "FSSAI licence number",
+    "FSSAI લાઇસન્સ નંબર"
+  ],
+  "store.receiptFooter": [
+    "Bill footer",
+    "બિલ નીચેનો સંદેશ"
+  ],
+  "store.save": [
+    "Save",
+    "સાચવો"
+  ],
+  "store.saved": [
+    "Store profile saved.",
+    "સ્ટોર માહિતી સાચવી."
+  ],
+  "store.logo": [
+    "Logo",
+    "લોગો"
+  ],
+  "store.logoHint": [
+    "PNG, JPG or WebP, up to 512 KB.",
+    "PNG, JPG અથવા WebP, 512 KB સુધી."
+  ],
+  "store.uploadLogo": [
+    "Upload logo",
+    "લોગો અપલોડ કરો"
+  ],
+  "store.removeLogo": [
+    "Remove logo",
+    "લોગો દૂર કરો"
+  ],
+  "store.logoSaved": [
+    "Logo saved.",
+    "લોગો સાચવ્યો."
+  ],
+  "store.logoRemoved": [
+    "Logo removed.",
+    "લોગો દૂર કર્યો."
+  ],
+  "store.nameRequired": [
+    "Enter a name.",
+    "નામ લખો."
+  ],
+  "settings.title": [
+    "Settings",
+    "સેટિંગ્સ"
+  ],
+  "settings.presets": [
+    "Quick setup",
+    "ઝડપી સેટઅપ"
+  ],
+  "settings.presetsHint": [
+    "Pick your type of outlet. You can still change each setting below.",
+    "તમારા આઉટલેટનો પ્રકાર પસંદ કરો. નીચેની દરેક સેટિંગ પછી પણ બદલી શકાય છે."
+  ],
+  "settings.preset.dine-in": [
+    "Restaurant with tables",
+    "ટેબલવાળું રેસ્ટોરન્ટ"
+  ],
+  "settings.preset.cafe": [
+    "Cafe",
+    "કાફે"
+  ],
+  "settings.preset.takeaway-counter": [
+    "Takeaway counter",
+    "પાર્સલ કાઉન્ટર"
+  ],
+  "settings.presetApplied": [
+    "Setup applied.",
+    "સેટઅપ લાગુ કર્યું."
+  ],
+  "settings.orderTypes": [
+    "Order types",
+    "ઓર્ડર પ્રકાર"
+  ],
+  "settings.dineInEnabled": [
+    "Dine-in orders",
+    "ટેબલ પર ઓર્ડર"
+  ],
+  "settings.takeawayEnabled": [
+    "Takeaway orders",
+    "પાર્સલ ઓર્ડર"
+  ],
+  "settings.defaultOrderType": [
+    "POS starts with",
+    "POS શરૂઆત"
+  ],
+  "settings.takeawayNeedsName": [
+    "Ask the customer's name for takeaway",
+    "પાર્સલ માટે ગ્રાહકનું નામ પૂછો"
+  ],
+  "settings.kitchenScreenEnabled": [
+    "Use the kitchen screen",
+    "રસોડા સ્ક્રીન વાપરો"
+  ],
+  "settings.tokens": [
+    "Tokens and business day",
+    "ટોકન અને દિવસ"
+  ],
+  "settings.firstToken": [
+    "First token of the day",
+    "દિવસનો પહેલો ટોકન"
+  ],
+  "settings.businessDayStartHour": [
+    "New day starts at (hour 0–23)",
+    "નવો દિવસ શરૂ થાય (કલાક 0–23)"
+  ],
+  "settings.timeZone": [
+    "Time zone",
+    "સમય ઝોન"
+  ],
+  "settings.maxItemQuantity": [
+    "Most of one item in an order",
+    "એક ઓર્ડરમાં એક વસ્તુની વધુમાં વધુ સંખ્યા"
+  ],
+  "settings.save": [
+    "Save settings",
+    "સેટિંગ્સ સાચવો"
+  ],
+  "settings.saved": [
+    "Settings saved.",
+    "સેટિંગ્સ સાચવી."
+  ]
+}

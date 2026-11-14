@@ -38,6 +38,7 @@ const POSMenu = () => {
   const [placing, setPlacing] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [editing, setEditing] = useState(null); // { id, tokenNumber, version }
+  const [orderSettings, setOrderSettings] = useState(null);
   const clientOrderId = useRef(newClientId());
   const tRef = useRef(t);
 
@@ -48,15 +49,21 @@ const POSMenu = () => {
   const load = useCallback(async () => {
     setLoadState('loading');
     try {
-      const [menuRes, tablesRes] = await Promise.all([fetch('/api/menuitems'), fetch('/api/tables')]);
+      const [menuRes, tablesRes, settingsRes] = await Promise.all([fetch('/api/menuitems'), fetch('/api/tables'), fetch('/api/store/settings')]);
       if (!menuRes.ok || !tablesRes.ok) throw new Error('load failed');
       setMenuItems(await menuRes.json());
       setTables(await tablesRes.json());
+      // Outlet settings decide which order types the POS offers and which one it starts with.
+      if (settingsRes?.ok) {
+        const settings = await settingsRes.json();
+        setOrderSettings(settings);
+        if (!editId && settings.defaultOrderType) setOrderType(settings.defaultOrderType);
+      }
       setLoadState('ready');
     } catch {
       setLoadState('error');
     }
-  }, []);
+  }, [editId]);
 
   useEffect(() => {
     load();
@@ -138,7 +145,7 @@ const POSMenu = () => {
       showToast(t('pos.needTable'), 'error');
       return;
     }
-    if (!editing && orderType === 'Takeaway' && !customerName.trim()) {
+    if (!editing && orderType === 'Takeaway' && orderSettings?.takeawayNeedsName !== false && !customerName.trim()) {
       showToast(t('pos.needName'), 'error');
       return;
     }
@@ -219,7 +226,9 @@ const POSMenu = () => {
           </div>
         )}
         <div className="pos-type" role="group" aria-label={t('pos.orderType')}>
-          {['DineIn', 'Takeaway'].map((type) => (
+          {['DineIn', 'Takeaway']
+            .filter((type) => !orderSettings || (type === 'DineIn' ? orderSettings.dineInEnabled : orderSettings.takeawayEnabled))
+            .map((type) => (
             <button key={type} type="button" className="pos-chip" aria-pressed={orderType === type} disabled={!!editing}
               onClick={() => setOrderType(type)}>
               {type === 'DineIn' ? t('pos.dineIn') : t('pos.takeaway')}
