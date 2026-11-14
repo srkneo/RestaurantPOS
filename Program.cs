@@ -5,6 +5,7 @@ using POSSystem.Interfaces;
 using POSSystem.Menu;
 using POSSystem.Models;
 using POSSystem.Orders;
+using POSSystem.Platform;
 using POSSystem.Repositories;
 using POSSystem.Services;
 using POSSystem.Staff;
@@ -56,6 +57,9 @@ try
     app.MapMenuEndpoints();
     app.MapOrderEndpoints();
     app.MapTableEndpoints();
+    app.MapLogoAndAuditEndpoints();
+    app.MapStoreEndpoints();
+    app.MapSettingsEndpoints();
 
     app.UseExceptionHandler();
     app.UsePosAuth();
