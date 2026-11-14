@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace POSSystem.Data
 {
-    public class AppDbContext : IdentityDbContext<AppUser>
+    public partial class AppDbContext : IdentityDbContext<AppUser>
     {
         // Set per request from the signed-in user's claims (see AuthSetup.UsePosAuth).
         public int CurrentTenantId { get; set; } = 1;
@@ -95,6 +95,20 @@ namespace POSSystem.Data
             // Menu: existing items stay available and veg; GST 5% unless set. Sentinels let EF send false/0 explicitly.
             modelBuilder.Entity<MenuItem>().Property(m => m.IsAvailable).HasDefaultValue(true).HasSentinel(true);
             modelBuilder.Entity<RestaurantTable>().Property(t => t.IsActive).HasDefaultValue(true).HasSentinel(true);
+
+            modelBuilder.Entity<OutletLogo>(b =>
+            {
+                b.HasKey(l => l.OutletId);
+                b.Property(l => l.OutletId).ValueGeneratedNever();
+                b.HasOne<Outlet>().WithOne().HasForeignKey<OutletLogo>(l => l.OutletId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<AuditLog>(b =>
+            {
+                b.Property(a => a.Details).HasColumnType("jsonb");
+                b.HasIndex(a => new { a.TenantId, a.Id });
+                b.HasQueryFilter(a => a.TenantId == CurrentTenantId);
+            });
             modelBuilder.Entity<MenuItem>().Property(m => m.IsVeg).HasDefaultValue(true).HasSentinel(true);
             modelBuilder.Entity<MenuItem>().Property(m => m.TaxRate).HasPrecision(5, 2).HasDefaultValue(5m).HasSentinel(-1m);
             modelBuilder.Entity<MenuItem>().HasOne<MenuCategory>().WithMany().HasForeignKey(m => m.CategoryId).OnDelete(DeleteBehavior.Restrict);
@@ -130,17 +144,7 @@ namespace POSSystem.Data
             modelBuilder.Entity<AppUser>().Property(u => u.IsActive).HasDefaultValue(true).HasSentinel(true);
         }
 
-        public override int SaveChanges()
-        {
-            ApplyAuditFields();
-            return base.SaveChanges();
-        }
-
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            ApplyAuditFields();
-            return base.SaveChangesAsync(cancellationToken);
-        }
+        // SaveChanges and SaveChangesAsync are in AppDbContext.Audit.cs (they also write the audit log).
 
         // New rows get the current restaurant, outlet and user; changed rows get who and when.
         private void ApplyAuditFields()

@@ -64,7 +64,9 @@ namespace POSSystem.Services
 
             var outlet = await CurrentOutlet();
             var settings = outlet?.GetSettings() ?? new OutletSettings();
-            var orderType = orderRequest.OrderType ?? OrderType.DineIn;
+            var orderType = orderRequest.OrderType ?? settings.DefaultOrderType;
+            if (orderType == OrderType.DineIn && !settings.DineInEnabled) throw new ArgumentException("Dine-in orders are turned off for this outlet.");
+            if (orderType == OrderType.Takeaway && !settings.TakeawayEnabled) throw new ArgumentException("Takeaway orders are turned off for this outlet.");
 
             int? tableId = null;
             string? customerName = string.IsNullOrWhiteSpace(orderRequest.CustomerName) ? null : orderRequest.CustomerName.Trim();
