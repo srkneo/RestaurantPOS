@@ -1,12 +1,17 @@
-import './App.css';
 import React from 'react';
 import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './AuthContext';
+import { I18nProvider, LanguageSwitch, useT } from './i18n/I18nContext';
+import { ToastProvider } from './ui/ToastContext';
 import RequireRole from './components/RequireRole';
 import POSMenu from './components/POSMenu';
 import KitchenDisplay from './components/KitchenDisplay';
 import OrderHistory from './components/OrderHistory';
 import Login from './components/Login';
+
+const POS_ROLES = ['cashier', 'manager', 'admin'];
+const KITCHEN_ROLES = ['kitchen', 'manager', 'admin'];
+const ROLE_ORDER = ['admin', 'manager', 'cashier', 'kitchen'];
 
 function HomeRedirect() {
   const { user, loading } = useAuth();
@@ -16,48 +21,57 @@ function HomeRedirect() {
   return <Navigate to={kitchenOnly ? '/kitchen' : '/pos'} replace />;
 }
 
-function NavBar() {
+function AppHeader() {
   const { user, logout } = useAuth();
-  const can = (roles) => user && roles.some((r) => user.roles.includes(r));
+  const t = useT();
+  if (!user) return null;
+  const can = (roles) => roles.some((r) => user.roles.includes(r));
+  const mainRole = ROLE_ORDER.find((r) => user.roles.includes(r));
   return (
-    <div style={styles.navBar}>
-      {can(['cashier', 'manager', 'admin']) && <NavLink to="/pos" style={styles.navButton}>POS Menu</NavLink>}
-      {can(['cashier', 'manager', 'admin']) && <NavLink to="/orders" style={styles.navButton}>Order History</NavLink>}
-      {can(['kitchen', 'manager', 'admin']) && <NavLink to="/kitchen" style={styles.navButton}>Kitchen</NavLink>}
-      {user && <button style={styles.navButton} onClick={logout}>Sign out ({user.email})</button>}
-    </div>
+    <header className="pos-header">
+      <span className="pos-brand">{t('app.name')}</span>
+      <nav className="pos-nav" aria-label="Main">
+        {can(POS_ROLES) && <NavLink to="/pos">{t('nav.pos')}</NavLink>}
+        {can(POS_ROLES) && <NavLink to="/orders">{t('nav.orders')}</NavLink>}
+        {can(KITCHEN_ROLES) && <NavLink to="/kitchen">{t('nav.kitchen')}</NavLink>}
+      </nav>
+      <div className="pos-user">
+        {mainRole && <span className="pos-role" title={user.email}>{t(`role.${mainRole}`)}</span>}
+        <LanguageSwitch />
+        <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={logout}>{t('nav.signOut')}</button>
+      </div>
+    </header>
   );
 }
 
 function Layout() {
   const { pathname } = useLocation();
-  const hideNav = pathname.startsWith('/kitchen') || pathname.startsWith('/login');
+  const hideHeader = pathname.startsWith('/kitchen') || pathname.startsWith('/login');
   return (
-    <div>
-      {!hideNav && <NavBar />}
+    <>
+      {!hideHeader && <AppHeader />}
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<HomeRedirect />} />
-        <Route path="/pos" element={<RequireRole roles={['cashier', 'manager', 'admin']}><POSMenu /></RequireRole>} />
-        <Route path="/orders" element={<RequireRole roles={['cashier', 'manager', 'admin']}><OrderHistory /></RequireRole>} />
-        <Route path="/kitchen" element={<RequireRole roles={['kitchen', 'manager', 'admin']}><KitchenDisplay /></RequireRole>} />
+        <Route path="/pos" element={<RequireRole roles={POS_ROLES}><POSMenu /></RequireRole>} />
+        <Route path="/orders" element={<RequireRole roles={POS_ROLES}><OrderHistory /></RequireRole>} />
+        <Route path="/kitchen" element={<RequireRole roles={KITCHEN_ROLES}><KitchenDisplay /></RequireRole>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </div>
+    </>
   );
 }
 
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Layout />
-      </AuthProvider>
+      <I18nProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <Layout />
+          </ToastProvider>
+        </AuthProvider>
+      </I18nProvider>
     </BrowserRouter>
   );
 }
-
-const styles = {
-  navBar: { display: 'flex', justifyContent: 'space-around', padding: '10px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #dee2e6' },
-  navButton: { padding: '10px 20px', backgroundColor: '#ffffff', border: '1px solid #e0e0e0', borderRadius: '4px', cursor: 'pointer', color: '#2c3e50', fontWeight: 'bold', textDecoration: 'none', display: 'inline-block' },
-};
