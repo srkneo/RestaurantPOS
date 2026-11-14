@@ -104,7 +104,7 @@ const KitchenDisplay = () => {
       if (!res.ok) throw new Error('update failed');
       setOrders((prev) => (status === 'Ready'
         ? prev.filter((o) => o.id !== order.id)
-        : prev.map((o) => (o.id === order.id ? { ...o, status, version: (o.version ?? 1) + 1 } : o))));
+        : prev.map((o) => (o.id === order.id ? { ...o, status, version: Math.max(o.version ?? 0, (order.version ?? 0) + 1) } : o))));
     } catch {
       showToast(t('kitchen.markFailed', { token: order.tokenNumber }), 'error');
     } finally {
