@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches: [master, 'feature/**']
+permissions:
+  contents: read
+
 jobs:
   e2e:
     runs-on: ubuntu-latest
