@@ -8,9 +8,11 @@ import POSMenu from './components/POSMenu';
 import KitchenDisplay from './components/KitchenDisplay';
 import OrderHistory from './components/OrderHistory';
 import Login from './components/Login';
+import StaffPage from './admin/StaffPage';
 
 const POS_ROLES = ['cashier', 'manager', 'admin'];
 const KITCHEN_ROLES = ['kitchen', 'manager', 'admin'];
+const ADMIN_ROLES = ['admin'];
 const ROLE_ORDER = ['admin', 'manager', 'cashier', 'kitchen'];
 
 function HomeRedirect() {
@@ -34,6 +36,7 @@ function AppHeader() {
         {can(POS_ROLES) && <NavLink to="/pos">{t('nav.pos')}</NavLink>}
         {can(POS_ROLES) && <NavLink to="/orders">{t('nav.orders')}</NavLink>}
         {can(KITCHEN_ROLES) && <NavLink to="/kitchen">{t('nav.kitchen')}</NavLink>}
+        {can(ADMIN_ROLES) && <NavLink to="/admin/staff">{t('nav.staff')}</NavLink>}
       </nav>
       <div className="pos-user">
         {mainRole && <span className="pos-role" title={user.email}>{t(`role.${mainRole}`)}</span>}
@@ -56,6 +59,7 @@ function Layout() {
         <Route path="/pos" element={<RequireRole roles={POS_ROLES}><POSMenu /></RequireRole>} />
         <Route path="/orders" element={<RequireRole roles={POS_ROLES}><OrderHistory /></RequireRole>} />
         <Route path="/kitchen" element={<RequireRole roles={KITCHEN_ROLES}><KitchenDisplay /></RequireRole>} />
+        <Route path="/admin/staff" element={<RequireRole roles={ADMIN_ROLES}><StaffPage /></RequireRole>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
