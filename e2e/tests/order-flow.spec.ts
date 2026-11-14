@@ -17,30 +17,26 @@ test('order flows from POS to kitchen and back', async ({ browser }) => {
   const pos = await (await browser.newContext()).newPage();
 
   await signIn(kitchen, '/kitchen');
-  await expect(kitchen.getByText('Kitchen Display - Live Orders')).toBeVisible();
+  await expect(kitchen.getByRole('heading', { name: 'Kitchen', exact: true })).toBeVisible();
 
   await signIn(pos, '/pos');
-  await pos.locator('select').selectOption({ label: 'Table 1' });
-  await pos.getByRole('heading', { name: 'Classic Burger' }).click();
-  await pos.getByRole('heading', { name: 'Classic Burger' }).click();
-  await pos.getByRole('heading', { name: 'Fries', exact: true }).click();
+  await pos.getByLabel('Table', { exact: true }).selectOption({ label: 'Table 1' });
+  await pos.getByRole('button', { name: 'Add Classic Burger' }).click();
+  await pos.getByRole('button', { name: 'Add Classic Burger' }).click();
+  await pos.getByRole('button', { name: 'Add Fries' }).click();
+  await pos.getByRole('button', { name: 'Place order' }).click();
 
-  const dialogPromise = pos.waitForEvent('dialog');
-  await pos.getByRole('button', { name: 'Place Order' }).click();
-  const dialog = await dialogPromise;
-  const token = /Token Number: (\d+)/.exec(dialog.message())?.[1];
-  await dialog.accept();
+  const placed = pos.getByText(/Order placed\. Token \d+/);
+  await expect(placed).toBeVisible();
+  const token = /Token (\d+)/.exec((await placed.textContent()) ?? '')?.[1];
   expect(token).toBeTruthy();
 
-  const ticketTitle = kitchen.getByText(new RegExp(`Token #${token}$`));
-  await expect(ticketTitle).toBeVisible({ timeout: 10_000 });
-  await expect(kitchen.getByText('2 x Classic Burger').first()).toBeVisible();
+  const ticket = kitchen.getByRole('article', { name: `Token ${token}`, exact: true });
+  await expect(ticket).toBeVisible({ timeout: 10_000 });
+  await expect(ticket.getByText('2 x Classic Burger')).toBeVisible();
 
-  await ticketTitle
-    .locator('xpath=ancestor::div[.//button[normalize-space()="Mark Ready"]][1]')
-    .getByRole('button', { name: 'Mark Ready' })
-    .click();
+  await ticket.getByRole('button', { name: 'Mark ready' }).click();
 
-  await expect(pos.getByText(`Order ${token} is Ready`)).toBeVisible({ timeout: 10_000 });
-  await expect(ticketTitle).toHaveCount(0);
+  await expect(pos.getByText(`Order ${token} is ready`)).toBeVisible({ timeout: 10_000 });
+  await expect(ticket).toHaveCount(0);
 });
