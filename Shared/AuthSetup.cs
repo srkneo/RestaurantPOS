@@ -108,7 +108,7 @@ namespace POSSystem.Data
                 if (user.IsDevice) props.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(DeviceLoginDays);
                 await signInManager.SignInAsync(user, props);
                 return Results.Ok();
-            }).AllowAnonymous().WithName("Login").WithSummary("Sign in");
+            }).AllowAnonymous().RequireRateLimiting(RateLimits.Login).WithName("Login").WithSummary("Sign in");
 
             app.MapPost("/api/auth/logout", async (SignInManager<AppUser> signInManager) =>
             {

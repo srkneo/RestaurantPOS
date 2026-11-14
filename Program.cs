@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using POSSystem.Alerts;
 using POSSystem.Data;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using POSSystem.Hubs;
 using POSSystem.Interfaces;
 using POSSystem.Menu;
@@ -42,7 +44,9 @@ try
     builder.Services.AddSignalR().AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
     builder.Services.AddProblemDetails();
     builder.Services.AddPosAuth();
-    builder.Services.AddHealthChecks();
+    builder.Services.AddPosRateLimits(builder.Configuration);
+    builder.Services.AddTelegramErrorAlerts(builder.Configuration);
+    builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database", tags: new[] { "ready" });
     builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -51,7 +55,9 @@ try
     builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 
     var app = builder.Build();
-    app.MapHealthChecks("/health").AllowAnonymous();
+    // /health: the app is running. /health/ready: it can also reach the database (used by the uptime check).
+    app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = _ => false }).AllowAnonymous();
+    app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") }).AllowAnonymous();
     app.MapPosAuth();
     app.MapStaffEndpoints();
     app.MapMenuEndpoints();
@@ -63,6 +69,7 @@ try
 
     app.UseExceptionHandler();
     app.UsePosAuth();
+    app.UseRateLimiter();
 
     var logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "logs");
     if (!Directory.Exists(logDirectory))
