@@ -72,7 +72,7 @@ namespace RestaurantPOS.Tests
             var responseOrder = JsonConvert.DeserializeObject<dynamic>(responseContent)!;
 
             Assert.Equal(200, (int)response.StatusCode);
-            Assert.Equal(101, (int)responseOrder.tokenNumber);
+            Assert.Equal(1, (int)responseOrder.tokenNumber); // tokens restart at 1 each business day
         }
 
         [Fact]

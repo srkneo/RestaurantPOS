@@ -1,0 +1,5 @@
+.pos-menu-cats { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.pos-menu-cat-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.pos-switch { display: flex; align-items: center; gap: 10px; min-height: 48px; padding-left: 0; margin: 0; }
+.pos-switch .form-check-input { width: 44px; height: 24px; margin: 0; float: none; }
+.pos-switch .form-check-input:checked { background-color: var(--pos-accent); border-color: var(--pos-accent); }

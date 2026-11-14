@@ -57,3 +57,27 @@
   .pos-item { min-height: 112px; padding: 14px; }
   .pos-item-name { font-size: 17px; }
 }
+
+/* Batch B: order type, takeaway fields, line notes, veg mark, edit banner */
+.pos-type { display: flex; gap: 8px; }
+.pos-chip:disabled { opacity: 0.6; }
+.pos-field-customer { flex: 1 1 200px; }
+.pos-field-phone { width: 180px; }
+.pos-line-wrap { border-bottom: 1px solid #E4EAE7; padding-bottom: 8px; }
+.pos-line-wrap .pos-line { border-bottom: 0; padding-bottom: 6px; }
+.pos-note { margin-top: 2px; }
+.pos-note-btn { min-height: 36px; padding: 0 4px; border: 0; background: none; color: var(--pos-accent); font-size: 14px; font-weight: 600; }
+.pos-veg {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px; border: 2px solid #1E8E3E; border-radius: 3px;
+}
+.pos-veg::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #1E8E3E; }
+.pos-veg.nonveg { border-color: #B42318; }
+.pos-veg.nonveg::after { background: #B42318; }
+.pos-editing {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 10px 16px; border-radius: 12px; background: var(--pos-wait-bg); color: var(--pos-wait-text); font-weight: 600;
+}
+@media (max-width: 575.98px) {
+  .pos-field-phone, .pos-field-table { width: 100%; }
+}

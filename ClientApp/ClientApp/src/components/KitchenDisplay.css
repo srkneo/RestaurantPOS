@@ -34,3 +34,14 @@
   .kds-token { font-size: 44px; }
   .kds-items { font-size: 20px; }
 }
+
+/* Batch B: takeaway label, notes, start cooking */
+.kds-takeaway { color: #F2C14E; }
+.kds-tags { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.kds-cooking { padding: 6px 12px; border-radius: 10px; background: #26332E; color: #5FD9A6; font-size: 16px; font-weight: 700; }
+.kds-items li { display: flex; flex-direction: column; }
+.kds-note { font-size: 18px; font-weight: 600; font-style: italic; color: #F2C14E; }
+.kds-actions { display: flex; gap: 12px; }
+.kds-actions > button { flex: 1 1 0; }
+.kds-start { min-height: 64px; border: 2px solid #5FD9A6; border-radius: 12px; background: transparent; color: #5FD9A6; font-size: 20px; font-weight: 700; }
+.kds-start:disabled { opacity: 0.6; }

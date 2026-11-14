@@ -26,6 +26,8 @@ namespace POSSystem.Data
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<Outlet> Outlets { get; set; }
         public DbSet<MenuItem> MenuItems { get; set; }
+        public DbSet<MenuCategory> MenuCategories { get; set; }
+        public DbSet<OrderCounter> OrderCounters { get; set; }
         public DbSet<RestaurantTable> RestaurantTables { get; set; }
         public DbSet<KitchenOrder> KitchenOrders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
@@ -67,8 +69,10 @@ namespace POSSystem.Data
             modelBuilder.Entity<KitchenOrder>().HasIndex(o => new { o.TenantId, o.OutletId, o.CreatedAt });
             modelBuilder.Entity<MenuItem>().HasIndex(m => new { m.TenantId, m.OutletId });
             modelBuilder.Entity<RestaurantTable>().HasIndex(t => new { t.TenantId, t.OutletId, t.TableNumber }).IsUnique();
+            modelBuilder.Entity<MenuCategory>().HasIndex(c => new { c.TenantId, c.OutletId, c.SortOrder });
+            modelBuilder.Entity<KitchenOrder>().HasIndex(o => new { o.TenantId, o.OutletId, o.BusinessDate, o.TokenNumber });
 
-            foreach (var type in new[] { typeof(KitchenOrder), typeof(MenuItem), typeof(RestaurantTable) })
+            foreach (var type in new[] { typeof(KitchenOrder), typeof(MenuItem), typeof(RestaurantTable), typeof(MenuCategory) })
             {
                 modelBuilder.Entity(type).Property(nameof(TenantEntity.TenantId)).HasDefaultValue(1);
                 modelBuilder.Entity(type).Property(nameof(TenantEntity.OutletId)).HasDefaultValue(1);
@@ -79,6 +83,20 @@ namespace POSSystem.Data
             }
 
             modelBuilder.Entity<KitchenOrder>().Property(o => o.Status).HasConversion<string>();
+            modelBuilder.Entity<KitchenOrder>().Property(o => o.OrderType).HasConversion<string>().HasMaxLength(20).HasDefaultValue(OrderType.DineIn);
+            modelBuilder.Entity<KitchenOrder>().Property(o => o.Version).IsConcurrencyToken();
+
+            modelBuilder.Entity<OrderCounter>(b =>
+            {
+                b.ToTable("OrderCounters");
+                b.HasKey(c => new { c.TenantId, c.OutletId, c.BusinessDate });
+            });
+
+            // Menu: existing items stay available and veg; GST 5% unless set. Sentinels let EF send false/0 explicitly.
+            modelBuilder.Entity<MenuItem>().Property(m => m.IsAvailable).HasDefaultValue(true).HasSentinel(true);
+            modelBuilder.Entity<MenuItem>().Property(m => m.IsVeg).HasDefaultValue(true).HasSentinel(true);
+            modelBuilder.Entity<MenuItem>().Property(m => m.TaxRate).HasPrecision(5, 2).HasDefaultValue(5m).HasSentinel(-1m);
+            modelBuilder.Entity<MenuItem>().HasOne<MenuCategory>().WithMany().HasForeignKey(m => m.CategoryId).OnDelete(DeleteBehavior.Restrict);
 
             // Deleting a table must not delete its orders.
             modelBuilder.Entity<KitchenOrder>()
@@ -103,6 +121,7 @@ namespace POSSystem.Data
             modelBuilder.Entity<MenuItem>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
             modelBuilder.Entity<RestaurantTable>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
             modelBuilder.Entity<OrderItem>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
+            modelBuilder.Entity<MenuCategory>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
 
             base.OnModelCreating(modelBuilder);
 
