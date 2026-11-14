@@ -33,6 +33,12 @@ namespace POSSystem.Models
 
         public int MaxItemQuantity { get; set; } = 99;
 
+        // First token of each business day.
+        public int FirstToken { get; set; } = 1;
+
+        // Takeaway orders must carry the customer's name.
+        public bool TakeawayNeedsName { get; set; } = true;
+
         public static OutletSettings Parse(string? json)
         {
             try

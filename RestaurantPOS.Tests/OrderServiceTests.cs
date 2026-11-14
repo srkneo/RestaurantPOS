@@ -36,6 +36,7 @@ namespace RestaurantPOS.Tests
 
             using (var context = new AppDbContext(options))
             {
+                context.RestaurantTables.Add(new RestaurantTable { Id = 1, TableNumber = "1", QRCodeString = "table-1-qr" });
                 context.MenuItems.AddRange(
                     new MenuItem { Id = 1, Name = "Test Burger", Price = 10, Category = "Main" }
                 );
@@ -59,7 +60,7 @@ namespace RestaurantPOS.Tests
                 var order = await orderService.CreateOrder(orderRequest);
 
                 // Assert
-                Assert.Equal(101, order.TokenNumber);
+                Assert.Equal(1, order.TokenNumber); // tokens restart at 1 each business day
                 mockClientProxy.Verify(c => c.SendCoreAsync("ReceiveNewOrder", It.IsAny<object[]>(), default), Times.Once);
             }
         }
@@ -146,6 +147,7 @@ namespace RestaurantPOS.Tests
 
             using (var context = new AppDbContext(options))
             {
+                context.RestaurantTables.Add(new RestaurantTable { Id = 1, TableNumber = "1", QRCodeString = "table-1-qr" });
                 context.MenuItems.AddRange(
                     new MenuItem { Id = 1, Name = "Burger", Price = 10, Category = "Main" }
                 );

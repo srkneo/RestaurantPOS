@@ -56,7 +56,7 @@ namespace RestaurantPOS.Tests
             using var scope = f.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.CurrentTenantId = tenantId;
-            db.KitchenOrders.Add(new KitchenOrder { Id = 1, TableId = 1, TokenNumber = 101, Status = OrderStatus.Received });
+            db.KitchenOrders.Add(new KitchenOrder { Id = 1, TableId = 1, TokenNumber = 101, Status = OrderStatus.Received, BusinessDate = BusinessClock.BusinessDate(DateTime.UtcNow, null, BusinessClock.DefaultDayStartHour) });
             db.SaveChanges();
         }
 

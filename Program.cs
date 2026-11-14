@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using POSSystem.Dtos;
 using POSSystem.Data;
-using POSSystem.Hubs; // Added missing using directive
+using POSSystem.Hubs;
 using POSSystem.Interfaces;
+using POSSystem.Menu;
 using POSSystem.Models;
+using POSSystem.Orders;
 using POSSystem.Repositories;
 using POSSystem.Services;
 using POSSystem.Staff;
@@ -21,11 +22,9 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
 
-    // Add services to the container.
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -35,14 +34,14 @@ try
             policy.WithOrigins("http://localhost:5173")
                    .AllowAnyMethod()
                    .AllowAnyHeader()
-                   .AllowCredentials()); // AllowCredentials added for SignalR
+                   .AllowCredentials()); // needed for SignalR
     });
 
     builder.Services.AddOpenApi();
     builder.Services.AddSignalR().AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
     builder.Services.AddProblemDetails();
     builder.Services.AddPosAuth();
-    builder.Services.AddHealthChecks(); // Added
+    builder.Services.AddHealthChecks();
     builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -54,11 +53,12 @@ try
     app.MapHealthChecks("/health").AllowAnonymous();
     app.MapPosAuth();
     app.MapStaffEndpoints();
+    app.MapMenuEndpoints();
+    app.MapOrderEndpoints();
 
     app.UseExceptionHandler();
-    app.UsePosAuth(); // Added
+    app.UsePosAuth();
 
-    // Ensure the logs directory exists
     var logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "logs");
     if (!Directory.Exists(logDirectory))
     {
@@ -72,7 +72,7 @@ try
         SeedData.EnsureMenu(db);
         await IdentitySeed.EnsureAsync(scope.ServiceProvider, app.Configuration);
 
-        // Seed Table 1 to 10 so the KitchenOrder has a valid foreign key
+        // Tables 1 to 10 for a new restaurant
         if (!db.RestaurantTables.Any())
         {
             for (var i = 1; i <= 10; i++)
@@ -83,7 +83,6 @@ try
         }
     }
 
-    // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
         app.MapOpenApi().AllowAnonymous();
@@ -91,57 +90,9 @@ try
     }
 
     app.UseCors("AllowFrontend");
-
     app.UseHttpsRedirection();
 
-
-    app.MapGet("/api/menuitems", async (IMenuItemService menuItemService) =>
-    {
-        var menuItems = await menuItemService.GetMenuItems();
-        return Results.Ok(menuItems);
-    }).WithName("GetMenuItems").WithSummary("List menu items");
-
-    app.MapGet("/api/tables", async (AppDbContext db) => Results.Ok(await db.RestaurantTables.OrderBy(t => t.Id).Select(t => new { t.Id, t.TableNumber }).ToListAsync())).WithName("GetTables").WithSummary("List restaurant tables");
-
-    app.MapGet("/api/orders", async (IOrderService orderService) =>
-    {
-        var orders = await orderService.GetOrders();
-        return Results.Ok(orders.Select(o => o.ToDto()));
-    }).WithName("GetOrders").WithSummary("List orders");
-
-    app.MapPost("/api/orders", async (OrderRequest orderRequest, IOrderService orderService, ILogger<OrderService> logger) =>
-    {
-        if (orderRequest.Table <= 0 || orderRequest.Items == null || orderRequest.Items.Count == 0 || orderRequest.Items.Any(i => i.MenuItemId <= 0 || i.Quantity < 1 || i.Quantity > 99))
-            return Results.BadRequest(new { message = "Invalid order request" });
-
-        try
-        {
-            var order = await orderService.CreateOrder(orderRequest);
-            logger.LogInformation("Order placed: OrderId={OrderId}, TokenNumber={TokenNumber}, TableId={TableId}", order.Id, order.TokenNumber, order.TableId);
-            return Results.Ok(new { message = "Order placed", orderId = order.Id, tokenNumber = order.TokenNumber });
-        }
-        catch (ArgumentException ex)
-        {
-            return Results.BadRequest(new { message = ex.Message });
-        }
-    }).WithName("CreateOrder").WithSummary("Place a new order");
-
-    app.MapPut("/api/orders/{id}/status", async (int id, StatusUpdateRequest statusRequest, IOrderService orderService, ILogger<OrderService> logger) =>
-    {
-        try
-        {
-            await orderService.UpdateOrderStatus(id, statusRequest.Status);
-            logger.LogInformation("Order status updated: OrderId={OrderId}, NewStatus={NewStatus}", id, statusRequest.Status);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Results.BadRequest(new { message = ex.Message });
-        }
-        return Results.Ok();
-    }).WithName("UpdateOrderStatus").WithSummary("Change an order's status");
-
-
-    app.MapHub<OrderHub>("/orderHub"); // Map SignalR Hub
+    app.MapHub<OrderHub>("/orderHub");
 
     app.Run();
 }
@@ -152,27 +103,8 @@ catch (Exception exception)
 }
 finally
 {
-    // Ensure to flush and stop internal timers/threads before application-exit (Avoid segmentation fault on Linux)
+    // Flush and stop internal timers/threads before exit (avoids a crash on Linux)
     NLog.LogManager.Shutdown();
-}
-
-
-public class OrderRequest
-{
-    public int Table { get; set; }
-    public List<OrderItemRequest> Items { get; set; } = new();
-    public Guid? ClientOrderId { get; set; }
-}
-
-public class OrderItemRequest
-{
-    public int MenuItemId { get; set; }
-    public int Quantity { get; set; } = 1;
-}
-
-public class StatusUpdateRequest
-{
-    public OrderStatus Status { get; set; }
 }
 
 public partial class Program { }

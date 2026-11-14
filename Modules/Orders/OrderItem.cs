@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace POSSystem.Models
 {
     public class OrderItem
@@ -9,5 +11,9 @@ namespace POSSystem.Models
         public string ItemName { get; set; } = string.Empty;
         public decimal UnitPrice { get; set; }
         public int Quantity { get; set; }
+
+        // Kitchen instruction for this line, e.g. "Jain" or "less spicy".
+        [MaxLength(200)]
+        public string? Note { get; set; }
     }
 }
