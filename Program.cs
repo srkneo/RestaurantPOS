@@ -39,6 +39,7 @@ try
     builder.Services.AddOpenApi();
     builder.Services.AddSignalR().AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
     builder.Services.AddProblemDetails();
+    builder.Services.AddPosAuth();
     builder.Services.AddHealthChecks(); // Added
     builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
@@ -48,9 +49,11 @@ try
     builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 
     var app = builder.Build();
-    app.MapHealthChecks("/health");
+    app.MapHealthChecks("/health").AllowAnonymous();
+    app.MapPosAuth();
 
-    app.UseExceptionHandler(); // Added
+    app.UseExceptionHandler();
+    app.UsePosAuth(); // Added
 
     // Ensure the logs directory exists
     var logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "logs");
@@ -64,6 +67,7 @@ try
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         if (db.Database.IsRelational()) { db.Database.Migrate(); } else { db.Database.EnsureCreated(); }
         SeedData.EnsureMenu(db);
+        await IdentitySeed.EnsureAsync(scope.ServiceProvider, app.Configuration);
 
         // Seed Table 1 to 10 so the KitchenOrder has a valid foreign key
         if (!db.RestaurantTables.Any())

@@ -18,6 +18,8 @@ services:
     build: .
     environment:
       ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=restaurant_pos;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}"
+      Admin__Email: "${ADMIN_EMAIL:-admin@pos.local}"
+      Admin__Password: "${ADMIN_PASSWORD:-ChangeMe#12345}"
     depends_on:
       db:
         condition: service_healthy

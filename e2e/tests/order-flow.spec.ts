@@ -1,14 +1,25 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
+
+const email = process.env.E2E_EMAIL ?? 'admin@pos.local';
+const password = process.env.E2E_PASSWORD ?? 'ChangeMe#12345';
+
+async function signIn(page: Page, path: string) {
+  await page.goto('/login');
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Password').fill(password);
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await page.waitForURL((url) => !url.pathname.startsWith('/login'));
+  await page.goto(path);
+}
 
 test('order flows from POS to kitchen and back', async ({ browser }) => {
   const kitchen = await (await browser.newContext()).newPage();
   const pos = await (await browser.newContext()).newPage();
 
-  await kitchen.goto('/');
-  await kitchen.getByRole('button', { name: 'Kitchen Admin' }).click();
+  await signIn(kitchen, '/kitchen');
   await expect(kitchen.getByText('Kitchen Display - Live Orders')).toBeVisible();
 
-  await pos.goto('/');
+  await signIn(pos, '/pos');
   await pos.locator('select').selectOption({ label: 'Table 1' });
   await pos.getByRole('heading', { name: 'Classic Burger' }).click();
   await pos.getByRole('heading', { name: 'Classic Burger' }).click();

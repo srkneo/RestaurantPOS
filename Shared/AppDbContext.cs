@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using POSSystem.Models;
 using System.Linq;
@@ -6,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace POSSystem.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<AppUser>
     {
+        public int CurrentTenantId { get; set; } = 1;
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
@@ -44,6 +46,10 @@ namespace POSSystem.Data
 
             modelBuilder.Entity<OrderItem>().Property(i => i.UnitPrice).HasPrecision(10, 2);
 
+            modelBuilder.Entity<KitchenOrder>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
+            modelBuilder.Entity<MenuItem>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
+            modelBuilder.Entity<RestaurantTable>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
+
             base.OnModelCreating(modelBuilder);
         }
 
@@ -61,6 +67,7 @@ namespace POSSystem.Data
 
         private void SetUpdatedAt()
         {
+            foreach (var entry in ChangeTracker.Entries<TenantEntity>().Where(e => e.State == EntityState.Added)) { entry.Entity.TenantId = CurrentTenantId; }
             foreach (var entry in ChangeTracker.Entries<TenantEntity>().Where(e => e.State == EntityState.Modified))
                 entry.Entity.UpdatedAt = DateTime.UtcNow;
         }

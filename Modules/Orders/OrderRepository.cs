@@ -33,7 +33,7 @@ namespace POSSystem.Repositories
 
         public async Task CompleteOrder(int id)
         {
-            var order = await _context.KitchenOrders.FindAsync(id);
+            var order = await _context.KitchenOrders.FirstOrDefaultAsync(o => o.Id == id);
             if (order != null)
             {
                 order.Status = OrderStatus.Completed;
@@ -43,7 +43,7 @@ namespace POSSystem.Repositories
 
         public async Task UpdateOrderStatus(int id, OrderStatus status)
         {
-            var order = await _context.KitchenOrders.FindAsync(id);
+            var order = await _context.KitchenOrders.FirstOrDefaultAsync(o => o.Id == id);
             if (order != null)
             {
                 order.Status = status;
