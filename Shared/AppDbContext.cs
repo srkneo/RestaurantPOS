@@ -51,6 +51,9 @@ namespace POSSystem.Data
             modelBuilder.Entity<RestaurantTable>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
 
             base.OnModelCreating(modelBuilder);
+
+            // New users are active; sentinel true lets EF send an explicit false when needed.
+            modelBuilder.Entity<AppUser>().Property(u => u.IsActive).HasDefaultValue(true).HasSentinel(true);
         }
 
         public override int SaveChanges()
