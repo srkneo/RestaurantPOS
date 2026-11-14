@@ -13,18 +13,21 @@ import MenuPage from './admin/MenuPage';
 import TablesPage from './admin/TablesPage';
 import StorePage from './admin/StorePage';
 import SettingsPage from './admin/SettingsPage';
+import PlatformPage from './admin/PlatformPage';
 import StoreBrand from './ui/StoreBrand';
 
 const POS_ROLES = ['cashier', 'manager', 'admin'];
 const KITCHEN_ROLES = ['kitchen', 'manager', 'admin'];
 const ADMIN_ROLES = ['admin'];
 const MENU_ROLES = ['admin', 'manager'];
-const ROLE_ORDER = ['admin', 'manager', 'cashier', 'kitchen'];
+const PLATFORM_ROLES = ['platform'];
+const ROLE_ORDER = ['platform', 'admin', 'manager', 'cashier', 'kitchen'];
 
 function HomeRedirect() {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
+  if (user.roles.includes('platform')) return <Navigate to="/platform" replace />;
   const kitchenOnly = user.roles.length === 1 && user.roles[0] === 'kitchen';
   return <Navigate to={kitchenOnly ? '/kitchen' : '/pos'} replace />;
 }
@@ -47,6 +50,7 @@ function AppHeader() {
         {can(ADMIN_ROLES) && <NavLink to="/admin/staff">{t('nav.staff')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/store">{t('nav.store')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/settings">{t('nav.settings')}</NavLink>}
+        {can(PLATFORM_ROLES) && <NavLink to="/platform">{t('nav.platform')}</NavLink>}
       </nav>
       <div className="pos-user">
         {mainRole && <span className="pos-role" title={user.email}>{t(`role.${mainRole}`)}</span>}
@@ -74,6 +78,7 @@ function Layout() {
         <Route path="/admin/tables" element={<RequireRole roles={MENU_ROLES}><TablesPage /></RequireRole>} />
         <Route path="/admin/store" element={<RequireRole roles={ADMIN_ROLES}><StorePage /></RequireRole>} />
         <Route path="/admin/settings" element={<RequireRole roles={ADMIN_ROLES}><SettingsPage /></RequireRole>} />
+        <Route path="/platform" element={<RequireRole roles={PLATFORM_ROLES}><PlatformPage /></RequireRole>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

@@ -5,6 +5,7 @@ namespace POSSystem.Models
 {
     public class AppUser : IdentityUser
     {
+        // 0 for the platform owner, who belongs to no restaurant.
         public int TenantId { get; set; } = 1;
         public int OutletId { get; set; } = 1;
 
@@ -16,5 +17,8 @@ namespace POSSystem.Models
 
         // A fixed kitchen screen: stays signed in for 30 days, kitchen role only.
         public bool IsDevice { get; set; }
+
+        // The POS owner (super admin): manages restaurants at /platform, sees no restaurant data.
+        public bool IsPlatformAdmin { get; set; }
     }
 }

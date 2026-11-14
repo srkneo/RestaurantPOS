@@ -7,10 +7,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using POSSystem.Models;
+using POSSystem.Platform;
 
 namespace POSSystem.Data
 {
@@ -34,7 +36,9 @@ namespace POSSystem.Data
 
     public static class AuthSetup
     {
+        // Roles a restaurant owner can give to staff. The platform role is never one of them.
         public static readonly string[] Roles = { "admin", "manager", "cashier", "kitchen" };
+        public const string PlatformRole = "platform";
         public const int DeviceLoginDays = 30;
 
         public static IServiceCollection AddPosAuth(this IServiceCollection services)
@@ -60,6 +64,9 @@ namespace POSSystem.Data
             // Deactivated staff and changed passwords end other sessions within a minute.
             services.Configure<SecurityStampValidatorOptions>(o => o.ValidationInterval = TimeSpan.FromMinutes(1));
 
+            services.AddMemoryCache();
+            services.AddSingleton<TenantStatus>();
+
             services.AddAuthorizationBuilder()
                 .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
             return services;
@@ -79,6 +86,14 @@ namespace POSSystem.Data
                     if (int.TryParse(ctx.User.FindFirst("outlet_id")?.Value, out var outletId)) db.CurrentOutletId = outletId;
                     db.CurrentUserId = ctx.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+                    // A disabled restaurant's open sessions stop working (within a minute, or at once on this server).
+                    if (!ctx.User.IsInRole(PlatformRole)
+                        && await ctx.RequestServices.GetRequiredService<TenantStatus>().IsDisabledAsync(db, db.CurrentTenantId))
+                    {
+                        ctx.Response.StatusCode = 401;
+                        return;
+                    }
+
                     bool InAny(params string[] roles) => roles.Any(ctx.User.IsInRole);
                     if (ctx.Request.Path.StartsWithSegments("/api/orders"))
                     {
@@ -93,12 +108,13 @@ namespace POSSystem.Data
 
         public static WebApplication MapPosAuth(this WebApplication app)
         {
-            app.MapPost("/api/auth/login", async (LoginRequest req, SignInManager<AppUser> signInManager, UserManager<AppUser> userManager) =>
+            app.MapPost("/api/auth/login", async (LoginRequest req, SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, AppDbContext db) =>
             {
                 if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrEmpty(req.Password)) return Results.Unauthorized();
 
                 var user = await userManager.FindByEmailAsync(req.Email.Trim());
                 if (user is null || !user.IsActive) return Results.Unauthorized();
+                if (!user.IsPlatformAdmin && await db.Tenants.AnyAsync(t => t.Id == user.TenantId && !t.IsActive)) return Results.Unauthorized();
 
                 var check = await signInManager.CheckPasswordSignInAsync(user, req.Password, lockoutOnFailure: true);
                 if (!check.Succeeded) return Results.Unauthorized();
@@ -139,11 +155,28 @@ namespace POSSystem.Data
                 if (!await roleManager.RoleExistsAsync(role)) await roleManager.CreateAsync(new IdentityRole(role));
             }
 
+            if (!await roleManager.RoleExistsAsync(AuthSetup.PlatformRole)) await roleManager.CreateAsync(new IdentityRole(AuthSetup.PlatformRole));
+            var userManager = services.GetRequiredService<UserManager<AppUser>>();
+
+            // Platform owner (super admin), from server settings Platform__Email and Platform__Password.
+            var platformEmail = config["Platform:Email"];
+            var platformPassword = config["Platform:Password"];
+            if (!string.IsNullOrWhiteSpace(platformEmail) && !string.IsNullOrWhiteSpace(platformPassword)
+                && await userManager.FindByEmailAsync(platformEmail) == null)
+            {
+                var owner = new AppUser
+                {
+                    UserName = platformEmail, Email = platformEmail, EmailConfirmed = true, DisplayName = "Platform owner",
+                    TenantId = 0, OutletId = 0, IsPlatformAdmin = true
+                };
+                var made = await userManager.CreateAsync(owner, platformPassword);
+                if (made.Succeeded) await userManager.AddToRoleAsync(owner, AuthSetup.PlatformRole);
+            }
+
             var email = config["Admin:Email"];
             var password = config["Admin:Password"];
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password)) return;
 
-            var userManager = services.GetRequiredService<UserManager<AppUser>>();
             if (await userManager.FindByEmailAsync(email) != null) return;
 
             var admin = new AppUser { UserName = email, Email = email, EmailConfirmed = true, DisplayName = "Owner", TenantId = 1, OutletId = 1 };

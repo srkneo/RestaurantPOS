@@ -41,6 +41,8 @@ const POSMenu = () => {
   const [orderSettings, setOrderSettings] = useState(null);
   const clientOrderId = useRef(newClientId());
   const tRef = useRef(t);
+  // The cashier's own choice wins over the outlet default that arrives with the settings.
+  const typeChosen = useRef(false);
 
   useEffect(() => {
     tRef.current = t;
@@ -57,7 +59,7 @@ const POSMenu = () => {
       if (settingsRes?.ok) {
         const settings = await settingsRes.json();
         setOrderSettings(settings);
-        if (!editId && settings.defaultOrderType) setOrderType(settings.defaultOrderType);
+        if (!editId && !typeChosen.current && settings.defaultOrderType) setOrderType(settings.defaultOrderType);
       }
       setLoadState('ready');
     } catch {
@@ -230,7 +232,7 @@ const POSMenu = () => {
             .filter((type) => !orderSettings || (type === 'DineIn' ? orderSettings.dineInEnabled : orderSettings.takeawayEnabled))
             .map((type) => (
             <button key={type} type="button" className="pos-chip" aria-pressed={orderType === type} disabled={!!editing}
-              onClick={() => setOrderType(type)}>
+              onClick={() => { typeChosen.current = true; setOrderType(type); }}>
               {type === 'DineIn' ? t('pos.dineIn') : t('pos.takeaway')}
             </button>
           ))}
