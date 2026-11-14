@@ -1,6 +1,6 @@
 @RestaurantPOS_HostAddress = http://localhost:5197
 
-GET {{RestaurantPOS_HostAddress}}/weatherforecast/
+GET {{RestaurantPOS_HostAddress}}/health
 Accept: application/json
 
 ###
