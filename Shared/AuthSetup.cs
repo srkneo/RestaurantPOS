@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -25,6 +26,8 @@ namespace POSSystem.Data
             var identity = await base.GenerateClaimsAsync(user);
             identity.AddClaim(new Claim("tenant_id", user.TenantId.ToString()));
             identity.AddClaim(new Claim("outlet_id", user.OutletId.ToString()));
+            identity.AddClaim(new Claim("display_name", user.DisplayName ?? user.Email ?? string.Empty));
+            identity.AddClaim(new Claim("is_device", user.IsDevice ? "true" : "false"));
             return identity;
         }
     }
@@ -32,6 +35,7 @@ namespace POSSystem.Data
     public static class AuthSetup
     {
         public static readonly string[] Roles = { "admin", "manager", "cashier", "kitchen" };
+        public const int DeviceLoginDays = 30;
 
         public static IServiceCollection AddPosAuth(this IServiceCollection services)
         {
@@ -52,6 +56,9 @@ namespace POSSystem.Data
                 o.Events.OnRedirectToLogin = ctx => { ctx.Response.StatusCode = 401; return Task.CompletedTask; };
                 o.Events.OnRedirectToAccessDenied = ctx => { ctx.Response.StatusCode = 403; return Task.CompletedTask; };
             });
+
+            // Deactivated staff and changed passwords end other sessions within a minute.
+            services.Configure<SecurityStampValidatorOptions>(o => o.ValidationInterval = TimeSpan.FromMinutes(1));
 
             services.AddAuthorizationBuilder()
                 .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
@@ -84,25 +91,38 @@ namespace POSSystem.Data
 
         public static WebApplication MapPosAuth(this WebApplication app)
         {
-            app.MapPost("/api/auth/login", async (LoginRequest req, SignInManager<AppUser> signInManager) =>
+            app.MapPost("/api/auth/login", async (LoginRequest req, SignInManager<AppUser> signInManager, UserManager<AppUser> userManager) =>
             {
-                var result = await signInManager.PasswordSignInAsync(req.Email, req.Password, isPersistent: false, lockoutOnFailure: true);
-                return result.Succeeded ? Results.Ok() : Results.Unauthorized();
-            }).AllowAnonymous();
+                if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrEmpty(req.Password)) return Results.Unauthorized();
+
+                var user = await userManager.FindByEmailAsync(req.Email.Trim());
+                if (user is null || !user.IsActive) return Results.Unauthorized();
+
+                var check = await signInManager.CheckPasswordSignInAsync(user, req.Password, lockoutOnFailure: true);
+                if (!check.Succeeded) return Results.Unauthorized();
+
+                // Kitchen screen devices keep a persistent 30-day session; people get a 12-hour browser session.
+                var props = new AuthenticationProperties { IsPersistent = user.IsDevice };
+                if (user.IsDevice) props.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(DeviceLoginDays);
+                await signInManager.SignInAsync(user, props);
+                return Results.Ok();
+            }).AllowAnonymous().WithName("Login").WithSummary("Sign in");
 
             app.MapPost("/api/auth/logout", async (SignInManager<AppUser> signInManager) =>
             {
                 await signInManager.SignOutAsync();
                 return Results.Ok();
-            });
+            }).WithName("Logout").WithSummary("Sign out");
 
             app.MapGet("/api/auth/me", (ClaimsPrincipal user) => Results.Ok(new
             {
                 email = user.FindFirst(ClaimTypes.Email)?.Value,
+                displayName = user.FindFirst("display_name")?.Value,
+                isDevice = user.FindFirst("is_device")?.Value == "true",
                 roles = user.FindAll(ClaimTypes.Role).Select(c => c.Value).ToArray(),
                 tenantId = user.FindFirst("tenant_id")?.Value,
                 outletId = user.FindFirst("outlet_id")?.Value
-            }));
+            })).WithName("Me").WithSummary("Who is signed in");
             return app;
         }
     }
@@ -124,7 +144,7 @@ namespace POSSystem.Data
             var userManager = services.GetRequiredService<UserManager<AppUser>>();
             if (await userManager.FindByEmailAsync(email) != null) return;
 
-            var admin = new AppUser { UserName = email, Email = email, EmailConfirmed = true, TenantId = 1, OutletId = 1 };
+            var admin = new AppUser { UserName = email, Email = email, EmailConfirmed = true, DisplayName = "Owner", TenantId = 1, OutletId = 1 };
             var created = await userManager.CreateAsync(admin, password);
             if (created.Succeeded) await userManager.AddToRoleAsync(admin, "admin");
         }

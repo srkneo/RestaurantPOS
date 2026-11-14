@@ -6,6 +6,7 @@ using POSSystem.Interfaces;
 using POSSystem.Models;
 using POSSystem.Repositories;
 using POSSystem.Services;
+using POSSystem.Staff;
 using NLog;
 using NLog.Web;
 using System.IO;
@@ -52,6 +53,7 @@ try
     var app = builder.Build();
     app.MapHealthChecks("/health").AllowAnonymous();
     app.MapPosAuth();
+    app.MapStaffEndpoints();
 
     app.UseExceptionHandler();
     app.UsePosAuth(); // Added

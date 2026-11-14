@@ -1,0 +1,6 @@
+.pos-status-active { background: var(--pos-new-bg); color: var(--pos-new-text); }
+.pos-status-inactive { background: var(--pos-late-bg); color: var(--pos-late-text); }
+.pos-staff-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.pos-hint { font-size: 13px; color: var(--pos-muted); margin: 6px 0 0; }
+.pos-check { display: flex; align-items: center; gap: 10px; min-height: 48px; }
+.pos-check .form-check-input { width: 24px; height: 24px; margin: 0; }
