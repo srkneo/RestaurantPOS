@@ -1,6 +1,7 @@
-#!/bin/bash
-# Runs once when the server is created: swap, Docker, firewall-friendly defaults and the app's .env.
-set -euo pipefail
+#!/bin/sh
+# Runs once when the server is created: swap, Docker, automatic security updates and the app's .env.
+# Lightsail adds its own lines in front and runs this with sh (not bash), so plain sh only (no bash-only options or arrays).
+set -eu
 
 # Swap, so a short memory peak does not stop the database.
 if [ ! -f /swapfile ]; then
@@ -11,13 +12,18 @@ if [ ! -f /swapfile ]; then
   echo '/swapfile none swap sw 0 0' >> /etc/fstab
 fi
 
-# Docker with the compose plugin; the ubuntu user (used by deploys) may run it.
-curl -fsSL https://get.docker.com | sh
+# Docker with the compose plugin. Ubuntu's own updates may hold the package lock at first boot, so try a few times.
+for attempt in 1 2 3 4 5; do
+  if curl -fsSL https://get.docker.com | sh; then break; fi
+  echo "Docker install attempt $attempt failed; waiting for the package lock."
+  sleep 30
+done
+command -v docker > /dev/null
 usermod -aG docker ubuntu
 systemctl enable --now docker
 
 # Security updates install by themselves (Ubuntu default, made sure here).
-apt-get install -y unattended-upgrades
+apt-get install -y -o DPkg::Lock::Timeout=300 unattended-upgrades
 dpkg-reconfigure -f noninteractive unattended-upgrades
 
 # App folder and settings; the first release copies the rest.

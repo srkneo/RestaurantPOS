@@ -43,6 +43,7 @@ services:
       # Menu scan (photos of a paper menu). Without a key the scan button explains it is not set up.
       Gemini__ApiKey: ${GEMINI_API_KEY:-}
       Gemini__Model: ${GEMINI_MODEL:-}
+      Gemini__FallbackModel: ${GEMINI_FALLBACK_MODEL:-}
     volumes:
       - keys:/app/keys
       - applogs:/app/logs

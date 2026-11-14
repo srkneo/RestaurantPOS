@@ -33,7 +33,7 @@ namespace POSSystem.Menu
         public static IServiceCollection AddMenuScan(this IServiceCollection services)
         {
             services.AddMemoryCache();
-            services.AddHttpClient<IMenuReader, GeminiMenuReader>(c => c.Timeout = TimeSpan.FromSeconds(120));
+            services.AddHttpClient<IMenuReader, GeminiMenuReader>(c => c.Timeout = TimeSpan.FromSeconds(60));
             return services;
         }
 
