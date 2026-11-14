@@ -1,0 +1,98 @@
+{
+  "menu.scan": [
+    "Scan menu",
+    "મેનુ સ્કેન કરો"
+  ],
+  "scan.title": [
+    "Scan a paper menu",
+    "કાગળનું મેનુ સ્કેન કરો"
+  ],
+  "scan.intro": [
+    "Take clear, straight photos of each menu page (up to 4). Nothing is saved until you check the list and press Add.",
+    "મેનુના દરેક પાનાનો સ્પષ્ટ, સીધો ફોટો લો (4 સુધી). તમે યાદી તપાસીને ઉમેરો દબાવો ત્યાં સુધી કંઈ સેવ થતું નથી."
+  ],
+  "scan.photos": [
+    "Menu photos",
+    "મેનુના ફોટા"
+  ],
+  "scan.selected": [
+    "{count} photos chosen",
+    "{count} ફોટા પસંદ કર્યા"
+  ],
+  "scan.read": [
+    "Read menu",
+    "મેનુ વાંચો"
+  ],
+  "scan.reading": [
+    "Reading your menu… this can take up to a minute.",
+    "તમારું મેનુ વંચાઈ રહ્યું છે… એક મિનિટ સુધી લાગી શકે."
+  ],
+  "scan.tooMany": [
+    "Choose up to 4 photos.",
+    "4 સુધી ફોટા પસંદ કરો."
+  ],
+  "scan.orCsv": [
+    "Or upload a CSV file (in Excel: Save As → CSV)",
+    "અથવા CSV ફાઇલ અપલોડ કરો (Excel માં: Save As → CSV)"
+  ],
+  "scan.csvFile": [
+    "CSV file",
+    "CSV ફાઇલ"
+  ],
+  "scan.template": [
+    "Download a sample CSV",
+    "નમૂનાની CSV ડાઉનલોડ કરો"
+  ],
+  "scan.review": [
+    "Check the items",
+    "આઇટમ તપાસો"
+  ],
+  "scan.reviewHint": [
+    "Untick anything wrong, fix names and prices, then add them. Items already on your menu start unticked.",
+    "ખોટું હોય તે અનટિક કરો, નામ અને ભાવ સુધારો, પછી ઉમેરો. મેનુમાં પહેલેથી હોય તે અનટિક હોય છે."
+  ],
+  "scan.add": [
+    "Add",
+    "ઉમેરો"
+  ],
+  "scan.alreadyOnMenu": [
+    "Already on menu",
+    "મેનુમાં પહેલેથી છે"
+  ],
+  "scan.addRow": [
+    "Add a row",
+    "લાઇન ઉમેરો"
+  ],
+  "scan.save": [
+    "Add {count} to menu",
+    "{count} મેનુમાં ઉમેરો"
+  ],
+  "scan.startAgain": [
+    "Start again",
+    "ફરી શરૂ કરો"
+  ],
+  "scan.saved": [
+    "{created} items added, {skipped} skipped.",
+    "{created} આઇટમ ઉમેરાઈ, {skipped} છોડી."
+  ],
+  "scan.rowName": [
+    "Row {row}: enter a name.",
+    "લાઇન {row}: નામ લખો."
+  ],
+  "scan.rowPrice": [
+    "Row {row}: enter a price between 0 and 100000.",
+    "લાઇન {row}: 0 થી 100000 વચ્ચે ભાવ લખો."
+  ],
+  "scan.nothingFound": [
+    "No dishes were found. Try clearer photos, or upload a CSV.",
+    "કોઈ વાનગી મળી નહીં. વધુ સ્પષ્ટ ફોટા લો, અથવા CSV અપલોડ કરો."
+  ],
+  "scan.scansLeft": [
+    "{count} scans left today.",
+    "આજે {count} સ્કેન બાકી."
+  ],
+  "scan.back": [
+    "Back to menu",
+    "મેનુ પર પાછા"
+  ]
+}

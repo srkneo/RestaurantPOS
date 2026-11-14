@@ -45,6 +45,7 @@ try
     builder.Services.AddProblemDetails();
     builder.Services.AddPosAuth();
     builder.Services.AddPosKeyStorage();
+    builder.Services.AddMenuScan();
     builder.Services.AddPosRateLimits(builder.Configuration);
     builder.Services.AddTelegramErrorAlerts(builder.Configuration);
     builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database", tags: new[] { "ready" });
@@ -62,6 +63,7 @@ try
     app.MapPosAuth();
     app.MapStaffEndpoints();
     app.MapMenuEndpoints();
+    app.MapMenuImportEndpoints();
     app.MapOrderEndpoints();
     app.MapTableEndpoints();
     app.MapLogoAndAuditEndpoints();

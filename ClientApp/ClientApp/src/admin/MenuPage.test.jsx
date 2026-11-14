@@ -6,6 +6,7 @@ import '@testing-library/jest-dom/vitest';
 import { I18nProvider } from '../i18n/I18nContext';
 import { ToastProvider } from '../ui/ToastContext';
 import MenuPage from './MenuPage';
+import { MemoryRouter } from 'react-router-dom';
 
 vi.mock('@microsoft/signalr', () => import('../test/signalr-mock'));
 
@@ -27,7 +28,7 @@ function mockApi(writeResponse = { ok: true, status: 200, json: async () => ({})
 }
 
 function renderPage() {
-  render(<I18nProvider><ToastProvider><MenuPage /></ToastProvider></I18nProvider>);
+  render(<MemoryRouter><I18nProvider><ToastProvider><MenuPage /></ToastProvider></I18nProvider></MemoryRouter>);
 }
 
 afterEach(() => {

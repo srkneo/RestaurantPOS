@@ -10,6 +10,7 @@ import OrderHistory from './components/OrderHistory';
 import Login from './components/Login';
 import StaffPage from './admin/StaffPage';
 import MenuPage from './admin/MenuPage';
+import MenuScanPage from './admin/MenuScanPage';
 import TablesPage from './admin/TablesPage';
 import StorePage from './admin/StorePage';
 import SettingsPage from './admin/SettingsPage';
@@ -74,6 +75,7 @@ function Layout() {
         <Route path="/orders" element={<RequireRole roles={POS_ROLES}><OrderHistory /></RequireRole>} />
         <Route path="/kitchen" element={<RequireRole roles={KITCHEN_ROLES}><KitchenDisplay /></RequireRole>} />
         <Route path="/admin/menu" element={<RequireRole roles={MENU_ROLES}><MenuPage /></RequireRole>} />
+        <Route path="/admin/menu/scan" element={<RequireRole roles={MENU_ROLES}><MenuScanPage /></RequireRole>} />
         <Route path="/admin/staff" element={<RequireRole roles={ADMIN_ROLES}><StaffPage /></RequireRole>} />
         <Route path="/admin/tables" element={<RequireRole roles={MENU_ROLES}><TablesPage /></RequireRole>} />
         <Route path="/admin/store" element={<RequireRole roles={ADMIN_ROLES}><StorePage /></RequireRole>} />
