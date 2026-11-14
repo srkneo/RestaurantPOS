@@ -10,6 +10,10 @@ import OrderHistory from './components/OrderHistory';
 import Login from './components/Login';
 import StaffPage from './admin/StaffPage';
 import MenuPage from './admin/MenuPage';
+import TablesPage from './admin/TablesPage';
+import StorePage from './admin/StorePage';
+import SettingsPage from './admin/SettingsPage';
+import StoreBrand from './ui/StoreBrand';
 
 const POS_ROLES = ['cashier', 'manager', 'admin'];
 const KITCHEN_ROLES = ['kitchen', 'manager', 'admin'];
@@ -33,13 +37,16 @@ function AppHeader() {
   const mainRole = ROLE_ORDER.find((r) => user.roles.includes(r));
   return (
     <header className="pos-header">
-      <span className="pos-brand">{t('app.name')}</span>
+      <StoreBrand />
       <nav className="pos-nav" aria-label="Main">
         {can(POS_ROLES) && <NavLink to="/pos">{t('nav.pos')}</NavLink>}
         {can(POS_ROLES) && <NavLink to="/orders">{t('nav.orders')}</NavLink>}
         {can(KITCHEN_ROLES) && <NavLink to="/kitchen">{t('nav.kitchen')}</NavLink>}
         {can(MENU_ROLES) && <NavLink to="/admin/menu">{t('nav.menu')}</NavLink>}
+        {can(MENU_ROLES) && <NavLink to="/admin/tables">{t('nav.tables')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/staff">{t('nav.staff')}</NavLink>}
+        {can(ADMIN_ROLES) && <NavLink to="/admin/store">{t('nav.store')}</NavLink>}
+        {can(ADMIN_ROLES) && <NavLink to="/admin/settings">{t('nav.settings')}</NavLink>}
       </nav>
       <div className="pos-user">
         {mainRole && <span className="pos-role" title={user.email}>{t(`role.${mainRole}`)}</span>}
@@ -64,6 +71,9 @@ function Layout() {
         <Route path="/kitchen" element={<RequireRole roles={KITCHEN_ROLES}><KitchenDisplay /></RequireRole>} />
         <Route path="/admin/menu" element={<RequireRole roles={MENU_ROLES}><MenuPage /></RequireRole>} />
         <Route path="/admin/staff" element={<RequireRole roles={ADMIN_ROLES}><StaffPage /></RequireRole>} />
+        <Route path="/admin/tables" element={<RequireRole roles={MENU_ROLES}><TablesPage /></RequireRole>} />
+        <Route path="/admin/store" element={<RequireRole roles={ADMIN_ROLES}><StorePage /></RequireRole>} />
+        <Route path="/admin/settings" element={<RequireRole roles={ADMIN_ROLES}><SettingsPage /></RequireRole>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
