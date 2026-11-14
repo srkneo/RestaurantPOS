@@ -1,379 +1,217 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
+import { useT } from '../i18n/I18nContext';
+import { useToast } from '../ui/ToastContext';
+import ConfirmDialog from '../ui/ConfirmDialog';
+import StateMessage from '../ui/StateMessage';
+import { formatMoney, newClientId } from '../ui/format';
+import './POSMenu.css';
+
+const MAX_QTY = 99;
+const ALL = '__all__';
 
 const POSMenu = () => {
-    const [menuItems, setMenuItems] = useState([]);
-    const [cart, setCart] = useState([]);
-    const [activeCategory, setActiveCategory] = useState('All');
-    const [selectedTable, setSelectedTable] = useState('');
-    const [readyMessage, setReadyMessage] = useState('');
-    const [tables, setTables] = useState([]);
+  const t = useT();
+  const { showToast } = useToast();
+  const [menuItems, setMenuItems] = useState([]);
+  const [tables, setTables] = useState([]);
+  const [loadState, setLoadState] = useState('loading');
+  const [cart, setCart] = useState([]);
+  const [category, setCategory] = useState(ALL);
+  const [search, setSearch] = useState('');
+  const [selectedTable, setSelectedTable] = useState('');
+  const [placing, setPlacing] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const clientOrderId = useRef(newClientId());
+  const tRef = useRef(t);
 
-    useEffect(() => {
-        fetch('/api/menuitems')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok ' + response.statusText);
-                }
-                return response.json();
-            })
-            .then(data => {
-                setMenuItems(data);
-            })
-            .catch(error => {
-                console.error('Error fetching menu items:', error);
-            });
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
 
-        fetch('/api/tables')
-            .then(r => r.json())
-            .then(setTables)
-            .catch(err => console.error('Error fetching tables:', err));
-    }, []);
+  const load = useCallback(async () => {
+    setLoadState('loading');
+    try {
+      const [menuRes, tablesRes] = await Promise.all([fetch('/api/menuitems'), fetch('/api/tables')]);
+      if (!menuRes.ok || !tablesRes.ok) throw new Error('load failed');
+      setMenuItems(await menuRes.json());
+      setTables(await tablesRes.json());
+      setLoadState('ready');
+    } catch {
+      setLoadState('error');
+    }
+  }, []);
 
-    useEffect(() => {
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl('/orderHub')
-            .withAutomaticReconnect()
-            .build();
+  useEffect(() => {
+    load();
+  }, [load]);
 
-        connection.on('OrderStatusChanged', (data) => {
-            if (data.status === 'Ready') {
-                setReadyMessage(`Order ${data.tokenNumber} is Ready`);
-                setTimeout(() => setReadyMessage(''), 5000);
-            }
-        });
-
-        const startPromise = connection.start().catch(err => console.error(err));
-
-        return () => {
-            startPromise.then(() => connection.stop());
-        };
-    }, []);
-
-    const addToCart = (item) => {
-        setCart((prevCart) => {
-            // Check if item already exists in cart to increment quantity
-            const existingItem = prevCart.find(i => i.id === item.id);
-            if (existingItem) {
-                return prevCart.map(i => i.id === item.id ? { ...i, quantity: (i.quantity || 1) + 1 } : i);
-            }
-            return [...prevCart, { ...item, quantity: 1 }];
-        });
+  // Tell the cashier when the kitchen marks an order ready.
+  useEffect(() => {
+    const connection = new signalR.HubConnectionBuilder().withUrl('/orderHub').withAutomaticReconnect().build();
+    connection.on('OrderStatusChanged', (data) => {
+      if (data.status === 'Ready') showToast(tRef.current('pos.orderReady', { token: data.tokenNumber }));
+    });
+    const started = connection.start().catch((err) => console.error(err));
+    return () => {
+      started.then(() => connection.stop());
     };
+  }, [showToast]);
 
-    const removeFromCart = (itemId) => {
-        setCart(prevCart => prevCart.filter(item => item.id !== itemId));
-    };
+  const changeQty = (item, delta) => {
+    setCart((prev) => {
+      const line = prev.find((l) => l.id === item.id);
+      if (!line) {
+        return delta > 0 ? [...prev, { id: item.id, name: item.name, price: Number(item.price), quantity: 1 }] : prev;
+      }
+      const quantity = line.quantity + delta;
+      if (quantity <= 0) return prev.filter((l) => l.id !== item.id);
+      if (quantity > MAX_QTY) return prev;
+      return prev.map((l) => (l.id === item.id ? { ...l, quantity } : l));
+    });
+  };
 
-    const handlePlaceOrder = async () => {
-        if (cart.length === 0 || selectedTable === '') {
-            alert("Please select a table and add items to the cart.");
-            return;
-        }
+  const placeOrder = async () => {
+    if (!selectedTable) {
+      showToast(t('pos.needTable'), 'error');
+      return;
+    }
+    if (cart.length === 0) {
+      showToast(t('pos.needItems'), 'error');
+      return;
+    }
+    setPlacing(true);
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          table: Number(selectedTable),
+          items: cart.map((l) => ({ menuItemId: l.id, quantity: l.quantity })),
+          clientOrderId: clientOrderId.current,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showToast(data.message || t('pos.orderFailed'), 'error');
+        return;
+      }
+      showToast(t('pos.orderPlaced', { token: data.tokenNumber }));
+      setCart([]);
+      setSelectedTable('');
+      clientOrderId.current = newClientId();
+    } catch {
+      showToast(t('pos.networkError'), 'error');
+    } finally {
+      setPlacing(false);
+    }
+  };
 
-        try {
-            const response = await fetch("/api/orders", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ table: parseInt(selectedTable), items: cart.map(item => ({ menuItemId: item.id, quantity: item.quantity })) })
-            });
+  const categories = useMemo(() => [ALL, ...new Set(menuItems.map((i) => i.category).filter(Boolean))], [menuItems]);
+  const visibleItems = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return menuItems.filter((i) => (category === ALL || i.category === category) && (!q || i.name.toLowerCase().includes(q)));
+  }, [menuItems, category, search]);
 
-            if (response.ok) {
-                const responseData = await response.json(); // Parse response as JSON
-                alert("Order placed successfully! Token Number: " + responseData.tokenNumber); // Update success alert
-                setCart([]); // Clear the cart
-                setSelectedTable(''); // Reset selected table
-            } else {
-                const errorData = await response.json();
-                console.error('Order placement failed:', errorData);
-                alert(`Failed to place order: ${errorData.message || 'Unknown error'}`);
-            }
-        } catch (error) {
-            console.error(error);
-            alert("Network error.");
-        }
-    };
+  const qtyOf = (id) => cart.find((l) => l.id === id)?.quantity ?? 0;
+  const itemCount = cart.reduce((sum, l) => sum + l.quantity, 0);
+  const total = cart.reduce((sum, l) => sum + l.price * l.quantity, 0);
+  const tableNumber = tables.find((tb) => String(tb.id) === selectedTable)?.tableNumber;
 
-    const totalAmount = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
-
-    const uniqueCategories = ['All', ...new Set(menuItems.map(item => item.category))];
-
-    const handleCategoryFilter = (category) => {
-        setActiveCategory(category);
-    };
-
-    return (
-        <div style={styles.container}>
-            {readyMessage && <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '14px', backgroundColor: '#27ae60', color: 'white', textAlign: 'center', fontSize: '1.3rem', fontWeight: 'bold', zIndex: 1000 }}>{readyMessage}</div>}
-            {/* Main Menu Section */}
-            <div style={styles.mainSection}>
-                <header style={styles.header}>
-                    <h1 style={styles.title}>POS Menu</h1>
-                    <p style={styles.subtitle}>Select items to add to the order</p>
-                </header>
-
-                {/* Table Selection */}
-                <div style={styles.tableSelection}>
-                    <label style={styles.label}>Select Table:</label>
-                    <select 
-                        value={selectedTable} 
-                        onChange={(e) => setSelectedTable(e.target.value)} 
-                        style={styles.select}
-                    >
-                        <option value="">Select a table</option>
-                        {tables.map(t => (
-                            <option key={t.id} value={t.id}>
-                                Table {t.tableNumber}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Category Filter */}
-                <div style={styles.categoryFilter}>
-                    {uniqueCategories.map(category => (
-                        <button 
-                            key={category} 
-                            style={activeCategory === category ? styles.activeCategoryBtn : styles.filterButton}
-                            onClick={() => handleCategoryFilter(category)}
-                        >
-                            {category}
-                        </button>
-                    ))}
-                </div>
-
-                <div style={styles.grid}>
-                    {menuItems
-                        .filter(item => activeCategory === 'All' || item.category === activeCategory)
-                        .map((item) => (
-                            <div 
-                                key={item.id} 
-                                style={styles.card} 
-                                onClick={() => addToCart(item)}
-                                onMouseOver={(e) => (e.currentTarget.style.borderColor = '#27ae60')}
-                                onMouseOut={(e) => (e.currentTarget.style.borderColor = '#e0e0e0')}
-                            >
-                                <span style={styles.categoryTag}>{item.category}</span>
-                                <h2 style={styles.itemName}>{item.name}</h2>
-                                <p style={styles.itemPrice}>₹{item.price.toFixed(2)}</p>
-                            </div>
-                        ))}
-                </div>
-            </div>
-
-            {/* Order Summary Sidebar */}
-            <div style={styles.sidebar}>
-                <h2 style={styles.sidebarTitle}>Current Order</h2>
-                <div style={styles.cartList}>
-                    {cart.length === 0 ? (
-                        <p style={styles.emptyMsg}>Your cart is empty</p>
-                    ) : (
-                        cart.map((item) => (
-                            <div key={item.id} style={styles.cartItem}>
-                                <div style={styles.cartItemInfo}>
-                                    <span style={styles.cartItemName}>{item.name}</span>
-                                    <span style={styles.cartItemQty}>x{item.quantity}</span>
-                                </div>
-                                <div style={styles.cartItemPrice}>
-                                    ₹{(item.price * item.quantity).toFixed(2)}
-                                    <button 
-                                        onClick={() => removeFromCart(item.id)} 
-                                        style={styles.removeBtn}
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-                <div style={styles.footer}>
-                    <div style={styles.totalRow}>
-                        <span>Total:</span>
-                        <span>₹{totalAmount.toFixed(2)}</span>
-                    </div>
-                    <button style={styles.checkoutBtn} onClick={handlePlaceOrder}>Place Order</button>
-                </div>
-            </div>
+  return (
+    <div className="pos-screen">
+      <main className="pos-menu">
+        <div className="pos-filters">
+          <div className="pos-field-table">
+            <label htmlFor="pos-table" className="form-label">{t('pos.table')}</label>
+            <select id="pos-table" className="form-select" value={selectedTable} onChange={(e) => setSelectedTable(e.target.value)}>
+              <option value="">{t('pos.chooseTable')}</option>
+              {tables.map((tb) => (
+                <option key={tb.id} value={tb.id}>{t('pos.tableName', { number: tb.tableNumber })}</option>
+              ))}
+            </select>
+          </div>
+          <div className="pos-field-search">
+            <label htmlFor="pos-search" className="form-label">{t('pos.search')}</label>
+            <input id="pos-search" type="search" className="form-control" placeholder={t('pos.searchHint')}
+              value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
         </div>
-    );
-};
 
-const styles = {
-    container: {
-        display: 'flex',
-        height: '100vh',
-        backgroundColor: '#f8f9fa',
-        fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-    },
-    mainSection: {
-        flex: 1,
-        padding: '40px',
-        overflowY: 'auto',
-    },
-    header: {
-        marginBottom: '30px',
-    },
-    title: {
-        margin: 0,
-        fontSize: '2.5rem',
-        color: '#2c3e50',
-    },
-    subtitle: {
-        color: '#7f8c8d',
-        fontSize: '1.1rem',
-    },
-    tableSelection: {
-        marginBottom: '20px',
-    },
-    label: {
-        marginRight: '10px',
-        fontSize: '1rem',
-        color: '#333',
-    },
-    select: {
-        padding: '8px',
-        fontSize: '1rem',
-        border: '1px solid #e0e0e0',
-        borderRadius: '4px',
-    },
-    categoryFilter: {
-        display: 'flex',
-        gap: '10px',
-        marginBottom: '20px',
-    },
-    filterButton: {
-        padding: '8px 16px',
-        backgroundColor: '#ffffff',
-        border: '1px solid #e0e0e0',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease-in-out',
-        color: '#333', // Ensure text color is dark enough
-    },
-    activeCategoryBtn: {
-        padding: '8px 16px',
-        backgroundColor: '#27ae60',
-        color: '#ffffff',
-        border: '1px solid #27ae60',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease-in-out',
-    },
-    grid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-        gap: '25px',
-    },
-    card: {
-        backgroundColor: '#ffffff',
-        padding: '20px',
-        borderRadius: '12px',
-        border: '2px solid #e0e0e0',
-        boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease-in-out',
-        textAlign: 'center',
-    },
-    categoryTag: {
-        fontSize: '0.75rem',
-        backgroundColor: '#ecf0f1',
-        color: '#7f8c8d',
-        padding: '4px 12px',
-        borderRadius: '20px',
-        textTransform: 'uppercase',
-        fontWeight: 'bold',
-    },
-    itemName: {
-        margin: '15px 0 10px 0',
-        fontSize: '1.4rem',
-        color: '#34495e',
-    },
-    itemPrice: {
-        fontSize: '1.2rem',
-        fontWeight: 'bold',
-        color: '#27ae60',
-    },
-    sidebar: {
-        width: '380px',
-        backgroundColor: '#ffffff',
-        borderLeft: '1px solid #dee2e6',
-        padding: '30px',
-        display: 'flex',
-        flexDirection: 'column',
-        boxShadow: '-5px 0 15px rgba(0,0,0,0.03)',
-    },
-    sidebarTitle: {
-        margin: '0 0 20px 0',
-        fontSize: '1.5rem',
-        color: '#2c3e50',
-    },
-    cartList: {
-        flex: 1,
-        overflowY: 'auto',
-        marginBottom: '20px',
-    },
-    emptyMsg: {
-        color: '#bdc3c7',
-        fontStyle: 'italic',
-        textAlign: 'center',
-        marginTop: '50px',
-    },
-    cartItem: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 0',
-        borderBottom: '1px solid #f1f1f1',
-    },
-    cartItemInfo: {
-        display: 'flex',
-        flexDirection: 'column',
-    },
-    cartItemName: {
-        fontWeight: '600',
-        color: '#2c3e50',
-    },
-    cartItemQty: {
-        fontSize: '0.85rem',
-        color: '#7f8c8d',
-    },
-    cartItemPrice: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-    },
-    removeBtn: {
-        background: 'none',
-        border: 'none',
-        color: '#e74c3c',
-        cursor: 'pointer',
-        fontSize: '1.1rem',
-    },
-    footer: {
-        borderTop: '2px solid #eee',
-        paddingTop: '20px',
-    },
-    totalRow: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        fontSize: '1.5rem',
-        fontWeight: 'bold',
-        marginBottom: '20px',
-        color: '#2c3e50',
-    },
-    checkoutBtn: {
-        width: '100%',
-        padding: '15px',
-        backgroundColor: '#27ae60',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        fontSize: '1.2rem',
-        fontWeight: 'bold',
-        cursor: 'pointer',
-        transition: 'background 0.2s',
-    },
+        {loadState === 'loading' && <StateMessage kind="loading" />}
+        {loadState === 'error' && <StateMessage kind="error" onRetry={load} />}
+        {loadState === 'ready' && (
+          <>
+            <div className="pos-chips" role="group" aria-label={t('pos.categories')}>
+              {categories.map((c) => (
+                <button key={c} type="button" className="pos-chip" aria-pressed={category === c} onClick={() => setCategory(c)}>
+                  {c === ALL ? t('pos.all') : c}
+                </button>
+              ))}
+            </div>
+            {visibleItems.length === 0 ? (
+              <StateMessage kind="empty" message={t('pos.noItems')} />
+            ) : (
+              <div className="pos-items">
+                {visibleItems.map((item) => {
+                  const qty = qtyOf(item.id);
+                  return (
+                    <button key={item.id} type="button" className={`pos-item${qty ? ' in-cart' : ''}`}
+                      aria-label={t('pos.addItem', { name: item.name })} onClick={() => changeQty(item, 1)}>
+                      <span className="pos-item-cat">{item.category}</span>
+                      <span className="pos-item-name">{item.name}</span>
+                      <span className="pos-item-foot">
+                        {formatMoney(item.price)}
+                        {qty > 0 && <span className="pos-badge">{t('pos.inCart', { count: qty })}</span>}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </main>
+
+      <aside className="pos-order" aria-label={t('pos.currentOrder')}>
+        <div className="pos-order-head">
+          <h2>{t('pos.currentOrder')}</h2>
+          {tableNumber && <span className="pos-order-table">{t('pos.tableName', { number: tableNumber })}</span>}
+        </div>
+        <div className="pos-order-lines">
+          {cart.length === 0 ? (
+            <p className="pos-empty-cart">{t('pos.emptyCart')}</p>
+          ) : (
+            cart.map((l) => (
+              <div key={l.id} className="pos-line">
+                <div className="pos-line-info">
+                  <div className="pos-line-name">{l.name}</div>
+                  <div className="pos-line-price">{formatMoney(l.price * l.quantity)}</div>
+                </div>
+                <button type="button" className="pos-qty-btn" aria-label={t('pos.oneLess', { name: l.name })} onClick={() => changeQty(l, -1)}>−</button>
+                <span className="pos-qty">{l.quantity}</span>
+                <button type="button" className="pos-qty-btn" aria-label={t('pos.oneMore', { name: l.name })} onClick={() => changeQty(l, 1)}>+</button>
+              </div>
+            ))
+          )}
+        </div>
+        <div className="pos-total">
+          <span className="fw-semibold">{t('pos.total', { count: itemCount })}</span>
+          <span className="pos-total-amount">{formatMoney(total)}</span>
+        </div>
+        <button type="button" className="btn btn-primary pos-place" onClick={placeOrder} disabled={placing}>
+          {placing ? t('pos.placing') : t('pos.placeOrder')}
+        </button>
+        <button type="button" className="btn btn-outline-secondary" onClick={() => setConfirmClear(true)} disabled={cart.length === 0}>
+          {t('pos.clearOrder')}
+        </button>
+      </aside>
+
+      <ConfirmDialog open={confirmClear} title={t('pos.clearTitle')} confirmLabel={t('pos.clearConfirm')} danger
+        onCancel={() => setConfirmClear(false)}
+        onConfirm={() => { setCart([]); setConfirmClear(false); }} />
+    </div>
+  );
 };
 
 export default POSMenu;
