@@ -15,7 +15,7 @@ output "staging_ip" {
 }
 
 output "backup_bucket" {
-  value = aws_s3_bucket.backups.bucket
+  value = var.backup_to_s3 ? aws_s3_bucket.backups[0].bucket : "(backups stay on the server)"
 }
 
 output "platform_email" {

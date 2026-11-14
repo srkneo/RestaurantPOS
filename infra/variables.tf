@@ -1,12 +1,12 @@
 variable "region" {
-  description = "AWS region (Mumbai)."
+  description = "AWS region. Sydney: the region this AWS account allows."
   type        = string
-  default     = "ap-south-1"
+  default     = "ap-southeast-2"
 }
 
 variable "availability_zone" {
   type    = string
-  default = "ap-south-1a"
+  default = "ap-southeast-2a"
 }
 
 variable "production_bundle" {
@@ -48,4 +48,10 @@ variable "monthly_budget_usd" {
   description = "E-mail warning when this month's AWS cost is forecast to pass 80% of this, and when it passes it (credits not counted)."
   type        = number
   default     = 25
+}
+
+variable "backup_to_s3" {
+  description = "Also copy nightly backups to an S3 bucket. Off: backups stay on the server only (7 days)."
+  type        = bool
+  default     = false
 }
