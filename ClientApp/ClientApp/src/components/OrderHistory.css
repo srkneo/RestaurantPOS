@@ -15,3 +15,11 @@
   .pos-page { padding: 16px; }
   .pos-page-head h1 { font-size: 24px; }
 }
+
+/* Batch B: row actions, completed status, small hints */
+.pos-status-completed { background: var(--pos-hover); color: var(--pos-muted); }
+.pos-row-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.pos-hint { font-size: 13px; color: var(--pos-muted); margin: 6px 0 0; }
+@media (max-width: 575.98px) {
+  .pos-page-head { flex-wrap: wrap; align-items: flex-end; }
+}

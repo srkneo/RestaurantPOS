@@ -21,6 +21,16 @@ const KitchenDisplay = () => {
   const [now, setNow] = useState(() => Date.now());
   const [busyId, setBusyId] = useState(null);
   const loaded = useRef(false);
+  const tRef = useRef(t);
+  const ordersRef = useRef([]);
+
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
+
+  useEffect(() => {
+    ordersRef.current = orders;
+  }, [orders]);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -43,8 +53,18 @@ const KitchenDisplay = () => {
         ? prev
         : [...prev, { ...order, createdAt: order.createdAt ?? new Date().toISOString() }]));
     });
+    connection.on('OrderUpdated', (order) => {
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, ...order } : o)));
+    });
     connection.on('OrderStatusChanged', (data) => {
-      if (!ACTIVE.includes(data.status)) setOrders((prev) => prev.filter((o) => o.id !== data.orderId));
+      if (data.status === 'Cancelled' && ordersRef.current.some((o) => o.id === data.orderId)) {
+        showToast(tRef.current('kitchen.cancelled', { token: data.tokenNumber }), 'error');
+      }
+      if (ACTIVE.includes(data.status)) {
+        setOrders((prev) => prev.map((o) => (o.id === data.orderId ? { ...o, status: data.status, version: data.version ?? o.version } : o)));
+      } else {
+        setOrders((prev) => prev.filter((o) => o.id !== data.orderId));
+      }
     });
     connection.onreconnecting(() => setLive(false));
     connection.onreconnected(() => {
@@ -61,7 +81,7 @@ const KitchenDisplay = () => {
     return () => {
       started.then(() => connection.stop());
     };
-  }, [fetchOrders]);
+  }, [fetchOrders, showToast]);
 
   // Refresh the wait times every 30 seconds.
   useEffect(() => {
@@ -69,16 +89,22 @@ const KitchenDisplay = () => {
     return () => clearInterval(id);
   }, []);
 
-  const markReady = async (order) => {
+  const setStatus = async (order, status) => {
     setBusyId(order.id);
     try {
       const res = await fetch(`/api/orders/${order.id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'Ready' }),
+        body: JSON.stringify({ status, version: order.version }),
       });
+      if (res.status === 409) {
+        await fetchOrders();
+        throw new Error('changed');
+      }
       if (!res.ok) throw new Error('update failed');
-      setOrders((prev) => prev.filter((o) => o.id !== order.id));
+      setOrders((prev) => (status === 'Ready'
+        ? prev.filter((o) => o.id !== order.id)
+        : prev.map((o) => (o.id === order.id ? { ...o, status, version: (o.version ?? 1) + 1 } : o))));
     } catch {
       showToast(t('kitchen.markFailed', { token: order.tokenNumber }), 'error');
     } finally {
@@ -113,23 +139,40 @@ const KitchenDisplay = () => {
         {sorted.map((order) => {
           const minutes = minutesSince(order.createdAt, now);
           const stage = kitchenStage(minutes);
+          const cooking = order.status === 'Preparing';
+          const where = order.orderType === 'Takeaway'
+            ? t('pos.takeawayName', { name: order.customerName || '' })
+            : t('pos.tableName', { number: order.table?.tableNumber ?? order.tableId });
           return (
             <article key={order.id} className={`kds-ticket kds-${stage}`} aria-label={t('kitchen.ticket', { token: order.tokenNumber })}>
               <div className="kds-ticket-head">
                 <div>
                   <div className="kds-token">{order.tokenNumber}</div>
-                  <div className="kds-table">{t('pos.tableName', { number: order.table?.tableNumber ?? order.tableId })}</div>
+                  <div className={`kds-table${order.orderType === 'Takeaway' ? ' kds-takeaway' : ''}`}>{where}</div>
                 </div>
-                <span className="kds-stage">{t(`kitchen.${stage}`, { minutes })}</span>
+                <div className="kds-tags">
+                  <span className="kds-stage">{t(`kitchen.${stage}`, { minutes })}</span>
+                  {cooking && <span className="kds-cooking">{t('kitchen.cooking')}</span>}
+                </div>
               </div>
               <ul className="kds-items">
                 {(order.items ?? []).map((item, i) => (
-                  <li key={item.id ?? i}>{item.quantity} x {item.itemName ?? item.name}</li>
+                  <li key={item.id ?? i}>
+                    <span>{item.quantity} x {item.itemName ?? item.name}</span>
+                    {item.note && <span className="kds-note">{item.note}</span>}
+                  </li>
                 ))}
               </ul>
-              <button type="button" className="kds-ready" disabled={busyId === order.id} onClick={() => markReady(order)}>
-                {t('kitchen.markReady')}
-              </button>
+              <div className="kds-actions">
+                {!cooking && (
+                  <button type="button" className="kds-start" disabled={busyId === order.id} onClick={() => setStatus(order, 'Preparing')}>
+                    {t('kitchen.startCooking')}
+                  </button>
+                )}
+                <button type="button" className="kds-ready" disabled={busyId === order.id} onClick={() => setStatus(order, 'Ready')}>
+                  {t('kitchen.markReady')}
+                </button>
+              </div>
             </article>
           );
         })}
