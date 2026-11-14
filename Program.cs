@@ -10,6 +10,7 @@ using NLog;
 using NLog.Web;
 using System.IO;
 using System.Text.Json.Serialization;
+using Scalar.AspNetCore;
 
 // Setup NLog for Dependency injection
 var logger = NLog.LogManager.Setup().LoadConfigurationFromFile("nlog.config").GetCurrentClassLogger();
@@ -83,31 +84,28 @@ try
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
-        app.MapOpenApi();
+        app.MapOpenApi().AllowAnonymous();
+        app.MapScalarApiReference().AllowAnonymous();
     }
 
     app.UseCors("AllowFrontend");
 
     app.UseHttpsRedirection();
 
-    var summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
 
     app.MapGet("/api/menuitems", async (IMenuItemService menuItemService) =>
     {
         var menuItems = await menuItemService.GetMenuItems();
         return Results.Ok(menuItems);
-    });
+    }).WithName("GetMenuItems").WithSummary("List menu items");
 
-    app.MapGet("/api/tables", async (AppDbContext db) => Results.Ok(await db.RestaurantTables.OrderBy(t => t.Id).Select(t => new { t.Id, t.TableNumber }).ToListAsync()));
+    app.MapGet("/api/tables", async (AppDbContext db) => Results.Ok(await db.RestaurantTables.OrderBy(t => t.Id).Select(t => new { t.Id, t.TableNumber }).ToListAsync())).WithName("GetTables").WithSummary("List restaurant tables");
 
     app.MapGet("/api/orders", async (IOrderService orderService) =>
     {
         var orders = await orderService.GetOrders();
         return Results.Ok(orders.Select(o => o.ToDto()));
-    });
+    }).WithName("GetOrders").WithSummary("List orders");
 
     app.MapPost("/api/orders", async (OrderRequest orderRequest, IOrderService orderService, ILogger<OrderService> logger) =>
     {
@@ -124,7 +122,7 @@ try
         {
             return Results.BadRequest(new { message = ex.Message });
         }
-    });
+    }).WithName("CreateOrder").WithSummary("Place a new order");
 
     app.MapPut("/api/orders/{id}/status", async (int id, StatusUpdateRequest statusRequest, IOrderService orderService, ILogger<OrderService> logger) =>
     {
@@ -138,21 +136,8 @@ try
             return Results.BadRequest(new { message = ex.Message });
         }
         return Results.Ok();
-    });
+    }).WithName("UpdateOrderStatus").WithSummary("Change an order's status");
 
-    app.MapGet("/weatherforecast", () =>
-    {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                summaries[Random.Shared.Next(summaries.Length)]
-            ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast");
 
     app.MapHub<OrderHub>("/orderHub"); // Map SignalR Hub
 
@@ -169,10 +154,6 @@ finally
     NLog.LogManager.Shutdown();
 }
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
 
 public class OrderRequest
 {
