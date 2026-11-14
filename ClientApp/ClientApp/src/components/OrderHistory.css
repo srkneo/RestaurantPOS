@@ -1,5 +1,9 @@
 /* Shared page layout for list pages such as order history. */
-.pos-page { max-width: 1200px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+/* Block layout (not flex) so a wide table always scrolls inside its own box instead of widening the page on phones. */
+.pos-page { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.pos-page > * { max-width: 100%; min-width: 0; }
+.pos-page > * + * { margin-top: 16px; }
+.pos-card.table-responsive { overflow-x: auto; }
 .pos-page-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .pos-page-head h1 { margin: 0; font-size: 28px; }
 .pos-card { background: var(--pos-surface); border: 1px solid var(--pos-border); border-radius: 14px; }
