@@ -8,6 +8,7 @@ using POSSystem.Menu;
 using POSSystem.Models;
 using POSSystem.Orders;
 using POSSystem.Platform;
+using POSSystem.Billing;
 using POSSystem.Repositories;
 using POSSystem.Services;
 using POSSystem.Staff;
@@ -53,6 +54,7 @@ try
 
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
     builder.Services.AddScoped<IOrderService, OrderService>();
+    builder.Services.AddScoped<BillService>();
     builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
     builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 
@@ -70,6 +72,7 @@ try
     app.MapStoreEndpoints();
     app.MapSettingsEndpoints();
     app.MapPlatformEndpoints();
+    app.MapBillEndpoints();
 
     app.UseExceptionHandler();
     app.UsePosAuth();

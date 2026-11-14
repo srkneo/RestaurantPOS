@@ -106,6 +106,10 @@ namespace POSSystem.Orders
             {
                 return Results.Conflict(new { message = ex.Message });
             }
+            catch (POSSystem.Billing.BilledOrderException ex)
+            {
+                return Results.Conflict(new { message = ex.Message, code = "billed" });
+            }
             catch (OrderStateException ex)
             {
                 return Results.Conflict(new { message = ex.Message, code = "cooking-started" });

@@ -138,6 +138,8 @@ namespace POSSystem.Data
             modelBuilder.Entity<OrderItem>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
             modelBuilder.Entity<MenuCategory>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
 
+            ConfigureBilling(modelBuilder);
+
             base.OnModelCreating(modelBuilder);
 
             // New users are active; sentinel true lets EF send an explicit false when needed.
