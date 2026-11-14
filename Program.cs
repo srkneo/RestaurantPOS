@@ -97,15 +97,15 @@ try
     {
         var menuItems = await menuItemService.GetMenuItems();
         return Results.Ok(menuItems);
-    });
+    }).WithName("GetMenuItems").WithSummary("List menu items");
 
-    app.MapGet("/api/tables", async (AppDbContext db) => Results.Ok(await db.RestaurantTables.OrderBy(t => t.Id).Select(t => new { t.Id, t.TableNumber }).ToListAsync()));
+    app.MapGet("/api/tables", async (AppDbContext db) => Results.Ok(await db.RestaurantTables.OrderBy(t => t.Id).Select(t => new { t.Id, t.TableNumber }).ToListAsync())).WithName("GetTables").WithSummary("List restaurant tables");
 
     app.MapGet("/api/orders", async (IOrderService orderService) =>
     {
         var orders = await orderService.GetOrders();
         return Results.Ok(orders.Select(o => o.ToDto()));
-    });
+    }).WithName("GetOrders").WithSummary("List orders");
 
     app.MapPost("/api/orders", async (OrderRequest orderRequest, IOrderService orderService, ILogger<OrderService> logger) =>
     {
@@ -122,7 +122,7 @@ try
         {
             return Results.BadRequest(new { message = ex.Message });
         }
-    });
+    }).WithName("CreateOrder").WithSummary("Place a new order");
 
     app.MapPut("/api/orders/{id}/status", async (int id, StatusUpdateRequest statusRequest, IOrderService orderService, ILogger<OrderService> logger) =>
     {
@@ -136,7 +136,7 @@ try
             return Results.BadRequest(new { message = ex.Message });
         }
         return Results.Ok();
-    });
+    }).WithName("UpdateOrderStatus").WithSummary("Change an order's status");
 
 
     app.MapHub<OrderHub>("/orderHub"); // Map SignalR Hub
