@@ -139,6 +139,7 @@ namespace POSSystem.Data
             modelBuilder.Entity<MenuCategory>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
 
             ConfigureBilling(modelBuilder);
+            ConfigureShifts(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
 
