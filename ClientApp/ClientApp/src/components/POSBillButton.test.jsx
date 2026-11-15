@@ -40,7 +40,7 @@ describe('POS after placing an order', () => {
 
     expect(await screen.findByText('Token 4 placed')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Print KOT' }));
-    expect(open).toHaveBeenCalledWith('/print/kot/21?auto=1', '_blank');
+    expect(open).toHaveBeenCalledWith('/print/kot/21?auto=1', '_blank', 'noopener');
 
     fireEvent.click(screen.getByRole('button', { name: 'Bill & pay' }));
     expect(await screen.findByRole('button', { name: 'Make bill' })).toBeInTheDocument();
