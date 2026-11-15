@@ -1,0 +1,158 @@
+{
+  "print.print": [
+    "Print",
+    "પ્રિન્ટ"
+  ],
+  "print.back": [
+    "Back",
+    "પાછા"
+  ],
+  "print.title.Regular": [
+    "TAX INVOICE",
+    "ટેક્સ ઇન્વૉઇસ"
+  ],
+  "print.title.Composition": [
+    "BILL OF SUPPLY",
+    "બિલ ઓફ સપ્લાય"
+  ],
+  "print.title.None": [
+    "BILL",
+    "બિલ"
+  ],
+  "print.duplicate": [
+    "DUPLICATE",
+    "ડુપ્લિકેટ"
+  ],
+  "print.void": [
+    "VOID",
+    "રદ"
+  ],
+  "print.phone": [
+    "Ph",
+    "ફોન"
+  ],
+  "print.gstin": [
+    "GSTIN",
+    "GSTIN"
+  ],
+  "print.fssai": [
+    "FSSAI",
+    "FSSAI"
+  ],
+  "print.billNo": [
+    "Bill No",
+    "બિલ નં."
+  ],
+  "print.date": [
+    "Date",
+    "તારીખ"
+  ],
+  "print.token": [
+    "Token",
+    "ટોકન"
+  ],
+  "print.customer": [
+    "Customer",
+    "ગ્રાહક"
+  ],
+  "print.item": [
+    "Item",
+    "વસ્તુ"
+  ],
+  "print.qty": [
+    "Qty",
+    "નંગ"
+  ],
+  "print.rate": [
+    "Rate",
+    "ભાવ"
+  ],
+  "print.amount": [
+    "Amount",
+    "રકમ"
+  ],
+  "print.subtotal": [
+    "Sub total",
+    "પેટા સરવાળો"
+  ],
+  "print.discount": [
+    "Discount",
+    "ડિસ્કાઉન્ટ"
+  ],
+  "print.taxable": [
+    "Taxable value",
+    "કરપાત્ર રકમ"
+  ],
+  "print.cgst": [
+    "CGST {rate}%",
+    "CGST {rate}%"
+  ],
+  "print.sgst": [
+    "SGST {rate}%",
+    "SGST {rate}%"
+  ],
+  "print.roundOff": [
+    "Round off",
+    "રાઉન્ડ ઓફ"
+  ],
+  "print.total": [
+    "TOTAL",
+    "કુલ"
+  ],
+  "print.paid": [
+    "PAID",
+    "ચૂકવાયેલ"
+  ],
+  "print.due": [
+    "Due",
+    "બાકી રકમ"
+  ],
+  "print.method.Cash": [
+    "Cash",
+    "રોકડ"
+  ],
+  "print.method.Upi": [
+    "UPI",
+    "UPI"
+  ],
+  "print.method.Card": [
+    "Card",
+    "કાર્ડ"
+  ],
+  "print.tendered": [
+    "Received",
+    "મળેલ"
+  ],
+  "print.change": [
+    "Change",
+    "પરત"
+  ],
+  "print.scanToPay": [
+    "Scan to pay with any UPI app",
+    "કોઈપણ UPI એપથી સ્કેન કરીને ચૂકવો"
+  ],
+  "print.thanks": [
+    "Thank you! Visit again.",
+    "આભાર! ફરી પધારજો."
+  ],
+  "print.kot": [
+    "KOT",
+    "KOT"
+  ],
+  "print.table": [
+    "Table {table}",
+    "ટેબલ {table}"
+  ],
+  "print.takeaway": [
+    "Takeaway",
+    "ટેકઅવે"
+  ],
+  "print.note": [
+    "Note",
+    "નોંધ"
+  ],
+  "print.items": [
+    "{count} items",
+    "{count} વસ્તુ"
+  ]
+}

@@ -16,6 +16,7 @@ import StorePage from './admin/StorePage';
 import SettingsPage from './admin/SettingsPage';
 import PlatformPage from './admin/PlatformPage';
 import StoreBrand from './ui/StoreBrand';
+import { PrintBillPage, PrintKotPage } from './print/PrintPages';
 
 const POS_ROLES = ['cashier', 'manager', 'admin'];
 const KITCHEN_ROLES = ['kitchen', 'manager', 'admin'];
@@ -64,7 +65,7 @@ function AppHeader() {
 
 function Layout() {
   const { pathname } = useLocation();
-  const hideHeader = pathname.startsWith('/kitchen') || pathname.startsWith('/login');
+  const hideHeader = pathname.startsWith('/kitchen') || pathname.startsWith('/login') || pathname.startsWith('/print');
   return (
     <>
       {!hideHeader && <AppHeader />}
@@ -81,6 +82,8 @@ function Layout() {
         <Route path="/admin/store" element={<RequireRole roles={ADMIN_ROLES}><StorePage /></RequireRole>} />
         <Route path="/admin/settings" element={<RequireRole roles={ADMIN_ROLES}><SettingsPage /></RequireRole>} />
         <Route path="/platform" element={<RequireRole roles={PLATFORM_ROLES}><PlatformPage /></RequireRole>} />
+        <Route path="/print/bill/:id" element={<RequireRole roles={POS_ROLES}><PrintBillPage /></RequireRole>} />
+        <Route path="/print/kot/:id" element={<RequireRole roles={[...POS_ROLES, 'kitchen']}><PrintKotPage /></RequireRole>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

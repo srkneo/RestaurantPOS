@@ -1,0 +1,39 @@
+/* Thermal receipts: 80 mm paper prints about 72 mm wide, 58 mm paper about 48 mm. */
+.receipt {
+  font-family: 'Inter', Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #000;
+  background: #fff;
+  margin: 0 auto;
+  padding: 4mm 0;
+}
+.receipt-80 { width: 72mm; }
+.receipt-58 { width: 48mm; font-size: 11px; }
+.receipt-center { text-align: center; }
+.receipt-big { font-size: 1.35em; font-weight: 700; }
+.receipt-title { font-weight: 700; letter-spacing: 0.05em; margin-top: 2mm; }
+.receipt-flag { font-weight: 700; border: 1px solid #000; display: inline-block; padding: 0 2mm; margin-top: 1mm; }
+.receipt-line { border-top: 1px dashed #000; margin: 2mm 0; }
+.receipt-row { display: flex; justify-content: space-between; gap: 2mm; }
+.receipt-row > :last-child { text-align: right; white-space: nowrap; }
+.receipt table { width: 100%; border-collapse: collapse; }
+.receipt th, .receipt td { padding: 0.5mm 0; vertical-align: top; }
+.receipt th { text-align: left; font-weight: 600; border-bottom: 1px dashed #000; }
+.receipt .num { text-align: right; white-space: nowrap; }
+.receipt-total { font-size: 1.3em; font-weight: 700; }
+.receipt-note { font-size: 0.85em; }
+.receipt-qr { width: 34mm; height: 34mm; display: block; margin: 2mm auto; }
+.receipt-58 .receipt-qr { width: 30mm; height: 30mm; }
+.kot-token { font-size: 2.2em; font-weight: 700; }
+.kot-item { font-size: 1.15em; font-weight: 600; }
+.kot-note { font-style: italic; padding-left: 3mm; }
+
+.print-toolbar { display: flex; gap: 8px; justify-content: center; padding: 12px; }
+
+@media print {
+  @page { margin: 0; }
+  body { background: #fff !important; }
+  .print-toolbar, .pos-header { display: none !important; }
+  .receipt { padding: 0; }
+}
