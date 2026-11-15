@@ -1,0 +1,170 @@
+{
+  "bill.title": [
+    "Bill",
+    "બિલ"
+  ],
+  "bill.titleNumber": [
+    "Bill {number}",
+    "બિલ {number}"
+  ],
+  "bill.discount": [
+    "Discount",
+    "ડિસ્કાઉન્ટ"
+  ],
+  "bill.discount.none": [
+    "No discount",
+    "ડિસ્કાઉન્ટ નહીં"
+  ],
+  "bill.discount.percent": [
+    "Percent off",
+    "ટકા ઓછા"
+  ],
+  "bill.discount.amount": [
+    "Rupees off",
+    "રૂપિયા ઓછા"
+  ],
+  "bill.discountValue.percent": [
+    "Discount (%)",
+    "ડિસ્કાઉન્ટ (%)"
+  ],
+  "bill.discountValue.amount": [
+    "Discount (₹)",
+    "ડિસ્કાઉન્ટ (₹)"
+  ],
+  "bill.badDiscount": [
+    "Enter a valid discount.",
+    "સાચું ડિસ્કાઉન્ટ લખો."
+  ],
+  "bill.make": [
+    "Make bill",
+    "બિલ બનાવો"
+  ],
+  "bill.total": [
+    "Bill total",
+    "બિલ કુલ"
+  ],
+  "bill.discountGiven": [
+    "Discount given",
+    "આપેલ ડિસ્કાઉન્ટ"
+  ],
+  "bill.paidSoFar": [
+    "Paid",
+    "ચૂકવ્યા"
+  ],
+  "bill.due": [
+    "Due",
+    "બાકી"
+  ],
+  "bill.method": [
+    "Payment method",
+    "ચુકવણીની રીત"
+  ],
+  "bill.method.Cash": [
+    "Cash",
+    "રોકડ"
+  ],
+  "bill.method.Upi": [
+    "UPI",
+    "UPI"
+  ],
+  "bill.method.Card": [
+    "Card",
+    "કાર્ડ"
+  ],
+  "bill.amount": [
+    "Amount",
+    "રકમ"
+  ],
+  "bill.tendered": [
+    "Cash received",
+    "મળેલ રોકડ"
+  ],
+  "bill.change": [
+    "Give back {amount}",
+    "પરત આપો {amount}"
+  ],
+  "bill.changeGiven": [
+    "change {amount}",
+    "પરત {amount}"
+  ],
+  "bill.scanQr": [
+    "Customer scans to pay",
+    "ગ્રાહક સ્કેન કરીને ચૂકવે"
+  ],
+  "bill.noUpi": [
+    "Add your UPI ID in billing settings to show a QR code.",
+    "QR માટે બિલિંગ સેટિંગ્સમાં UPI ID ઉમેરો."
+  ],
+  "bill.reference": [
+    "Reference (optional)",
+    "રેફરન્સ (વૈકલ્પિક)"
+  ],
+  "bill.record": [
+    "Record payment",
+    "ચુકવણી નોંધો"
+  ],
+  "bill.enterAmount": [
+    "Enter an amount.",
+    "રકમ લખો."
+  ],
+  "bill.tooMuch": [
+    "Only {due} is due.",
+    "ફક્ત {due} બાકી છે."
+  ],
+  "bill.cashTooLow": [
+    "Cash received is less than the amount.",
+    "મળેલ રોકડ રકમ કરતાં ઓછી છે."
+  ],
+  "bill.paid": [
+    "Paid in full",
+    "પૂરું ચૂકવાયું"
+  ],
+  "bill.paidToast": [
+    "Bill {number} is paid.",
+    "બિલ {number} ચૂકવાયું."
+  ],
+  "bill.print": [
+    "Print bill",
+    "બિલ પ્રિન્ટ કરો"
+  ],
+  "bill.void": [
+    "Void bill",
+    "બિલ રદ કરો"
+  ],
+  "bill.voidReason": [
+    "Reason for void",
+    "રદ કરવાનું કારણ"
+  ],
+  "bill.voidConfirm": [
+    "Yes, void this bill",
+    "હા, બિલ રદ કરો"
+  ],
+  "bill.voidReasonRequired": [
+    "Give a reason.",
+    "કારણ લખો."
+  ],
+  "bill.voidedToast": [
+    "Bill {number} is void.",
+    "બિલ {number} રદ થયું."
+  ],
+  "bill.lastOrder": [
+    "Token {token} placed",
+    "ટોકન {token} મૂક્યો"
+  ],
+  "bill.billAndPay": [
+    "Bill & pay",
+    "બિલ અને ચુકવણી"
+  ],
+  "bill.printKot": [
+    "Print KOT",
+    "KOT પ્રિન્ટ"
+  ],
+  "bill.bill": [
+    "Bill",
+    "બિલ"
+  ],
+  "bill.kot": [
+    "KOT",
+    "KOT"
+  ]
+}

@@ -1,0 +1,12 @@
+.pos-bill-dialog { width: min(100%, 460px); max-height: calc(100vh - 32px); overflow-y: auto; }
+.pos-bill-choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.pos-bill-choice { display: flex; align-items: center; gap: 6px; min-height: 40px; padding-right: 12px; }
+.pos-bill-summary { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border-radius: 12px; background: var(--pos-bg); }
+.pos-bill-summary > div { display: flex; justify-content: space-between; gap: 12px; }
+.pos-bill-summary strong { font-family: var(--pos-font-display); font-size: 20px; }
+.pos-bill-payments { margin: 0; padding-left: 18px; color: var(--pos-muted); }
+.pos-bill-paid { margin: 0; padding: 10px 16px; border-radius: 12px; background: var(--pos-new-bg); color: var(--pos-new-text); font-weight: 700; text-align: center; }
+.pos-bill-change { margin-top: 6px; font-size: 18px; font-weight: 700; color: var(--pos-accent-dark); }
+.pos-bill-qr { width: 200px; height: 200px; align-self: center; }
+.pos-bill-main { min-height: 52px; font-size: 17px; }
+.pos-last-order { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--pos-bg); }
