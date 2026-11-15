@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import FormDialog from '../ui/FormDialog';
+import BillDialog from './BillDialog';
 import StateMessage from '../ui/StateMessage';
 import { formatMoney, parseServerDate } from '../ui/format';
 import './OrderHistory.css';
@@ -29,6 +30,7 @@ const OrderHistory = () => {
   const [otherReason, setOtherReason] = useState('');
   const [cancelError, setCancelError] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [billOrderId, setBillOrderId] = useState(null);
 
   const load = useCallback(async () => {
     setLoadState('loading');
@@ -140,6 +142,12 @@ const OrderHistory = () => {
                     <td>{items.map((i) => `${i.quantity} x ${i.name}${i.note ? ` (${i.note})` : ''}`).join(', ')}</td>
                     <td className="text-end fw-semibold text-nowrap">{formatMoney(total)}</td>
                     <td>
+                      {order.status !== 'Cancelled' && (
+                        <div className="pos-row-actions mb-1">
+                          <button type="button" className="btn btn-primary btn-sm px-3" onClick={() => setBillOrderId(order.id)}>{t('bill.bill')}</button>
+                          <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => window.open(`/print/kot/${order.id}?auto=1`, '_blank')}>{t('bill.kot')}</button>
+                        </div>
+                      )}
                       {order.status === 'Received' && (
                         <div className="pos-row-actions">
                           <Link className="btn btn-outline-secondary btn-sm px-3" to={`/pos?edit=${order.id}`}>{t('orders.edit')}</Link>
@@ -171,6 +179,7 @@ const OrderHistory = () => {
           </div>
         )}
       </FormDialog>
+      <BillDialog orderId={billOrderId} onClose={() => setBillOrderId(null)} onChanged={load} />
     </main>
   );
 };

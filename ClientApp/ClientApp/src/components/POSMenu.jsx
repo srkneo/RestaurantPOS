@@ -4,6 +4,7 @@ import * as signalR from '@microsoft/signalr';
 import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import ConfirmDialog from '../ui/ConfirmDialog';
+import BillDialog from './BillDialog';
 import StateMessage from '../ui/StateMessage';
 import { formatMoney, newClientId } from '../ui/format';
 import './POSMenu.css';
@@ -38,6 +39,8 @@ const POSMenu = () => {
   const [placing, setPlacing] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [editing, setEditing] = useState(null); // { id, tokenNumber, version }
+  const [lastPlaced, setLastPlaced] = useState(null); // { id, tokenNumber } of the order just placed
+  const [billOrderId, setBillOrderId] = useState(null);
   const [orderSettings, setOrderSettings] = useState(null);
   const clientOrderId = useRef(newClientId());
   const tRef = useRef(t);
@@ -190,6 +193,7 @@ const POSMenu = () => {
         navigate('/orders');
       } else {
         showToast(t('pos.orderPlaced', { token: data.tokenNumber }));
+        setLastPlaced({ id: data.orderId, tokenNumber: data.tokenNumber });
         resetOrder();
       }
     } catch {
@@ -341,6 +345,15 @@ const POSMenu = () => {
           <span className="fw-semibold">{t('pos.total', { count: itemCount })}</span>
           <span className="pos-total-amount">{formatMoney(total)}</span>
         </div>
+        {lastPlaced && (
+          <div className="pos-last-order" role="status">
+            <span className="fw-semibold">{t('bill.lastOrder', { token: lastPlaced.tokenNumber })}</span>
+            <div className="d-flex gap-2">
+              <button type="button" className="btn btn-outline-primary btn-sm px-3" onClick={() => setBillOrderId(lastPlaced.id)}>{t('bill.billAndPay')}</button>
+              <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => window.open(`/print/kot/${lastPlaced.id}?auto=1`, '_blank')}>{t('bill.printKot')}</button>
+            </div>
+          </div>
+        )}
         <button type="button" className="btn btn-primary pos-place" onClick={placeOrder} disabled={placing}>
           {placing ? t('pos.placing') : editing ? t('pos.saveChanges') : t('pos.placeOrder')}
         </button>
@@ -352,6 +365,7 @@ const POSMenu = () => {
       <ConfirmDialog open={confirmClear} title={t('pos.clearTitle')} confirmLabel={t('pos.clearConfirm')} danger
         onCancel={() => setConfirmClear(false)}
         onConfirm={() => { setCart([]); setConfirmClear(false); }} />
+      <BillDialog orderId={billOrderId} onClose={() => setBillOrderId(null)} />
     </div>
   );
 };
