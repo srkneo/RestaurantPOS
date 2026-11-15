@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -12,18 +13,22 @@ namespace POSSystem.Billing
 {
     public record BillLineDto(string ItemName, int Quantity, decimal UnitPrice, decimal TaxRate, decimal Amount, decimal Discount,
         decimal TaxableValue, decimal Cgst, decimal Sgst);
+    public record PaymentDto(int Id, string Method, decimal Amount, decimal? Tendered, decimal? Change, string? Reference, DateTime ReceivedAt);
     public record StoreOnBill(string RestaurantName, string OutletName, string? Address, string? Phone, string? Gstin, string? Fssai, string? Footer);
     public record BillDto(int Id, int OrderId, string InvoiceNumber, string Title, string? TaxNote, DateTime IssuedAt, DateOnly BusinessDate,
         string TaxMode, bool PricesIncludeTax, string Status, string OrderLabel, int TokenNumber, string? CustomerName, string? CustomerPhone,
         decimal ItemsTotal, decimal Discount, decimal TaxableValue, decimal Cgst, decimal Sgst, decimal RoundOff, decimal Total,
         string? VoidReason, DateTime? VoidedAt, int PrintCount, int Version, StoreOnBill Store,
-        IReadOnlyList<BillLineDto> Lines, IReadOnlyList<TaxSummaryRow> TaxSummary);
+        IReadOnlyList<BillLineDto> Lines, IReadOnlyList<TaxSummaryRow> TaxSummary,
+        decimal AmountPaid, decimal AmountDue, DateTime? PaidAt, IReadOnlyList<PaymentDto> Payments);
     public record BillSummaryDto(int Id, int OrderId, string InvoiceNumber, DateTime IssuedAt, string OrderLabel, int TokenNumber,
         decimal Total, string Status, int Version);
 
     public record CreateBillRequest(decimal? DiscountPercent, decimal? DiscountAmount);
     public record VoidBillRequest(string? Reason, int Version);
-    public record BillingSettingsDto(string TaxMode, bool PricesIncludeTax, string BillPrefix);
+    public record BillingSettingsDto(string TaxMode, bool PricesIncludeTax, string BillPrefix, string? UpiId = null, string? UpiName = null);
+    public record AddPaymentRequest(string? Method, decimal Amount, decimal? Tendered, string? Reference, int Version);
+    public record UpiLinkDto(string Link, decimal Amount, string UpiId);
 
     public class BillExistsException : Exception
     {
@@ -135,7 +140,7 @@ namespace POSSystem.Billing
 
         public async Task<Bill> VoidBill(int id, VoidBillRequest request)
         {
-            var bill = await _db.Bills.Include(b => b.Lines).FirstOrDefaultAsync(b => b.Id == id) ?? throw new KeyNotFoundException("Bill not found.");
+            var bill = await Load(id) ?? throw new KeyNotFoundException("Bill not found.");
             if (bill.Version != request.Version) throw new OrderConflictException("This bill was changed on another screen.");
             if (bill.Status == BillStatus.Void) throw new ArgumentException("This bill is already void.");
             var reason = request.Reason?.Trim();
@@ -150,10 +155,82 @@ namespace POSSystem.Billing
             return bill;
         }
 
-        public Task<Bill?> GetBill(int id) => _db.Bills.Include(b => b.Lines).FirstOrDefaultAsync(b => b.Id == id);
+        public Task<Bill?> GetBill(int id) => Load(id);
 
         public Task<Bill?> GetActiveBillForOrder(int orderId) =>
-            _db.Bills.Include(b => b.Lines).FirstOrDefaultAsync(b => b.KitchenOrderId == orderId && b.Status != BillStatus.Void);
+            _db.Bills.Include(b => b.Lines).Include(b => b.Payments).FirstOrDefaultAsync(b => b.KitchenOrderId == orderId && b.Status != BillStatus.Void);
+
+        private Task<Bill?> Load(int id) => _db.Bills.Include(b => b.Lines).Include(b => b.Payments).FirstOrDefaultAsync(b => b.Id == id);
+
+        public static decimal PaidOf(Bill b) => b.Payments.Sum(p => p.Amount);
+        public static decimal DueOf(Bill b) => b.Status == BillStatus.Void ? 0m : Math.Max(b.Total - PaidOf(b), 0m);
+
+        // Records money received. Cash may be more than due (change is given back); UPI and card must be at most what is due.
+        public async Task<Bill> AddPayment(int billId, AddPaymentRequest request)
+        {
+            var bill = await Load(billId) ?? throw new KeyNotFoundException("Bill not found.");
+            if (bill.Version != request.Version) throw new OrderConflictException("This bill was changed on another screen.");
+            if (bill.Status == BillStatus.Void) throw new ArgumentException("This bill is void.");
+            if (bill.Status == BillStatus.Paid) throw new ArgumentException("This bill is already paid.");
+            if (!Enum.TryParse<PaymentMethod>(request.Method, true, out var method) || int.TryParse(request.Method, out _))
+                throw new ArgumentException("Choose Cash, UPI or Card.");
+
+            var due = DueOf(bill);
+            var amount = BillCalculator.Paise(request.Amount);
+            if (amount <= 0) throw new ArgumentException("Enter an amount above 0.");
+            if (amount > due) throw new ArgumentException($"Only {due.ToString("0.00", CultureInfo.InvariantCulture)} is due on this bill.");
+            var reference = request.Reference?.Trim();
+            if (reference is { Length: > 40 }) throw new ArgumentException("The reference can be at most 40 characters.");
+
+            decimal? tendered = null, change = null;
+            if (method == PaymentMethod.Cash && request.Tendered.HasValue)
+            {
+                tendered = BillCalculator.Paise(request.Tendered.Value);
+                if (tendered < amount) throw new ArgumentException("The cash received is less than the amount.");
+                change = tendered - amount;
+            }
+
+            bill.Payments.Add(new BillPayment
+            {
+                TenantId = _db.CurrentTenantId,
+                Method = method,
+                Amount = amount,
+                Tendered = tendered,
+                Change = change,
+                Reference = string.IsNullOrEmpty(reference) ? null : reference,
+                ReceivedAt = DateTime.UtcNow,
+                ReceivedBy = _db.CurrentUserId
+            });
+            if (PaidOf(bill) >= bill.Total)
+            {
+                bill.Status = BillStatus.Paid;
+                bill.PaidAt = DateTime.UtcNow;
+            }
+            bill.Version++;
+            await _db.SaveChangesAsync();
+            return bill;
+        }
+
+        // upi://pay link for the amount still due; any UPI app reads it from the QR code.
+        public async Task<UpiLinkDto> UpiLink(int billId)
+        {
+            var bill = await Load(billId) ?? throw new KeyNotFoundException("Bill not found.");
+            var outlet = await _db.Outlets.FirstAsync(o => o.Id == _db.CurrentOutletId && o.TenantId == _db.CurrentTenantId);
+            var settings = outlet.GetSettings();
+            if (string.IsNullOrWhiteSpace(settings.UpiId)) throw new ArgumentException("Add your UPI ID in billing settings first.");
+            var due = DueOf(bill);
+            if (due <= 0) throw new ArgumentException("Nothing is due on this bill.");
+            var name = string.IsNullOrWhiteSpace(settings.UpiName) ? bill.RestaurantName : settings.UpiName;
+            var link = BuildUpiLink(settings.UpiId, name, due, bill.InvoiceNumber);
+            return new UpiLinkDto(link, due, settings.UpiId);
+        }
+
+        public static string BuildUpiLink(string upiId, string payeeName, decimal amount, string note) =>
+            "upi://pay?pa=" + upiId +
+            "&pn=" + Uri.EscapeDataString(payeeName) +
+            "&am=" + amount.ToString("0.00", CultureInfo.InvariantCulture) +
+            "&cu=INR" +
+            "&tn=" + Uri.EscapeDataString(note);
 
         public async Task<List<Bill>> GetBills(DateOnly? businessDate)
         {
@@ -213,7 +290,9 @@ namespace POSSystem.Billing
             new StoreOnBill(b.RestaurantName, b.OutletName, b.Address, b.Phone, b.Gstin, b.Fssai, b.Footer),
             b.Lines.OrderBy(l => l.Id).Select(l => new BillLineDto(l.ItemName, l.Quantity, l.UnitPrice, l.TaxRate, l.Amount, l.Discount,
                 l.TaxableValue, l.Cgst, l.Sgst)).ToList(),
-            b.TaxMode == TaxMode.Regular ? BillCalculator.TaxSummary(b.Lines) : Array.Empty<TaxSummaryRow>());
+            b.TaxMode == TaxMode.Regular ? BillCalculator.TaxSummary(b.Lines) : Array.Empty<TaxSummaryRow>(),
+            PaidOf(b), DueOf(b), b.PaidAt,
+            b.Payments.OrderBy(p => p.Id).Select(p => new PaymentDto(p.Id, p.Method.ToString(), p.Amount, p.Tendered, p.Change, p.Reference, p.ReceivedAt)).ToList());
 
         public static BillSummaryDto ToSummary(Bill b) =>
             new(b.Id, b.KitchenOrderId, b.InvoiceNumber, b.IssuedAt, b.OrderLabel, b.TokenNumber, b.Total, b.Status.ToString(), b.Version);
@@ -223,7 +302,7 @@ namespace POSSystem.Billing
         public static BillingSettingsDto SettingsOf(Outlet outlet)
         {
             var s = outlet.GetSettings();
-            return new BillingSettingsDto(s.TaxMode.ToString(), s.PricesIncludeTax, s.BillPrefix);
+            return new BillingSettingsDto(s.TaxMode.ToString(), s.PricesIncludeTax, s.BillPrefix, s.UpiId, s.UpiName);
         }
 
         public static Dictionary<string, string[]> ValidateSettings(BillingSettingsDto dto)
@@ -233,6 +312,10 @@ namespace POSSystem.Billing
                 errors["taxmode"] = new[] { "Choose Regular, Composition or None." };
             if (string.IsNullOrWhiteSpace(dto.BillPrefix) || !Regex.IsMatch(dto.BillPrefix.Trim().ToUpperInvariant(), "^[A-Z0-9]{1,3}$"))
                 errors["billprefix"] = new[] { "Use 1 to 3 letters or digits, for example INV." };
+            if (!string.IsNullOrWhiteSpace(dto.UpiId) && !Regex.IsMatch(dto.UpiId.Trim(), @"^[A-Za-z0-9._-]{2,200}@[A-Za-z][A-Za-z0-9]{1,63}$"))
+                errors["upiid"] = new[] { "Enter a UPI ID like yourname@okaxis." };
+            if (dto.UpiName is { Length: > 50 })
+                errors["upiname"] = new[] { "The name for UPI can be at most 50 characters." };
             return errors;
         }
 
@@ -242,6 +325,8 @@ namespace POSSystem.Billing
             s.TaxMode = Enum.Parse<TaxMode>(dto.TaxMode, true);
             s.PricesIncludeTax = dto.PricesIncludeTax;
             s.BillPrefix = dto.BillPrefix.Trim().ToUpperInvariant();
+            s.UpiId = string.IsNullOrWhiteSpace(dto.UpiId) ? null : dto.UpiId.Trim();
+            s.UpiName = string.IsNullOrWhiteSpace(dto.UpiName) ? null : dto.UpiName.Trim();
             outlet.Settings = s.ToJson();
         }
     }

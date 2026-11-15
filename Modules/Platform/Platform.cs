@@ -77,6 +77,10 @@ namespace POSSystem.Models
         public bool PricesIncludeTax { get; set; }
         public string BillPrefix { get; set; } = "INV";
 
+        // UPI ID (like name@okaxis) and payee name for the QR code on bills.
+        public string? UpiId { get; set; }
+        public string? UpiName { get; set; }
+
         public static readonly string[] Presets = { "dine-in", "cafe", "takeaway-counter" };
 
         // Ready-made setups for common outlet types; quantity limit and first token are kept.
