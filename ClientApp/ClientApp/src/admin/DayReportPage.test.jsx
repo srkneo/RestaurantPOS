@@ -54,7 +54,7 @@ describe('Day report page', () => {
     expect(screen.getByText('SHORT')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Print Z report' }));
-    expect(open).toHaveBeenCalledWith('/print/day?date=2026-11-15&auto=1', '_blank');
+    expect(open).toHaveBeenCalledWith('/print/day?date=2026-11-15&auto=1', '_blank', 'noopener');
   });
 
   it('loads another day', async () => {

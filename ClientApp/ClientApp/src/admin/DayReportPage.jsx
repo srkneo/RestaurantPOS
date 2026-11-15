@@ -31,7 +31,7 @@ export default function DayReportPage() {
 
   useEffect(() => { load(''); }, [load]);
 
-  const print = () => window.open(`/print/day?date=${state.report.businessDate}&auto=1`, '_blank');
+  const print = () => window.open(`/print/day?date=${state.report.businessDate}&auto=1`, '_blank', 'noopener');
 
   return (
     <main className="pos-page">

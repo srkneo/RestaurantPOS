@@ -145,7 +145,7 @@ const OrderHistory = () => {
                       {order.status !== 'Cancelled' && (
                         <div className="pos-row-actions mb-1">
                           <button type="button" className="btn btn-primary btn-sm px-3" onClick={() => setBillOrderId(order.id)}>{t('bill.bill')}</button>
-                          <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => window.open(`/print/kot/${order.id}?auto=1`, '_blank')}>{t('bill.kot')}</button>
+                          <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => window.open(`/print/kot/${order.id}?auto=1`, '_blank', 'noopener')}>{t('bill.kot')}</button>
                         </div>
                       )}
                       {order.status === 'Received' && (

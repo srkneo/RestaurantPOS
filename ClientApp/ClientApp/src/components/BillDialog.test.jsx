@@ -126,7 +126,7 @@ describe('Bill dialog', () => {
     vi.stubGlobal('open', open);
     renderDialog();
     fireEvent.click(await screen.findByRole('button', { name: 'Print bill' }));
-    expect(open).toHaveBeenCalledWith('/print/bill/7?auto=1', '_blank');
+    expect(open).toHaveBeenCalledWith('/print/bill/7?auto=1', '_blank', 'noopener');
   });
 
   it('lets a manager void the bill with a reason; cashiers cannot', async () => {

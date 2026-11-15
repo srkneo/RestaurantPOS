@@ -175,7 +175,7 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
     });
   };
 
-  const printBill = () => window.open(`/print/bill/${bill.id}?auto=1`, '_blank');
+  const printBill = () => window.open(`/print/bill/${bill.id}?auto=1`, '_blank', 'noopener');
 
   return (
     <div className="pos-overlay">
@@ -236,12 +236,12 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
                 </div>
                 <div>
                   <label htmlFor="bill-amount" className="form-label">{t('bill.amount')}</label>
-                  <input id="bill-amount" className="form-control" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+                  <input id="bill-amount" className="form-control" autoComplete="off" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
                 </div>
                 {method === 'Cash' && (
                   <div>
                     <label htmlFor="bill-tendered" className="form-label">{t('bill.tendered')}</label>
-                    <input id="bill-tendered" className="form-control" inputMode="decimal" value={tendered} onChange={(e) => setTendered(e.target.value)} />
+                    <input id="bill-tendered" className="form-control" autoComplete="off" inputMode="decimal" value={tendered} onChange={(e) => setTendered(e.target.value)} />
                     {change !== null && <p className="pos-bill-change mb-0">{t('bill.change', { amount: formatMoney(change) })}</p>}
                   </div>
                 )}
@@ -251,7 +251,7 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
                 {method !== 'Cash' && (
                   <div>
                     <label htmlFor="bill-reference" className="form-label">{t('bill.reference')}</label>
-                    <input id="bill-reference" className="form-control" maxLength={40} value={reference} onChange={(e) => setReference(e.target.value)} />
+                    <input id="bill-reference" className="form-control" autoComplete="off" maxLength={40} value={reference} onChange={(e) => setReference(e.target.value)} />
                   </div>
                 )}
                 <button type="button" className="btn btn-primary pos-bill-main" disabled={busy} onClick={pay}>{t('bill.record')}</button>

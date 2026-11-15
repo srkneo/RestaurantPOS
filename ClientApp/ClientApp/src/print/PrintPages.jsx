@@ -21,7 +21,7 @@ function Toolbar({ onPrint }) {
   return (
     <div className="print-toolbar">
       <button type="button" className="btn btn-primary px-4" onClick={onPrint}>{t('print.print')}</button>
-      <button type="button" className="btn btn-outline-secondary px-4" onClick={() => navigate(-1)}>{t('print.back')}</button>
+      <button type="button" className="btn btn-outline-secondary px-4" onClick={() => (window.history.length > 1 ? navigate(-1) : window.close())}>{t('print.back')}</button>
     </div>
   );
 }
