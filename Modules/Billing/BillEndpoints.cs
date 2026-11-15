@@ -79,6 +79,16 @@ namespace POSSystem.Billing
                 .RequireAuthorization(p => p.RequireRole(Till))
                 .WithName("GetBillUpiQr").WithSummary("QR code (SVG) of the UPI payment link");
 
+            app.MapPost("/api/bills/{id:int}/printed", (int id, BillService bills) =>
+                Run(async () => Results.Ok(new { printCount = await bills.MarkPrinted(id) })))
+                .RequireAuthorization(p => p.RequireRole(Till))
+                .WithName("MarkBillPrinted").WithSummary("Count a print of the bill (later prints say DUPLICATE)");
+
+            app.MapGet("/api/print-settings", async (AppDbContext db) =>
+                await LoadOutlet(db) is { } outlet ? Results.Ok(BillService.PrintSettingsOf(outlet)) : Results.NotFound())
+                .RequireAuthorization(p => p.RequireRole("cashier", "manager", "admin", "kitchen"))
+                .WithName("GetPrintSettings").WithSummary("Paper width and language for bills and KOTs");
+
             var settings = app.MapGroup("/api/admin/billing-settings").RequireAuthorization(p => p.RequireRole("admin")).WithTags("Settings");
 
             settings.MapGet("/", async (AppDbContext db) =>

@@ -81,6 +81,10 @@ namespace POSSystem.Models
         public string? UpiId { get; set; }
         public string? UpiName { get; set; }
 
+        // Receipt printer: 58 or 80 mm paper; bills and KOTs in English (en) or Gujarati (gu).
+        public int PaperWidth { get; set; } = 80;
+        public string PrintLanguage { get; set; } = "en";
+
         public static readonly string[] Presets = { "dine-in", "cafe", "takeaway-counter" };
 
         // Ready-made setups for common outlet types; quantity limit and first token are kept.
