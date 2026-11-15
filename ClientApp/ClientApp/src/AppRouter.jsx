@@ -14,6 +14,7 @@ import MenuScanPage from './admin/MenuScanPage';
 import TablesPage from './admin/TablesPage';
 import StorePage from './admin/StorePage';
 import SettingsPage from './admin/SettingsPage';
+import BillingSettingsPage from './admin/BillingSettingsPage';
 import PlatformPage from './admin/PlatformPage';
 import StoreBrand from './ui/StoreBrand';
 import { PrintBillPage, PrintKotPage } from './print/PrintPages';
@@ -52,6 +53,7 @@ function AppHeader() {
         {can(ADMIN_ROLES) && <NavLink to="/admin/staff">{t('nav.staff')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/store">{t('nav.store')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/settings">{t('nav.settings')}</NavLink>}
+        {can(ADMIN_ROLES) && <NavLink to="/admin/billing">{t('nav.billing')}</NavLink>}
         {can(PLATFORM_ROLES) && <NavLink to="/platform">{t('nav.platform')}</NavLink>}
       </nav>
       <div className="pos-user">
@@ -81,6 +83,7 @@ function Layout() {
         <Route path="/admin/tables" element={<RequireRole roles={MENU_ROLES}><TablesPage /></RequireRole>} />
         <Route path="/admin/store" element={<RequireRole roles={ADMIN_ROLES}><StorePage /></RequireRole>} />
         <Route path="/admin/settings" element={<RequireRole roles={ADMIN_ROLES}><SettingsPage /></RequireRole>} />
+        <Route path="/admin/billing" element={<RequireRole roles={ADMIN_ROLES}><BillingSettingsPage /></RequireRole>} />
         <Route path="/platform" element={<RequireRole roles={PLATFORM_ROLES}><PlatformPage /></RequireRole>} />
         <Route path="/print/bill/:id" element={<RequireRole roles={POS_ROLES}><PrintBillPage /></RequireRole>} />
         <Route path="/print/kot/:id" element={<RequireRole roles={[...POS_ROLES, 'kitchen']}><PrintKotPage /></RequireRole>} />
