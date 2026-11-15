@@ -55,6 +55,7 @@ try
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
     builder.Services.AddScoped<IOrderService, OrderService>();
     builder.Services.AddScoped<BillService>();
+    builder.Services.AddScoped<DayCloseService>();
     builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
     builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 
@@ -73,6 +74,7 @@ try
     app.MapSettingsEndpoints();
     app.MapPlatformEndpoints();
     app.MapBillEndpoints();
+    app.MapDayCloseEndpoints();
 
     app.UseExceptionHandler();
     app.UsePosAuth();
