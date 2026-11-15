@@ -81,3 +81,12 @@
 @media (max-width: 575.98px) {
   .pos-field-phone, .pos-field-table { width: 100%; }
 }
+
+/* Long menus: rows above the items keep their full height (a scrolling row in a column can otherwise shrink to nothing).
+   On laptops and big screens only the item grid scrolls; table, search and categories stay in view, and categories wrap. */
+.pos-menu > * { flex-shrink: 0; }
+@media (min-width: 992px) {
+  .pos-screen .pos-menu { overflow: hidden; }
+  .pos-menu > .pos-items { flex: 1 1 auto; min-height: 0; overflow-y: auto; align-content: start; padding: 2px 2px 16px; }
+  .pos-chips { flex-wrap: wrap; overflow-x: visible; }
+}
