@@ -26,7 +26,9 @@ namespace POSSystem.Billing
 
     public record CreateBillRequest(decimal? DiscountPercent, decimal? DiscountAmount);
     public record VoidBillRequest(string? Reason, int Version);
-    public record BillingSettingsDto(string TaxMode, bool PricesIncludeTax, string BillPrefix, string? UpiId = null, string? UpiName = null);
+    public record BillingSettingsDto(string TaxMode, bool PricesIncludeTax, string BillPrefix, string? UpiId = null, string? UpiName = null,
+        int PaperWidth = 80, string PrintLanguage = "en");
+    public record PrintSettingsDto(int PaperWidth, string PrintLanguage, bool UpiReady);
     public record AddPaymentRequest(string? Method, decimal Amount, decimal? Tendered, string? Reference, int Version);
     public record UpiLinkDto(string Link, decimal Amount, string UpiId);
 
@@ -302,7 +304,22 @@ namespace POSSystem.Billing
         public static BillingSettingsDto SettingsOf(Outlet outlet)
         {
             var s = outlet.GetSettings();
-            return new BillingSettingsDto(s.TaxMode.ToString(), s.PricesIncludeTax, s.BillPrefix, s.UpiId, s.UpiName);
+            return new BillingSettingsDto(s.TaxMode.ToString(), s.PricesIncludeTax, s.BillPrefix, s.UpiId, s.UpiName, s.PaperWidth, s.PrintLanguage);
+        }
+
+        public static PrintSettingsDto PrintSettingsOf(Outlet outlet)
+        {
+            var s = outlet.GetSettings();
+            return new PrintSettingsDto(s.PaperWidth, s.PrintLanguage, !string.IsNullOrWhiteSpace(s.UpiId));
+        }
+
+        // Counts prints; the second and later prints of a bill are marked DUPLICATE on paper.
+        public async Task<int> MarkPrinted(int billId)
+        {
+            var bill = await _db.Bills.FirstOrDefaultAsync(b => b.Id == billId) ?? throw new KeyNotFoundException("Bill not found.");
+            bill.PrintCount++;
+            await _db.SaveChangesAsync();
+            return bill.PrintCount;
         }
 
         public static Dictionary<string, string[]> ValidateSettings(BillingSettingsDto dto)
@@ -316,6 +333,10 @@ namespace POSSystem.Billing
                 errors["upiid"] = new[] { "Enter a UPI ID like yourname@okaxis." };
             if (dto.UpiName is { Length: > 50 })
                 errors["upiname"] = new[] { "The name for UPI can be at most 50 characters." };
+            if (dto.PaperWidth != 58 && dto.PaperWidth != 80)
+                errors["paperwidth"] = new[] { "Choose 58 mm or 80 mm paper." };
+            if (dto.PrintLanguage != "en" && dto.PrintLanguage != "gu")
+                errors["printlanguage"] = new[] { "Choose English (en) or Gujarati (gu)." };
             return errors;
         }
 
@@ -327,6 +348,8 @@ namespace POSSystem.Billing
             s.BillPrefix = dto.BillPrefix.Trim().ToUpperInvariant();
             s.UpiId = string.IsNullOrWhiteSpace(dto.UpiId) ? null : dto.UpiId.Trim();
             s.UpiName = string.IsNullOrWhiteSpace(dto.UpiName) ? null : dto.UpiName.Trim();
+            s.PaperWidth = dto.PaperWidth;
+            s.PrintLanguage = dto.PrintLanguage;
             outlet.Settings = s.ToJson();
         }
     }
