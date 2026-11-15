@@ -1,0 +1,242 @@
+{
+  "nav.dayClose": [
+    "Day close",
+    "દિવસ બંધ"
+  ],
+  "dayClose.title": [
+    "Day close",
+    "દિવસ બંધ"
+  ],
+  "dayClose.dayReport": [
+    "Day report",
+    "દિવસનો રિપોર્ટ"
+  ],
+  "dayClose.noShift": [
+    "No shift is open",
+    "કોઈ શિફ્ટ ચાલુ નથી"
+  ],
+  "dayClose.openingCash": [
+    "Opening cash",
+    "શરૂઆતની રોકડ"
+  ],
+  "dayClose.openingHint": [
+    "Count the cash in the drawer before the first bill.",
+    "પહેલા બિલ પહેલાં ડ્રોઅરની રોકડ ગણો."
+  ],
+  "dayClose.open": [
+    "Open shift",
+    "શિફ્ટ શરૂ કરો"
+  ],
+  "dayClose.openedToast": [
+    "Shift opened.",
+    "શિફ્ટ શરૂ થઈ."
+  ],
+  "dayClose.current": [
+    "Current shift",
+    "ચાલુ શિફ્ટ"
+  ],
+  "dayClose.cashSales": [
+    "Cash sales",
+    "રોકડ વેચાણ"
+  ],
+  "dayClose.cashIn": [
+    "Cash in",
+    "રોકડ જમા"
+  ],
+  "dayClose.cashOut": [
+    "Cash out",
+    "રોકડ ઉપાડ"
+  ],
+  "dayClose.expectedCash": [
+    "Expected cash",
+    "અપેક્ષિત રોકડ"
+  ],
+  "dayClose.countedCash": [
+    "Counted cash",
+    "ગણેલી રોકડ"
+  ],
+  "dayClose.moveTitle": [
+    "Cash in or out",
+    "રોકડ જમા અથવા ઉપાડ"
+  ],
+  "dayClose.kind": [
+    "Type",
+    "પ્રકાર"
+  ],
+  "dayClose.kind.In": [
+    "Cash in",
+    "રોકડ જમા"
+  ],
+  "dayClose.kind.Out": [
+    "Cash out",
+    "રોકડ ઉપાડ"
+  ],
+  "dayClose.amount": [
+    "Amount",
+    "રકમ"
+  ],
+  "dayClose.reason": [
+    "Reason",
+    "કારણ"
+  ],
+  "dayClose.saveMove": [
+    "Save",
+    "સેવ કરો"
+  ],
+  "dayClose.reasonRequired": [
+    "Give a reason.",
+    "કારણ લખો."
+  ],
+  "dayClose.enterAmount": [
+    "Enter a valid amount.",
+    "સાચી રકમ લખો."
+  ],
+  "dayClose.closeTitle": [
+    "Close shift",
+    "શિફ્ટ બંધ કરો"
+  ],
+  "dayClose.note": [
+    "Note (optional)",
+    "નોંધ (વૈકલ્પિક)"
+  ],
+  "dayClose.close": [
+    "Close shift",
+    "શિફ્ટ બંધ કરો"
+  ],
+  "dayClose.closedToast": [
+    "Shift closed.",
+    "શિફ્ટ બંધ થઈ."
+  ],
+  "dayClose.closedTitle": [
+    "Shift closed",
+    "શિફ્ટ બંધ થઈ"
+  ],
+  "dayClose.short": [
+    "Short by {amount}",
+    "{amount} ઓછા"
+  ],
+  "dayClose.excess": [
+    "Extra {amount}",
+    "{amount} વધારે"
+  ],
+  "dayClose.matched": [
+    "Cash matches",
+    "રોકડ બરાબર છે"
+  ],
+  "dayReport.title": [
+    "Day report",
+    "દિવસનો રિપોર્ટ"
+  ],
+  "dayReport.date": [
+    "Business day",
+    "કામકાજનો દિવસ"
+  ],
+  "dayReport.show": [
+    "Show",
+    "બતાવો"
+  ],
+  "dayReport.print": [
+    "Print Z report",
+    "Z રિપોર્ટ પ્રિન્ટ કરો"
+  ],
+  "print.zReport": [
+    "Z REPORT",
+    "Z રિપોર્ટ"
+  ],
+  "print.businessDate": [
+    "Business day",
+    "કામકાજનો દિવસ"
+  ],
+  "print.printedAt": [
+    "Printed",
+    "પ્રિન્ટ"
+  ],
+  "print.bills": [
+    "Bills",
+    "બિલ"
+  ],
+  "print.cgstTotal": [
+    "CGST",
+    "CGST"
+  ],
+  "print.sgstTotal": [
+    "SGST",
+    "SGST"
+  ],
+  "print.sales": [
+    "SALES",
+    "વેચાણ"
+  ],
+  "print.gstByRate": [
+    "GST BY RATE",
+    "દર મુજબ GST"
+  ],
+  "print.gstRate": [
+    "Rate",
+    "દર"
+  ],
+  "print.payments": [
+    "PAYMENTS",
+    "ચુકવણી"
+  ],
+  "print.received": [
+    "Received",
+    "મળેલ"
+  ],
+  "print.unpaid": [
+    "Unpaid",
+    "બાકી"
+  ],
+  "print.voidBills": [
+    "Void bills",
+    "રદ બિલ"
+  ],
+  "print.itemSales": [
+    "ITEMS SOLD",
+    "વેચાયેલી વસ્તુઓ"
+  ],
+  "print.shift": [
+    "SHIFT {number}",
+    "શિફ્ટ {number}"
+  ],
+  "print.shiftOpen": [
+    "still open",
+    "હજુ ચાલુ"
+  ],
+  "print.openingCash": [
+    "Opening cash",
+    "શરૂઆતની રોકડ"
+  ],
+  "print.cashSales": [
+    "Cash sales",
+    "રોકડ વેચાણ"
+  ],
+  "print.cashIn": [
+    "Cash in",
+    "રોકડ જમા"
+  ],
+  "print.cashOut": [
+    "Cash out",
+    "રોકડ ઉપાડ"
+  ],
+  "print.expectedCash": [
+    "Expected",
+    "અપેક્ષિત"
+  ],
+  "print.countedCash": [
+    "Counted",
+    "ગણેલી"
+  ],
+  "print.short": [
+    "SHORT",
+    "ઓછા"
+  ],
+  "print.excess": [
+    "EXTRA",
+    "વધારે"
+  ],
+  "print.matched": [
+    "MATCHED",
+    "બરાબર"
+  ]
+}

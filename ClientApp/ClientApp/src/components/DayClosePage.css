@@ -1,0 +1,14 @@
+.day-close .day-card { padding: 18px; display: flex; flex-direction: column; gap: 10px; max-width: 640px; }
+.day-close .day-card h2 { font-size: 20px; margin: 0; }
+.day-summary { margin: 0; display: grid; gap: 4px; }
+.day-summary > div { display: flex; justify-content: space-between; gap: 12px; }
+.day-summary dt { font-weight: 500; }
+.day-summary dd { margin: 0; font-variant-numeric: tabular-nums; }
+.day-summary .day-strong { font-weight: 700; font-size: 18px; border-top: 1px solid var(--pos-border); padding-top: 4px; }
+.day-moves { margin: 0; padding-left: 18px; color: var(--pos-muted); }
+.day-move-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.day-move-row .day-grow { flex: 1 1 200px; }
+.day-diff { font-weight: 700; font-size: 18px; margin: 0; }
+.day-report-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.day-report-bar input { width: auto; }
+.day-report-sheet { background: #fff; color: #000; border: 1px solid var(--pos-border); border-radius: 10px; padding: 12px; width: fit-content; max-width: 100%; }

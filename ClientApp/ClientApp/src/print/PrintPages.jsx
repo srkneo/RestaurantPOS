@@ -4,6 +4,7 @@ import { useT } from '../i18n/I18nContext';
 import StateMessage from '../ui/StateMessage';
 import BillReceipt from './BillReceipt';
 import KotTicket from './KotTicket';
+import DayReport from './DayReport';
 
 // Time for the logo and the UPI QR image to load before the print dialog opens.
 export const PRINT_DELAY_MS = 400;
@@ -105,6 +106,27 @@ export function PrintKotPage() {
     <>
       <Toolbar onPrint={doPrint} />
       <KotTicket order={state.order} lang={state.settings.printLanguage} width={state.settings.paperWidth} />
+    </>
+  );
+}
+
+// Z report of one business day (?date=yyyy-MM-dd, default today).
+export function PrintDayPage() {
+  const [search] = useSearchParams();
+  const date = search.get('date') ?? '';
+  const load = useCallback(async () => {
+    const query = date ? `?date=${encodeURIComponent(date)}` : '';
+    const [report, settings] = await Promise.all([loadJson(`/api/reports/day${query}`), loadJson('/api/print-settings')]);
+    return { report, settings };
+  }, [date]);
+
+  const { state, reload, doPrint } = usePrintPage(load, null);
+  if (state.status === 'loading') return <StateMessage kind="loading" />;
+  if (state.status === 'error') return <StateMessage kind="error" onRetry={reload} />;
+  return (
+    <>
+      <Toolbar onPrint={doPrint} />
+      <DayReport report={state.report} lang={state.settings.printLanguage} width={state.settings.paperWidth} />
     </>
   );
 }

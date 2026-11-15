@@ -17,7 +17,9 @@ import SettingsPage from './admin/SettingsPage';
 import BillingSettingsPage from './admin/BillingSettingsPage';
 import PlatformPage from './admin/PlatformPage';
 import StoreBrand from './ui/StoreBrand';
-import { PrintBillPage, PrintKotPage } from './print/PrintPages';
+import { PrintBillPage, PrintKotPage, PrintDayPage } from './print/PrintPages';
+import DayClosePage from './components/DayClosePage';
+import DayReportPage from './admin/DayReportPage';
 
 const POS_ROLES = ['cashier', 'manager', 'admin'];
 const KITCHEN_ROLES = ['kitchen', 'manager', 'admin'];
@@ -47,6 +49,7 @@ function AppHeader() {
       <nav className="pos-nav" aria-label="Main">
         {can(POS_ROLES) && <NavLink to="/pos">{t('nav.pos')}</NavLink>}
         {can(POS_ROLES) && <NavLink to="/orders">{t('nav.orders')}</NavLink>}
+        {can(POS_ROLES) && <NavLink to="/day-close">{t('nav.dayClose')}</NavLink>}
         {can(KITCHEN_ROLES) && <NavLink to="/kitchen">{t('nav.kitchen')}</NavLink>}
         {can(MENU_ROLES) && <NavLink to="/admin/menu">{t('nav.menu')}</NavLink>}
         {can(MENU_ROLES) && <NavLink to="/admin/tables">{t('nav.tables')}</NavLink>}
@@ -76,6 +79,8 @@ function Layout() {
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/pos" element={<RequireRole roles={POS_ROLES}><POSMenu /></RequireRole>} />
         <Route path="/orders" element={<RequireRole roles={POS_ROLES}><OrderHistory /></RequireRole>} />
+        <Route path="/day-close" element={<RequireRole roles={POS_ROLES}><DayClosePage /></RequireRole>} />
+        <Route path="/reports/day" element={<RequireRole roles={MENU_ROLES}><DayReportPage /></RequireRole>} />
         <Route path="/kitchen" element={<RequireRole roles={KITCHEN_ROLES}><KitchenDisplay /></RequireRole>} />
         <Route path="/admin/menu" element={<RequireRole roles={MENU_ROLES}><MenuPage /></RequireRole>} />
         <Route path="/admin/menu/scan" element={<RequireRole roles={MENU_ROLES}><MenuScanPage /></RequireRole>} />
@@ -87,6 +92,7 @@ function Layout() {
         <Route path="/platform" element={<RequireRole roles={PLATFORM_ROLES}><PlatformPage /></RequireRole>} />
         <Route path="/print/bill/:id" element={<RequireRole roles={POS_ROLES}><PrintBillPage /></RequireRole>} />
         <Route path="/print/kot/:id" element={<RequireRole roles={[...POS_ROLES, 'kitchen']}><PrintKotPage /></RequireRole>} />
+        <Route path="/print/day" element={<RequireRole roles={MENU_ROLES}><PrintDayPage /></RequireRole>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
