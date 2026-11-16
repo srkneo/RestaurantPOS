@@ -46,7 +46,7 @@ export default function CreditNoteForm({ bill, needPin, onDone, onCancel }) {
         <div className="d-flex flex-column gap-2 border rounded p-3">
             <strong>{t('credit.title')}</strong>
             <label htmlFor="credit-reason" className="form-label mb-0">{t('credit.reason')}</label>
-            <input id="credit-reason" className="form-control" maxLength={200} value={reason} onChange={(e) => setReason(e.target.value)} />
+            <input id="credit-reason" className="form-control" autoComplete="off" maxLength={200} value={reason} onChange={(e) => setReason(e.target.value)} />
             {paid && (
                 <>
                     <label htmlFor="credit-refund" className="form-label mb-0">{t('credit.refundMethod')}</label>
@@ -60,7 +60,7 @@ export default function CreditNoteForm({ bill, needPin, onDone, onCancel }) {
             {needPin && (
                 <>
                     <label htmlFor="credit-pin" className="form-label mb-0">{t('approval.pin')}</label>
-                    <input id="credit-pin" type="password" inputMode="numeric" autoComplete="off" maxLength={6} className="form-control" value={pin} onChange={(e) => setPin(e.target.value)} />
+                    <input id="credit-pin" type="text" inputMode="numeric" autoComplete="off" maxLength={6} className="form-control" style={{ WebkitTextSecurity: 'disc' }} data-lpignore="true" data-1p-ignore="true" value={pin} onChange={(e) => setPin(e.target.value)} />
                 </>
             )}
             {error && <p className="text-danger mb-0">{error}</p>}

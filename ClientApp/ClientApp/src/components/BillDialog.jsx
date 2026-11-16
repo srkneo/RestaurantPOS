@@ -297,11 +297,11 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
             {voiding && (
               <div>
                 <label htmlFor="bill-void-reason" className="form-label">{t('bill.voidReason')}</label>
-                <input id="bill-void-reason" className="form-control" maxLength={200} value={voidReason} onChange={(e) => setVoidReason(e.target.value)} />
+                <input id="bill-void-reason" className="form-control" autoComplete="off" maxLength={200} value={voidReason} onChange={(e) => setVoidReason(e.target.value)} />
                 {!isApprover && (
                   <>
                     <label htmlFor="bill-void-pin" className="form-label mt-2">{t('approval.pin')}</label>
-                    <input id="bill-void-pin" type="password" inputMode="numeric" autoComplete="off" maxLength={6} className="form-control"
+                    <input id="bill-void-pin" type="text" inputMode="numeric" autoComplete="off" maxLength={6} className="form-control" style={{ WebkitTextSecurity: 'disc' }} data-lpignore="true" data-1p-ignore="true"
                       value={pin} onChange={(e) => setPin(e.target.value)} />
                   </>
                 )}
@@ -314,7 +314,7 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
         {askReprint && bill && (
           <div>
             <label htmlFor="bill-reprint-pin" className="form-label">{t('approval.pinReprint')}</label>
-            <input id="bill-reprint-pin" type="password" inputMode="numeric" autoComplete="off" maxLength={6} className="form-control"
+            <input id="bill-reprint-pin" type="text" inputMode="numeric" autoComplete="off" maxLength={6} className="form-control" style={{ WebkitTextSecurity: 'disc' }} data-lpignore="true" data-1p-ignore="true"
               value={pin} onChange={(e) => setPin(e.target.value)} />
             <button type="button" className="btn btn-primary mt-2" disabled={busy} onClick={approveReprint}>{t('approval.approve')}</button>
           </div>
