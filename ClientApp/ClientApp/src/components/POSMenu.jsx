@@ -57,8 +57,9 @@ const POSMenu = () => {
     tRef.current = t;
   }, [t]);
 
-  const load = useCallback(async () => {
-    setLoadState('loading');
+  // silent: try again in the background without replacing the screen by "Loading".
+  const load = useCallback(async (silent) => {
+    if (silent !== true) setLoadState('loading');
     // Outlet settings decide which order types the POS offers and which one it starts with.
     const applySettings = (settings) => {
       setOrderSettings(settings);
@@ -94,6 +95,18 @@ const POSMenu = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  // While working from the saved menu, quietly try the server again: when the browser is back online and every 30 seconds.
+  useEffect(() => {
+    if (!offlineSince) return undefined;
+    const retry = () => load(true);
+    window.addEventListener('online', retry);
+    const timer = setInterval(retry, 30000);
+    return () => {
+      window.removeEventListener('online', retry);
+      clearInterval(timer);
+    };
+  }, [offlineSince, load]);
 
   const resetOrder = useCallback(() => {
     setCart([]);
