@@ -91,6 +91,15 @@ export function setup() {
 }
 
 let signedIn = false;
+let shown = 0;
+
+// A failed step: show why (first 3 per till), then pause so a broken step does not hammer the server.
+function bad(res, step) {
+  failedSale.add(1);
+  if (shown++ < 3) console.error(`${step} failed: ${res.status} ${String(res.body).slice(0, 300)}`);
+  if (res.status === 401) signedIn = false;
+  sleep(1);
+}
 
 function uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -115,16 +124,16 @@ export default function (data) {
 
   const started = Date.now();
   const order = post('/api/orders', { table, items, clientOrderId: uuid() }, 'order');
-  if (!check(order, { 'order placed': (r) => r.status === 200 })) { failedSale.add(1); return; }
+  if (!check(order, { 'order placed': (r) => r.status === 200 })) { bad(order, 'order'); return; }
   const bill = post(`/api/orders/${order.json().orderId}/bill`, {}, 'bill');
-  if (!check(bill, { 'bill made': (r) => r.status === 201 })) { failedSale.add(1); return; }
+  if (!check(bill, { 'bill made': (r) => r.status === 201 })) { bad(bill, 'bill'); return; }
   const b = bill.json();
   if (!check(b, { 'bill total matches menu': (x) => Number(x.total) === expected })) {
     wrongTotal.add(1);
     console.error(`WRONG TOTAL ${b.invoiceNumber}: got ${b.total}, expected ${expected}`);
   }
   const pay = post(`/api/bills/${b.id}/payments`, { method: 'Cash', amount: b.total, version: b.version }, 'payment');
-  if (!check(pay, { 'payment saved': (r) => r.status === 200 })) { failedSale.add(1); return; }
+  if (!check(pay, { 'payment saved': (r) => r.status === 200 })) { bad(pay, 'payment'); return; }
   saleTime.add(Date.now() - started);
 
   sleep(2 + Math.random() * 4);   // the cashier talks to the next customer
