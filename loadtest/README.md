@@ -45,7 +45,7 @@ Lightsail > staging > Connect:
 ```
 cd ~/pos
 curl -sL https://raw.githubusercontent.com/srkneo/RestaurantPOS/master/loadtest/check.sql -o check.sql
-docker compose exec -T db psql -U pos -d restaurant_pos < check.sql
+docker compose --env-file .env --env-file version.env -f docker-compose.prod.yml exec -T db psql -U pos -d restaurant_pos < check.sql
 ```
 Sections 1 to 9 must be empty. The summary shows how many bills were checked.
 

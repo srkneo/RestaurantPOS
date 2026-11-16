@@ -42,6 +42,11 @@ export const options = {
     failed_sale: ['count<1'],
     http_req_failed: ['rate<0.01'],
     http_req_duration: ['p(95)<800'],
+    // One line per step in the summary, to see which step is slow.
+    'http_req_duration{name:order}': ['p(95)<800'],
+    'http_req_duration{name:bill}': ['p(95)<800'],
+    'http_req_duration{name:payment}': ['p(95)<800'],
+    'http_req_duration{name:login}': ['p(95)<2000'],
     sale_duration: ['p(95)<2000'],
   },
 };

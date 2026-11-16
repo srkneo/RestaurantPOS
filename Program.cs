@@ -80,6 +80,16 @@ try
     app.MapDayCloseEndpoints();
     app.MapApprovalEndpoints();
 
+    // Requests slower than 1 second go to the log with their path, so load tests show where time is spent.
+    app.Use(async (context, next) =>
+    {
+        var started = System.Diagnostics.Stopwatch.GetTimestamp();
+        await next();
+        var ms = (int)System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+        if (ms > 1000)
+            app.Logger.LogWarning("Slow request {Method} {Path} {Status} {Ms} ms", context.Request.Method, context.Request.Path, context.Response.StatusCode, ms);
+    });
+
     app.UseExceptionHandler();
     app.UsePosAuth();
     app.UseRateLimiter();
