@@ -15,13 +15,14 @@ namespace RestaurantPOS.Tests
         {
             var role = Request.Headers.TryGetValue("X-Test-Role", out var r) ? r.ToString() : "admin";
             var tenant = Request.Headers.TryGetValue("X-Test-Tenant", out var t) ? t.ToString() : "1";
+            var outlet = Request.Headers.TryGetValue("X-Test-Outlet", out var o) ? o.ToString() : "1";
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, "test@pos.local"),
                 new Claim(ClaimTypes.Email, "test@pos.local"),
                 new Claim(ClaimTypes.Role, role),
                 new Claim("tenant_id", tenant),
-                new Claim("outlet_id", "1")
+                new Claim("outlet_id", outlet)
             };
             var identity = new ClaimsIdentity(claims, "Test");
             var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), "Test");

@@ -60,17 +60,20 @@ namespace POSSystem.Billing
             return new BillTotals(results, itemsTotal, discount, taxableTotal, cgstTotal, sgstTotal, total - beforeRounding, total);
         }
 
-        // Each line gets a share of the discount by its amount; the rounding remainder goes to the largest line, so shares add up exactly.
+        // Each line gets its share of the discount by amount, rounded down to paise; the paise left over go one each to the lines
+        // that lost most in rounding. Shares add up exactly, and no share is below 0 or above its line
+        // (the old way gave the remainder to the largest line, which could go below 0 for tiny discounts).
         public static IReadOnlyList<decimal> ShareDiscount(IReadOnlyList<decimal> amounts, decimal discount)
         {
             var total = amounts.Sum();
             var shares = new decimal[amounts.Count];
             if (discount == 0 || total == 0) return shares;
-            var largest = 0;
-            for (var i = 1; i < amounts.Count; i++) if (amounts[i] > amounts[largest]) largest = i;
-            for (var i = 0; i < amounts.Count; i++)
-                if (i != largest) shares[i] = Paise(discount * amounts[i] / total);
-            shares[largest] = discount - shares.Sum();
+            var exact = amounts.Select(a => discount * a / total).ToArray();
+            for (var i = 0; i < amounts.Count; i++) shares[i] = Math.Floor(exact[i] * 100m) / 100m;
+            var left = (int)Math.Round((discount - shares.Sum()) * 100m);
+            var order = Enumerable.Range(0, amounts.Count)
+                .OrderByDescending(i => exact[i] - shares[i]).ThenByDescending(i => amounts[i]).ThenBy(i => i).ToList();
+            for (var k = 0; k < left; k++) shares[order[k % order.Count]] += 0.01m;
             return shares;
         }
 
