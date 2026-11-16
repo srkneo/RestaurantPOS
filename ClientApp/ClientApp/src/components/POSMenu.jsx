@@ -8,6 +8,9 @@ import BillDialog from './BillDialog';
 import StateMessage from '../ui/StateMessage';
 import { formatMoney, newClientId } from '../ui/format';
 import './POSMenu.css';
+import { useAuth } from '../AuthContext';
+import { saveOffline, isUnreachable } from '../offline/orderQueue';
+import { readMenuCache, writeMenuCache } from '../offline/menuCache';
 
 const MAX_QTY = 99;
 const ALL = '__all__';
@@ -28,6 +31,9 @@ const POSMenu = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [tables, setTables] = useState([]);
   const [loadState, setLoadState] = useState('loading');
+  const [offlineSince, setOfflineSince] = useState(null); // set when the menu comes from this till's saved copy
+  const auth = useAuth();
+  const cacheKey = `pos-menu:${auth?.user?.email ?? 'anon'}`;
   const [cart, setCart] = useState([]);
   const [category, setCategory] = useState(ALL);
   const [search, setSearch] = useState('');
@@ -53,22 +59,37 @@ const POSMenu = () => {
 
   const load = useCallback(async () => {
     setLoadState('loading');
+    // Outlet settings decide which order types the POS offers and which one it starts with.
+    const applySettings = (settings) => {
+      setOrderSettings(settings);
+      if (!editId && !typeChosen.current && settings.defaultOrderType) setOrderType(settings.defaultOrderType);
+    };
     try {
       const [menuRes, tablesRes, settingsRes] = await Promise.all([fetch('/api/menuitems'), fetch('/api/tables'), fetch('/api/store/settings')]);
       if (!menuRes.ok || !tablesRes.ok) throw new Error('load failed');
-      setMenuItems(await menuRes.json());
-      setTables(await tablesRes.json());
-      // Outlet settings decide which order types the POS offers and which one it starts with.
-      if (settingsRes?.ok) {
-        const settings = await settingsRes.json();
-        setOrderSettings(settings);
-        if (!editId && !typeChosen.current && settings.defaultOrderType) setOrderType(settings.defaultOrderType);
-      }
+      const menu = await menuRes.json();
+      const tableList = await tablesRes.json();
+      const settings = settingsRes?.ok ? await settingsRes.json() : null;
+      setMenuItems(menu);
+      setTables(tableList);
+      if (settings) applySettings(settings);
+      setOfflineSince(null);
+      writeMenuCache(cacheKey, { menu, tables: tableList, settings });
       setLoadState('ready');
     } catch {
-      setLoadState('error');
+      // No server: work from the menu saved the last time this till was online.
+      const cached = readMenuCache(cacheKey);
+      if (cached?.menu && cached?.tables) {
+        setMenuItems(cached.menu);
+        setTables(cached.tables);
+        if (cached.settings) applySettings(cached.settings);
+        setOfflineSince(cached.savedAt);
+        setLoadState('ready');
+      } else {
+        setLoadState('error');
+      }
     }
-  }, [editId]);
+  }, [editId, cacheKey]);
 
   useEffect(() => {
     load();
@@ -158,6 +179,20 @@ const POSMenu = () => {
       showToast(t('pos.needItems'), 'error');
       return;
     }
+    const newOrder = editing ? null : {
+      orderType,
+      table: orderType === 'DineIn' ? Number(selectedTable) : null,
+      customerName: customerName.trim() || null,
+      customerPhone: customerPhone.trim() || null,
+      items: lines(),
+      clientOrderId: clientOrderId.current,
+    };
+    // No server: keep the new order on this till; it is sent by itself when the connection is back (same clientOrderId, so never twice).
+    const keepOffline = async () => {
+      await saveOffline(newOrder);
+      showToast(t('pos.savedOffline'));
+      resetOrder();
+    };
     setPlacing(true);
     try {
       const res = editing
@@ -169,15 +204,12 @@ const POSMenu = () => {
         : await fetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orderType,
-            table: orderType === 'DineIn' ? Number(selectedTable) : null,
-            customerName: customerName.trim() || null,
-            customerPhone: customerPhone.trim() || null,
-            items: lines(),
-            clientOrderId: clientOrderId.current,
-          }),
+          body: JSON.stringify(newOrder),
         });
+      if (!editing && isUnreachable(res.status)) {
+        await keepOffline();
+        return;
+      }
       const data = await res.json().catch(() => ({}));
       if (res.status === 409) {
         showToast(data.code === 'cooking-started' ? t('pos.cannotEdit') : t('pos.conflict'), 'error');
@@ -197,6 +229,10 @@ const POSMenu = () => {
         resetOrder();
       }
     } catch {
+      if (!editing) {
+        await keepOffline();
+        return;
+      }
       showToast(t('pos.networkError'), 'error');
     } finally {
       setPlacing(false);
@@ -274,6 +310,11 @@ const POSMenu = () => {
         </div>
 
         {loadState === 'loading' && <StateMessage kind="loading" />}
+        {loadState === 'ready' && offlineSince && (
+          <p className="alert alert-warning py-2 mb-2" role="status">
+            {t('pos.offlineMenu', { time: new Date(offlineSince).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' }) })}
+          </p>
+        )}
         {loadState === 'error' && <StateMessage kind="error" onRetry={load} />}
         {loadState === 'ready' && (
           <>

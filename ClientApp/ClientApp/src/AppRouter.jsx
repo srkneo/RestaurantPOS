@@ -20,6 +20,7 @@ import StoreBrand from './ui/StoreBrand';
 import { PrintBillPage, PrintKotPage, PrintDayPage, PrintCreditNotePage } from './print/PrintPages';
 import DayClosePage from './components/DayClosePage';
 import DayReportPage from './admin/DayReportPage';
+import OfflineBanner from './offline/OfflineBanner';
 
 const POS_ROLES = ['cashier', 'manager', 'admin'];
 const KITCHEN_ROLES = ['kitchen', 'manager', 'admin'];
@@ -44,6 +45,7 @@ function AppHeader() {
   const can = (roles) => roles.some((r) => user.roles.includes(r));
   const mainRole = ROLE_ORDER.find((r) => user.roles.includes(r));
   return (
+    <>
     <header className="pos-header">
       <StoreBrand />
       <nav className="pos-nav" aria-label="Main">
@@ -65,6 +67,8 @@ function AppHeader() {
         <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={logout}>{t('nav.signOut')}</button>
       </div>
     </header>
+    {can(POS_ROLES) && <OfflineBanner />}
+    </>
   );
 }
 

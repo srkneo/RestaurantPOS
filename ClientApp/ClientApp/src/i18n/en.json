@@ -458,5 +458,15 @@
   "print.refund": "Refund",
   "print.approvedBy": "Approved by",
   "print.creditNotes": "Credit notes",
-  "print.netSales": "NET SALES"
+  "print.netSales": "NET SALES",
+  "pos.savedOffline": "No connection. The order is saved on this till and will be sent by itself.",
+  "pos.offlineMenu": "No connection: using the menu saved at {time}.",
+  "offline.noInternet": "No connection to the server.",
+  "offline.waiting": "{count} order(s) waiting to be sent.",
+  "offline.sendNow": "Send now",
+  "offline.refused": "Not accepted:",
+  "offline.retry": "Try again",
+  "offline.remove": "Remove",
+  "offline.sent": "Offline order sent. Token {token}",
+  "offline.refusedToast": "An offline order was not accepted. See the message at the top."
 }
