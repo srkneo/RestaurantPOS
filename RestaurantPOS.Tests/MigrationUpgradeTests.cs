@@ -12,6 +12,7 @@ using Xunit;
 namespace RestaurantPOS.Tests
 {
     // Upgrades a database that already has orders, the way a live restaurant would be upgraded.
+    [Collection("Postgres")]   // one real-database test class at a time, so Docker is not overloaded
     public class MigrationUpgradeTests : IClassFixture<PostgresFixture>
     {
         private const string BeforeBatchB = "20261114082124_AddStaffFields";

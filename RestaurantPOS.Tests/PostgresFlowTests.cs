@@ -43,6 +43,7 @@ namespace RestaurantPOS.Tests
         }
     }
 
+    [Collection("Postgres")]   // one real-database test class at a time, so Docker is not overloaded
     public class PostgresFlowTests : IClassFixture<PostgresFixture>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly PostgresFixture _pg;

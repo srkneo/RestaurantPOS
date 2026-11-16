@@ -16,6 +16,7 @@ using Xunit;
 namespace RestaurantPOS.Tests
 {
     // Real PostgreSQL: many tills billing at the same moment still get invoice numbers 1, 2, 3 ... with no gaps or repeats.
+    [Collection("Postgres")]   // one real-database test class at a time, so Docker is not overloaded
     public class BillNumberPostgresTests : IClassFixture<PostgresFixture>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly PostgresFixture _pg;

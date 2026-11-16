@@ -22,6 +22,7 @@ namespace RestaurantPOS.Tests
 {
     // Real PostgreSQL, two restaurants billing at the same time through the API.
     // Nothing may cross between them, every bill must match its menu prices, and numbers and tokens must have no gaps or repeats.
+    [Collection("Postgres")]   // one real-database test class at a time, so Docker is not overloaded
     public class TwoRestaurantsPostgresTests : IClassFixture<PostgresFixture>, IClassFixture<WebApplicationFactory<Program>>
     {
         private const int OrdersEach = 20;
@@ -144,7 +145,13 @@ namespace RestaurantPOS.Tests
             if (f == null) return;
             var (one, two) = await Seed(f);
 
-            var work = Enumerable.Range(0, OrdersEach).SelectMany(_ => new[] { one, two }).Select(shop => Task.Run(() => Sale(f, shop))).ToList();
+            // 10 tills at a time (both restaurants mixed): real overlap, without overloading Docker on a developer PC.
+            using var gate = new System.Threading.SemaphoreSlim(10);
+            var work = Enumerable.Range(0, OrdersEach).SelectMany(_ => new[] { one, two }).Select(shop => Task.Run(async () =>
+            {
+                await gate.WaitAsync();
+                try { return await Sale(f, shop); } finally { gate.Release(); }
+            })).ToList();
             var billIds = await Task.WhenAll(work);
             Assert.Equal(OrdersEach * 2, billIds.Distinct().Count());
 

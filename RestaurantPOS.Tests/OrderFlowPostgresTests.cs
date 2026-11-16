@@ -17,6 +17,7 @@ using Xunit;
 namespace RestaurantPOS.Tests
 {
     // Real Postgres: tokens under load, and the one-time fixes for data from before Batch B.
+    [Collection("Postgres")]   // one real-database test class at a time, so Docker is not overloaded
     public class OrderFlowPostgresTests : IClassFixture<PostgresFixture>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly PostgresFixture _pg;
