@@ -1,7 +1,17 @@
 // Service worker: lets the POS open without internet. The page, its scripts and styles, and the fonts they use are saved
 // in the browser as soon as the POS is opened online, so nothing is missing when the connection drops.
 // API calls are never cached here (the POS keeps its own copy of the menu, and orders wait in the offline queue).
+// Keep this cache name: the files of each release are swapped inside it, so a saved copy is never thrown away early.
 const CACHE = 'pos-shell-v2';
+
+// Shown only when this till has no saved copy of the POS yet and the server cannot be reached. Tries again every 15 seconds.
+function offlinePage() {
+  const html = '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="15"><meta name="viewport" content="width=device-width, initial-scale=1">'
+    + '<title>No connection</title><body style="font-family:sans-serif;padding:32px;max-width:520px;margin:auto">'
+    + '<h1>No connection</h1><p>The POS cannot reach the server, and this till has not saved the POS yet.</p>'
+    + '<p>Check the internet connection. This page tries again by itself.</p><p><a href="">Try now</a></p></body>';
+  return new Response(html, { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+}
 
 // Saves every built file the page needs: the scripts and styles named in the page, the scripts those load later,
 // and the fonts (woff2) named in the styles. Files already saved are skipped; files of older versions are removed.
@@ -34,21 +44,28 @@ async function saveAll(html) {
 }
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
-  event.waitUntil(fetch('/', { cache: 'no-cache' })
-    .then(async (page) => {
-      if (!page.ok) return;
-      const cache = await caches.open(CACHE);
-      await cache.put('/', page.clone());
-      await saveAll(await page.text());
-    })
-    .catch(() => {}));
+  // If the page cannot be saved right now (server restarting, no connection), this install fails on purpose:
+  // the helper that is already running keeps its saved files, and the browser tries again on a later visit.
+  event.waitUntil((async () => {
+    const page = await fetch('/', { cache: 'no-cache' });
+    if (!page.ok) throw new Error('The page is not available right now');
+    const cache = await caches.open(CACHE);
+    await cache.put('/', page.clone());
+    await saveAll(await page.text()).catch(() => {}); // files that fail here are saved when the page first uses them
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(caches.keys()
-    .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-    .then(() => self.clients.claim()));
+  event.waitUntil((async () => {
+    // Remove the caches of earlier helpers only once this one really holds the page.
+    const cache = await caches.open(CACHE);
+    if (await cache.match('/')) {
+      const names = await caches.keys();
+      await Promise.all(names.filter((name) => name !== CACHE).map((name) => caches.delete(name)));
+    }
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('fetch', (event) => {
@@ -64,13 +81,17 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(request)
       .then((response) => {
         if (response.ok) {
-          const copy = response.clone();
-          const text = response.clone();
-          event.waitUntil(caches.open(CACHE).then((cache) => cache.put('/', copy)).then(() => text.text()).then(saveAll).catch(() => {}));
+          try {
+            const copy = response.clone();
+            const text = response.clone();
+            event.waitUntil(caches.open(CACHE).then((cache) => cache.put('/', copy)).then(() => text.text()).then(saveAll).catch(() => {}));
+          } catch {
+            // saving is extra; the page itself is still shown
+          }
         }
         return response;
       })
-      .catch(() => caches.match('/')));
+      .catch(async () => (await caches.match('/')) || offlinePage()));
     return;
   }
 
