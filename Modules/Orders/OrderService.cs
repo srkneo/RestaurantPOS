@@ -103,7 +103,20 @@ namespace POSSystem.Services
             };
             order.TokenNumber = await NextToken(businessDate, settings.FirstToken);
 
-            await _orderRepository.CreateOrder(order);
+            try
+            {
+                await _orderRepository.CreateOrder(order);
+            }
+            catch (DbUpdateException) when (orderRequest.ClientOrderId.HasValue)
+            {
+                // The same order arrived twice at the same moment (two open tabs, or a retry racing the first try):
+                // the unique index let only one through. Answer with that one instead of an error.
+                _context.ChangeTracker.Clear();
+                var first = await _context.KitchenOrders.Include(o => o.Items).Include(o => o.Table)
+                    .FirstOrDefaultAsync(o => o.ClientOrderId == orderRequest.ClientOrderId.Value);
+                if (first == null) throw;
+                return first;
+            }
             if (order.TableId.HasValue && order.Table == null) order.Table = await _context.RestaurantTables.FindAsync(order.TableId.Value);
 
             await _hubContext.Clients.Group($"tenant-{order.TenantId}").SendAsync("ReceiveNewOrder", order.ToDto());

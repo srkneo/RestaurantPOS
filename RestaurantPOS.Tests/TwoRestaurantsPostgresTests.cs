@@ -210,6 +210,24 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task SameOrderSentSixTimesAtOnce_IsPlacedOnce()
+        {
+            using var f = Start(out _);
+            if (f == null) return;
+            var (one, _) = await Seed(f);
+            var clientOrderId = Guid.NewGuid();
+            var body = new { table = one.TableId, items = new object[] { new { menuItemId = one.PaneerId, quantity = 1 } }, clientOrderId };
+
+            var replies = await Task.WhenAll(Enumerable.Range(0, 6).Select(_ => Task.Run(async () =>
+                await Read(await Till(f, one).PostAsync("/api/orders", Json(body))))));
+            Assert.Single(replies.Select(r => r.GetProperty("orderId").GetInt32()).Distinct());
+
+            using var scope = f.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.Equal(1, await db.KitchenOrders.IgnoreQueryFilters().CountAsync(o => o.ClientOrderId == clientOrderId));
+        }
+
+        [Fact]
         public async Task PriceChangeAfterOrdering_DoesNotChangeTheBill()
         {
             using var f = Start(out _);
