@@ -1,0 +1,42 @@
+{
+  "pos.savedOffline": [
+    "No connection. The order is saved on this till and will be sent by itself.",
+    "કનેક્શન નથી. ઓર્ડર આ ટિલ પર સેવ છે અને જાતે મોકલાશે."
+  ],
+  "pos.offlineMenu": [
+    "No connection: using the menu saved at {time}.",
+    "કનેક્શન નથી: {time} વખતે સેવ થયેલું મેનુ વપરાય છે."
+  ],
+  "offline.noInternet": [
+    "No connection to the server.",
+    "સર્વર સાથે કનેક્શન નથી."
+  ],
+  "offline.waiting": [
+    "{count} order(s) waiting to be sent.",
+    "{count} ઓર્ડર મોકલવાના બાકી."
+  ],
+  "offline.sendNow": [
+    "Send now",
+    "હમણાં મોકલો"
+  ],
+  "offline.refused": [
+    "Not accepted:",
+    "સ્વીકાર્યો નહીં:"
+  ],
+  "offline.retry": [
+    "Try again",
+    "ફરી પ્રયાસ"
+  ],
+  "offline.remove": [
+    "Remove",
+    "કાઢો"
+  ],
+  "offline.sent": [
+    "Offline order sent. Token {token}",
+    "ઑફલાઇન ઓર્ડર મોકલાયો. ટોકન {token}"
+  ],
+  "offline.refusedToast": [
+    "An offline order was not accepted. See the message at the top.",
+    "એક ઑફલાઇન ઓર્ડર સ્વીકાર્યો નહીં. ઉપરનો સંદેશ જુઓ."
+  ]
+}

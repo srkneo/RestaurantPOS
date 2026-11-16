@@ -458,5 +458,15 @@
   "print.refund": "પરત",
   "print.approvedBy": "મંજૂર કરનાર",
   "print.creditNotes": "ક્રેડિટ નોટ",
-  "print.netSales": "ચોખ્ખું વેચાણ"
+  "print.netSales": "ચોખ્ખું વેચાણ",
+  "pos.savedOffline": "કનેક્શન નથી. ઓર્ડર આ ટિલ પર સેવ છે અને જાતે મોકલાશે.",
+  "pos.offlineMenu": "કનેક્શન નથી: {time} વખતે સેવ થયેલું મેનુ વપરાય છે.",
+  "offline.noInternet": "સર્વર સાથે કનેક્શન નથી.",
+  "offline.waiting": "{count} ઓર્ડર મોકલવાના બાકી.",
+  "offline.sendNow": "હમણાં મોકલો",
+  "offline.refused": "સ્વીકાર્યો નહીં:",
+  "offline.retry": "ફરી પ્રયાસ",
+  "offline.remove": "કાઢો",
+  "offline.sent": "ઑફલાઇન ઓર્ડર મોકલાયો. ટોકન {token}",
+  "offline.refusedToast": "એક ઑફલાઇન ઓર્ડર સ્વીકાર્યો નહીં. ઉપરનો સંદેશ જુઓ."
 }
