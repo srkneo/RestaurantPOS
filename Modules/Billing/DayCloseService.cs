@@ -26,7 +26,9 @@ namespace POSSystem.Billing
         decimal ItemsTotal, decimal Discount, decimal TaxableValue, decimal Cgst, decimal Sgst, decimal RoundOff, decimal Total,
         IReadOnlyList<PaymentTotalDto> Payments, decimal AmountReceived, int UnpaidCount, decimal AmountDue,
         IReadOnlyList<TaxSummaryRow> TaxSummary, IReadOnlyList<ItemSalesDto> Items,
-        int VoidCount, decimal VoidTotal, IReadOnlyList<VoidedBillDto> VoidedBills, IReadOnlyList<ShiftDto> Shifts);
+        int VoidCount, decimal VoidTotal, IReadOnlyList<VoidedBillDto> VoidedBills, IReadOnlyList<ShiftDto> Shifts,
+        IReadOnlyList<CreditNoteSummaryDto> CreditNotes, decimal CreditTaxable, decimal CreditCgst, decimal CreditSgst, decimal CreditTotal,
+        decimal NetSales);
 
     // Till shifts (open with float, cash in/out, close with count) and the end-of-day (Z) report.
     public class DayCloseService
@@ -181,6 +183,14 @@ namespace POSSystem.Billing
                 .Select(g => new ItemSalesDto(g.Key, g.Sum(l => l.Quantity), g.Sum(l => l.Amount)))
                 .OrderByDescending(i => i.Amount).ThenBy(i => i.ItemName).ToList();
 
+            // Credit notes issued this day (they may cancel bills of earlier days).
+            var credits = await _db.CreditNotes.Where(c => c.OutletId == _db.CurrentOutletId && c.BusinessDate == date)
+                .OrderBy(c => c.FinancialYear).ThenBy(c => c.Sequence).ToListAsync();
+            var creditBillIds = credits.Select(c => c.BillId).ToList();
+            var creditBillNumbers = await _db.Bills.Where(b => creditBillIds.Contains(b.Id)).ToDictionaryAsync(b => b.Id, b => b.InvoiceNumber);
+            var creditList = credits.Select(c => new CreditNoteSummaryDto(c.Id, c.Number, c.BillId, creditBillNumbers.GetValueOrDefault(c.BillId, string.Empty),
+                c.Total, c.Reason, c.RefundMethod?.ToString(), c.RefundAmount)).ToList();
+
             var shifts = new List<ShiftDto>();
             foreach (var shift in await GetShifts(date)) shifts.Add(await Describe(shift));
 
@@ -191,7 +201,8 @@ namespace POSSystem.Billing
                 byMethod, payments.Sum(p => p.Amount), unpaid.Count, unpaid.Sum(b => BillService.DueOf(b)),
                 BillCalculator.TaxSummary(bills.Where(b => b.TaxMode == TaxMode.Regular).SelectMany(b => b.Lines)), items,
                 voided.Count, voided.Sum(b => b.Total), voided.Select(b => new VoidedBillDto(b.Id, b.InvoiceNumber, b.Total, b.VoidReason)).ToList(),
-                shifts);
+                shifts, creditList, credits.Sum(c => c.TaxableValue), credits.Sum(c => c.Cgst), credits.Sum(c => c.Sgst),
+                credits.Sum(c => c.Total), bills.Sum(b => b.Total) - credits.Sum(c => c.Total));
         }
     }
 }

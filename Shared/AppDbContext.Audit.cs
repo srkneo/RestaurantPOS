@@ -22,7 +22,7 @@ namespace POSSystem.Data
 
         private static readonly HashSet<string> HiddenProperties = new()
         {
-            "PasswordHash", "SecurityStamp", "ConcurrencyStamp", "NormalizedEmail", "NormalizedUserName", "Bytes",
+            "PasswordHash", "PinHash", "SecurityStamp", "ConcurrencyStamp", "NormalizedEmail", "NormalizedUserName", "Bytes",
             "AccessFailedCount", "LockoutEnd", "CreatedAt", "CreatedBy", "UpdatedAt", "UpdatedBy"
         };
 

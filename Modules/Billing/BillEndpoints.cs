@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Security.Claims;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -51,9 +52,10 @@ namespace POSSystem.Billing
                 .RequireAuthorization(p => p.RequireRole(Till))
                 .WithName("GetBill").WithSummary("One bill with its lines and GST summary");
 
-            app.MapPost("/api/bills/{id:int}/void", (int id, VoidBillRequest request, BillService bills) =>
-                Run(async () => Results.Ok(BillService.ToDto(await bills.VoidBill(id, request)))))
-                .RequireAuthorization(p => p.RequireRole("manager", "admin"))
+            // A cashier can void too when a manager types their PIN.
+            app.MapPost("/api/bills/{id:int}/void", (int id, VoidBillRequest request, ClaimsPrincipal caller, BillService bills, ApprovalService approvals) =>
+                Run(async () => Results.Ok(BillService.ToDto(await bills.VoidBill(id, request, await approvals.Approver(caller, request.ApproverPin))))))
+                .RequireAuthorization(p => p.RequireRole(Till))
                 .WithName("VoidBill").WithSummary("Void a bill with a reason (the bill and its number are kept)");
 
             app.MapPost("/api/bills/{id:int}/payments", (int id, AddPaymentRequest request, BillService bills) =>
@@ -121,6 +123,10 @@ namespace POSSystem.Billing
             catch (KeyNotFoundException)
             {
                 return Results.NotFound();
+            }
+            catch (ApprovalException ex)
+            {
+                return ApprovalEndpoints.ApprovalProblem(ex);
             }
             catch (BillExistsException ex)
             {

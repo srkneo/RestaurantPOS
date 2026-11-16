@@ -20,12 +20,13 @@ namespace POSSystem.Billing
         decimal ItemsTotal, decimal Discount, decimal TaxableValue, decimal Cgst, decimal Sgst, decimal RoundOff, decimal Total,
         string? VoidReason, DateTime? VoidedAt, int PrintCount, int Version, StoreOnBill Store,
         IReadOnlyList<BillLineDto> Lines, IReadOnlyList<TaxSummaryRow> TaxSummary,
-        decimal AmountPaid, decimal AmountDue, DateTime? PaidAt, IReadOnlyList<PaymentDto> Payments);
+        decimal AmountPaid, decimal AmountDue, DateTime? PaidAt, IReadOnlyList<PaymentDto> Payments,
+        DateTime? CreditedAt = null, string? VoidApprovedBy = null);
     public record BillSummaryDto(int Id, int OrderId, string InvoiceNumber, DateTime IssuedAt, string OrderLabel, int TokenNumber,
         decimal Total, string Status, int Version);
 
     public record CreateBillRequest(decimal? DiscountPercent, decimal? DiscountAmount);
-    public record VoidBillRequest(string? Reason, int Version);
+    public record VoidBillRequest(string? Reason, int Version, string? ApproverPin = null);
     public record BillingSettingsDto(string TaxMode, bool PricesIncludeTax, string BillPrefix, string? UpiId = null, string? UpiName = null,
         int PaperWidth = 80, string PrintLanguage = "en");
     public record PrintSettingsDto(int PaperWidth, string PrintLanguage, bool UpiReady);
@@ -140,17 +141,19 @@ namespace POSSystem.Billing
             return bill;
         }
 
-        public async Task<Bill> VoidBill(int id, VoidBillRequest request)
+        public async Task<Bill> VoidBill(int id, VoidBillRequest request, string? approvedBy = null)
         {
             var bill = await Load(id) ?? throw new KeyNotFoundException("Bill not found.");
             if (bill.Version != request.Version) throw new OrderConflictException("This bill was changed on another screen.");
             if (bill.Status == BillStatus.Void) throw new ArgumentException("This bill is already void.");
+            if (bill.CreditedAt != null) throw new ArgumentException("This bill has a credit note and cannot be voided.");
             var reason = request.Reason?.Trim();
             if (string.IsNullOrEmpty(reason)) throw new ArgumentException("Give a reason for voiding the bill.");
             if (reason.Length > 200) throw new ArgumentException("The reason can be at most 200 characters.");
 
             bill.Status = BillStatus.Void;
             bill.VoidReason = reason;
+            bill.VoidApprovedBy = approvedBy;
             bill.VoidedAt = DateTime.UtcNow;
             bill.Version++;
             await _db.SaveChangesAsync();
@@ -173,6 +176,7 @@ namespace POSSystem.Billing
             var bill = await Load(billId) ?? throw new KeyNotFoundException("Bill not found.");
             if (bill.Version != request.Version) throw new OrderConflictException("This bill was changed on another screen.");
             if (bill.Status == BillStatus.Void) throw new ArgumentException("This bill is void.");
+            if (bill.CreditedAt != null) throw new ArgumentException("This bill has a credit note.");
             if (bill.Status == BillStatus.Paid) throw new ArgumentException("This bill is already paid.");
             if (!Enum.TryParse<PaymentMethod>(request.Method, true, out var method) || int.TryParse(request.Method, out _))
                 throw new ArgumentException("Choose Cash, UPI or Card.");
@@ -294,7 +298,8 @@ namespace POSSystem.Billing
                 l.TaxableValue, l.Cgst, l.Sgst)).ToList(),
             b.TaxMode == TaxMode.Regular ? BillCalculator.TaxSummary(b.Lines) : Array.Empty<TaxSummaryRow>(),
             PaidOf(b), DueOf(b), b.PaidAt,
-            b.Payments.OrderBy(p => p.Id).Select(p => new PaymentDto(p.Id, p.Method.ToString(), p.Amount, p.Tendered, p.Change, p.Reference, p.ReceivedAt)).ToList());
+            b.Payments.OrderBy(p => p.Id).Select(p => new PaymentDto(p.Id, p.Method.ToString(), p.Amount, p.Tendered, p.Change, p.Reference, p.ReceivedAt)).ToList(),
+            b.CreditedAt, b.VoidApprovedBy);
 
         public static BillSummaryDto ToSummary(Bill b) =>
             new(b.Id, b.KitchenOrderId, b.InvoiceNumber, b.IssuedAt, b.OrderLabel, b.TokenNumber, b.Total, b.Status.ToString(), b.Version);
