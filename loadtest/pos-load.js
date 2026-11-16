@@ -21,6 +21,7 @@ const saleTime = new Trend('sale_duration', true);       // order + bill + payme
 const tills = RESTAURANTS * TILLS;
 export const options = {
   setupTimeout: '20m',
+  noCookiesReset: true,   // a till stays signed in between sales, like a real POS screen
   scenarios: {
     tills: {
       executor: 'ramping-vus',
