@@ -18,7 +18,7 @@
   border: 1px solid var(--pos-border-strong); background: var(--pos-surface); color: var(--pos-text); font-weight: 600;
 }
 .pos-chip[aria-pressed="true"] { background: var(--pos-text); border-color: var(--pos-text); color: #FFFFFF; }
-.pos-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+.pos-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); grid-auto-rows: minmax(132px, auto); gap: 16px; }
 .pos-item {
   min-height: 132px; padding: 16px 18px; border-radius: 14px; text-align: left;
   display: flex; flex-direction: column; justify-content: space-between; gap: 8px;
@@ -26,8 +26,11 @@
 }
 .pos-item:hover { border-color: var(--pos-accent); }
 .pos-item.in-cart { border: 2px solid var(--pos-accent); }
-.pos-item-cat { font-size: 12px; font-weight: 600; color: var(--pos-muted); text-transform: uppercase; letter-spacing: 0.06em; }
-.pos-item-name { font-family: var(--pos-font-display); font-size: 20px; font-weight: 600; line-height: 1.2; }
+.pos-item-cat { font-size: 12px; font-weight: 600; color: var(--pos-muted); text-transform: uppercase; letter-spacing: 0.06em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.pos-item-name { font-family: var(--pos-font-display); font-size: 20px; font-weight: 600; line-height: 1.2;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
+.pos-item { overflow: hidden; height: auto; }
 .pos-item-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; }
 .pos-badge { padding: 4px 10px; border-radius: 12px; background: var(--pos-accent); color: #FFFFFF; font-size: 13px; font-weight: 600; }
 .pos-order {
