@@ -1,0 +1,102 @@
+{
+  "approval.pin": [
+    "Manager PIN",
+    "મેનેજર PIN"
+  ],
+  "approval.pinReprint": [
+    "Manager PIN to print again",
+    "ફરી પ્રિન્ટ માટે મેનેજર PIN"
+  ],
+  "approval.pinRequired": [
+    "Enter the manager PIN.",
+    "મેનેજર PIN લખો."
+  ],
+  "approval.approve": [
+    "Approve and print",
+    "મંજૂર કરી પ્રિન્ટ કરો"
+  ],
+  "credit.button": [
+    "Credit note",
+    "ક્રેડિટ નોટ"
+  ],
+  "credit.title": [
+    "Credit note for this bill",
+    "આ બિલની ક્રેડિટ નોટ"
+  ],
+  "credit.reason": [
+    "Reason for credit note",
+    "ક્રેડિટ નોટનું કારણ"
+  ],
+  "credit.refundMethod": [
+    "Money given back by",
+    "પૈસા પાછા આપ્યા"
+  ],
+  "credit.create": [
+    "Make credit note",
+    "ક્રેડિટ નોટ બનાવો"
+  ],
+  "credit.reasonRequired": [
+    "Give a reason.",
+    "કારણ લખો."
+  ],
+  "credit.createdToast": [
+    "Credit note {number} made.",
+    "ક્રેડિટ નોટ {number} બની."
+  ],
+  "staff.pin": [
+    "Approval PIN",
+    "મંજૂરી PIN"
+  ],
+  "staff.pinTitle": [
+    "PIN for {name}",
+    "{name} નો PIN"
+  ],
+  "staff.pinHint": [
+    "4 to 6 digits. A manager types it on the cashier's screen to allow a void, credit note or reprint.",
+    "4 થી 6 અંક. રદ, ક્રેડિટ નોટ કે ફરી પ્રિન્ટ મંજૂર કરવા મેનેજર કેશિયરની સ્ક્રીન પર લખે છે."
+  ],
+  "staff.pinButton": [
+    "Set PIN",
+    "PIN સેટ કરો"
+  ],
+  "staff.pinClear": [
+    "Remove PIN",
+    "PIN કાઢો"
+  ],
+  "staff.pinSaved": [
+    "PIN saved.",
+    "PIN સેવ થયો."
+  ],
+  "print.creditNote": [
+    "CREDIT NOTE",
+    "ક્રેડિટ નોટ"
+  ],
+  "print.creditNoteNo": [
+    "Credit note No",
+    "ક્રેડિટ નોટ નં"
+  ],
+  "print.againstBill": [
+    "Against bill",
+    "બિલ સામે"
+  ],
+  "print.reason": [
+    "Reason",
+    "કારણ"
+  ],
+  "print.refund": [
+    "Refund",
+    "પરત"
+  ],
+  "print.approvedBy": [
+    "Approved by",
+    "મંજૂર કરનાર"
+  ],
+  "print.creditNotes": [
+    "Credit notes",
+    "ક્રેડિટ નોટ"
+  ],
+  "print.netSales": [
+    "NET SALES",
+    "ચોખ્ખું વેચાણ"
+  ]
+}
