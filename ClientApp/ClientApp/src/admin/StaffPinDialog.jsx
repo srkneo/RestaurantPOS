@@ -37,7 +37,10 @@ export default function StaffPinDialog({ staff, onClose, onSaved }) {
       <Field id="staff-pin" label={t('staff.pin')} hint={t('staff.pinHint')} error={errors.pin}>
         <input
           id="staff-pin"
-          type="password"
+          type="text"
+          style={{ WebkitTextSecurity: 'disc' }}
+          data-lpignore="true"
+          data-1p-ignore="true"
           inputMode="numeric"
           autoComplete="off"
           maxLength={6}
