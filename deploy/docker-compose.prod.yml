@@ -35,6 +35,9 @@ services:
       ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=restaurant_pos;Username=pos;Password=${POSTGRES_PASSWORD}"
       Platform__Email: ${PLATFORM_EMAIL:?Set PLATFORM_EMAIL in .env}
       Platform__Password: ${PLATFORM_PASSWORD:?Set PLATFORM_PASSWORD in .env}
+      # Empty = the safe defaults (10 sign-ins and 600 requests a minute). Raised only on the load-test server.
+      RateLimits__LoginPerMinute: ${RATE_LOGIN_PER_MINUTE:-}
+      RateLimits__RequestsPerMinute: ${RATE_REQUESTS_PER_MINUTE:-}
       Admin__Email: ${ADMIN_EMAIL:-}
       Admin__Password: ${ADMIN_PASSWORD:-}
       Alerts__TelegramToken: ${TELEGRAM_TOKEN:-}
