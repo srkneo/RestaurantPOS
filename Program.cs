@@ -56,6 +56,9 @@ try
     builder.Services.AddScoped<IOrderService, OrderService>();
     builder.Services.AddScoped<BillService>();
     builder.Services.AddScoped<DayCloseService>();
+    builder.Services.AddMemoryCache();
+    builder.Services.AddScoped<ApprovalService>();
+    builder.Services.AddScoped<CreditNoteService>();
     builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
     builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 
@@ -75,6 +78,7 @@ try
     app.MapPlatformEndpoints();
     app.MapBillEndpoints();
     app.MapDayCloseEndpoints();
+    app.MapApprovalEndpoints();
 
     app.UseExceptionHandler();
     app.UsePosAuth();

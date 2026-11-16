@@ -13,7 +13,7 @@ using POSSystem.Models;
 
 namespace POSSystem.Staff
 {
-    public record StaffDto(string Id, string Email, string DisplayName, string Role, bool IsActive, bool IsDevice);
+    public record StaffDto(string Id, string Email, string DisplayName, string Role, bool IsActive, bool IsDevice, bool HasPin = false);
     public record CreateStaffRequest(string? Email, string? DisplayName, string? Role, string? Password, bool IsDevice);
     public record UpdateStaffRequest(string? DisplayName, string? Role, bool IsActive);
     public record ResetPasswordRequest(string? Password);
@@ -126,7 +126,8 @@ namespace POSSystem.Staff
         private static async Task<StaffDto> ToDto(UserManager<AppUser> users, AppUser u)
         {
             var roles = await users.GetRolesAsync(u);
-            return new StaffDto(u.Id, u.Email ?? string.Empty, u.DisplayName ?? string.Empty, roles.FirstOrDefault() ?? string.Empty, u.IsActive, u.IsDevice);
+            return new StaffDto(u.Id, u.Email ?? string.Empty, u.DisplayName ?? string.Empty, roles.FirstOrDefault() ?? string.Empty, u.IsActive, u.IsDevice,
+                u.PinHash != null);
         }
 
         private static Dictionary<string, string[]> Validate(string? email, string? displayName, string? role, bool isDevice)

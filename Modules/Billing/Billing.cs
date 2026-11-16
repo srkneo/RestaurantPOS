@@ -54,6 +54,8 @@ namespace POSSystem.Models
         public BillStatus Status { get; set; } = BillStatus.Unpaid;
         [MaxLength(200)] public string? VoidReason { get; set; }
         public DateTime? VoidedAt { get; set; }
+        [MaxLength(256)] public string? VoidApprovedBy { get; set; }
+        public DateTime? CreditedAt { get; set; }     // set when a credit note cancels this bill
         public DateTime? PaidAt { get; set; }
 
         [MaxLength(60)] public string OrderLabel { get; set; } = string.Empty;

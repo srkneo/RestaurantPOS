@@ -140,6 +140,7 @@ namespace POSSystem.Data
 
             ConfigureBilling(modelBuilder);
             ConfigureShifts(modelBuilder);
+            ConfigureCreditNotes(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
 
