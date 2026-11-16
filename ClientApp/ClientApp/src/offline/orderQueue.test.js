@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { saveOffline, listOffline, syncOffline, retryOffline, removeOffline, resetOfflineForTests, isUnreachable } from './orderQueue';
+import { saveOffline, listOffline, syncOffline, retryOffline, removeOffline, resetOfflineForTests, isUnreachable, MAX_TRIES } from './orderQueue';
 
 const order = (id, extra = {}) => ({ clientOrderId: id, orderType: 'Takeaway', customerName: 'Asha', items: [{ menuItemId: 1, quantity: 2 }], ...extra });
 const reply = (status, body = {}) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
@@ -65,6 +65,20 @@ describe('offline order queue', () => {
     const slow = async () => { calls++; await new Promise((r) => setTimeout(r, 20)); return reply(200, { tokenNumber: 1 }); };
     await Promise.all([syncOffline(slow), syncOffline(slow), syncOffline(slow)]);
     expect(calls).toBe(1);
+  });
+
+  it('keeps an order waiting after a server error and shows it as not accepted only after 5 tries', async () => {
+    await saveOffline(order('a'));
+    for (let i = 1; i < MAX_TRIES; i++) {
+      const result = await syncOffline(async () => reply(500));
+      expect(result).toMatchObject({ refused: [], waiting: 1 });
+    }
+    const last = await syncOffline(async () => reply(500));
+    expect(last.refused).toEqual([{ clientOrderId: 'a', message: 'Error 500' }]);
+    // "Try again" starts the count again, and a good answer then sends it.
+    await retryOffline('a');
+    expect((await syncOffline(async () => reply(500))).waiting).toBe(1);
+    expect((await syncOffline(async () => reply(200, { tokenNumber: 3 }))).sent).toEqual([{ clientOrderId: 'a', tokenNumber: 3 }]);
   });
 
   it('treats gateway errors and timeouts as unreachable', () => {

@@ -5,8 +5,11 @@ const DB_NAME = 'pos-offline';
 const STORE = 'orders';
 export const CHANGED_EVENT = 'pos-offline-changed';
 
+export const MAX_TRIES = 5; // server errors (5xx) are tried this many times before the order is shown as not accepted
+
 let memory = null; // used when IndexedDB is missing (tests, very old browsers)
 let syncing = null;
+let channel = null; // tells the other tabs of this till that the waiting list changed
 
 function memoryStore() {
   if (!memory) memory = new Map();
@@ -44,8 +47,27 @@ function storage() {
   };
 }
 
+function tabs() {
+  if (channel === null) {
+    channel = false;
+    if (typeof window !== 'undefined' && typeof BroadcastChannel !== 'undefined') {
+      try {
+        channel = new BroadcastChannel('pos-offline');
+        channel.unref?.();
+        channel.onmessage = () => window.dispatchEvent(new CustomEvent(CHANGED_EVENT));
+      } catch {
+        channel = false;
+      }
+    }
+  }
+  return channel;
+}
+
 function changed() {
-  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(CHANGED_EVENT));
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(CHANGED_EVENT));
+  const other = tabs();
+  if (other) other.postMessage('changed');
 }
 
 // Only for tests: start with an empty queue.
@@ -60,6 +82,7 @@ export async function saveOffline(body) {
 }
 
 export async function listOffline() {
+  if (typeof window !== 'undefined') tabs(); // start listening to the other tabs
   const all = await storage().all();
   return all.sort((a, b) => a.savedAt.localeCompare(b.savedAt));
 }
@@ -73,7 +96,7 @@ export async function removeOffline(clientOrderId) {
 export async function retryOffline(clientOrderId) {
   const entry = (await storage().all()).find((e) => e.clientOrderId === clientOrderId);
   if (!entry) return;
-  await storage().put({ ...entry, status: 'waiting', error: null });
+  await storage().put({ ...entry, status: 'waiting', error: null, tries: 0 });
   changed();
 }
 
@@ -83,36 +106,47 @@ export function isUnreachable(status) {
 }
 
 // Sends waiting orders oldest first. Stops at the first sign the server is still unreachable or the login has expired.
+// A server error (5xx) leaves the order waiting for the next round; after MAX_TRIES it is shown as not accepted.
+async function sendWaiting(fetchImpl) {
+  const sent = [];
+  const refused = [];
+  const store = storage();
+  for (const entry of await listOffline()) {
+    if (entry.status !== 'waiting') continue;
+    let res;
+    try {
+      res = await fetchImpl('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry.body) });
+    } catch {
+      break; // still offline
+    }
+    if (isUnreachable(res.status) || res.status === 401) break;
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      await store.remove(entry.clientOrderId);
+      sent.push({ clientOrderId: entry.clientOrderId, tokenNumber: data.tokenNumber });
+    } else if (res.status >= 500 && (entry.tries ?? 0) + 1 < MAX_TRIES) {
+      await store.put({ ...entry, tries: (entry.tries ?? 0) + 1 });
+    } else {
+      const message = data.message || `Error ${res.status}`;
+      await store.put({ ...entry, status: 'refused', error: message });
+      refused.push({ clientOrderId: entry.clientOrderId, message });
+    }
+  }
+  const waiting = (await listOffline()).filter((e) => e.status === 'waiting').length;
+  if (sent.length || refused.length) changed();
+  return { sent, refused, waiting };
+}
+
 // Returns { sent: [{ clientOrderId, tokenNumber }], refused: [{ clientOrderId, message }], waiting }.
+// Only one tab of this till sends at a time (browser lock), so two open tabs never send the same order together.
 export function syncOffline(fetchImpl = (...args) => fetch(...args)) {
   if (!syncing) {
-    syncing = (async () => {
-      const sent = [];
-      const refused = [];
-      const store = storage();
-      for (const entry of await listOffline()) {
-        if (entry.status !== 'waiting') continue;
-        let res;
-        try {
-          res = await fetchImpl('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry.body) });
-        } catch {
-          break; // still offline
-        }
-        if (isUnreachable(res.status) || res.status === 401) break;
-        const data = await res.json().catch(() => ({}));
-        if (res.ok) {
-          await store.remove(entry.clientOrderId);
-          sent.push({ clientOrderId: entry.clientOrderId, tokenNumber: data.tokenNumber });
-        } else {
-          const message = data.message || `Error ${res.status}`;
-          await store.put({ ...entry, status: 'refused', error: message });
-          refused.push({ clientOrderId: entry.clientOrderId, message });
-        }
-      }
-      const waiting = (await listOffline()).filter((e) => e.status === 'waiting').length;
-      if (sent.length || refused.length) changed();
-      return { sent, refused, waiting };
-    })().finally(() => { syncing = null; });
+    const locks = typeof navigator !== 'undefined' ? navigator.locks : null;
+    const busyElsewhere = async () => ({ sent: [], refused: [], waiting: (await listOffline()).filter((e) => e.status === 'waiting').length });
+    const work = locks
+      ? locks.request('pos-offline-sync', { ifAvailable: true }, (lock) => (lock ? sendWaiting(fetchImpl) : busyElsewhere()))
+      : sendWaiting(fetchImpl);
+    syncing = Promise.resolve(work).finally(() => { syncing = null; });
   }
   return syncing;
 }
