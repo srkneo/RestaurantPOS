@@ -5,6 +5,7 @@ import StateMessage from '../ui/StateMessage';
 import BillReceipt from './BillReceipt';
 import KotTicket from './KotTicket';
 import DayReport from './DayReport';
+import CreditNoteReceipt from './CreditNoteReceipt';
 
 // Time for the logo and the UPI QR image to load before the print dialog opens.
 export const PRINT_DELAY_MS = 400;
@@ -127,6 +128,24 @@ export function PrintDayPage() {
     <>
       <Toolbar onPrint={doPrint} />
       <DayReport report={state.report} lang={state.settings.printLanguage} width={state.settings.paperWidth} />
+    </>
+  );
+}
+
+export function PrintCreditNotePage() {
+  const { id } = useParams();
+  const load = useCallback(async () => {
+    const [note, settings] = await Promise.all([loadJson(`/api/credit-notes/${id}`), loadJson('/api/print-settings')]);
+    return { note, settings };
+  }, [id]);
+
+  const { state, reload, doPrint } = usePrintPage(load, null);
+  if (state.status === 'loading') return <StateMessage kind="loading" />;
+  if (state.status === 'error') return <StateMessage kind="error" onRetry={reload} />;
+  return (
+    <>
+      <Toolbar onPrint={doPrint} />
+      <CreditNoteReceipt note={state.note} lang={state.settings.printLanguage} width={state.settings.paperWidth} />
     </>
   );
 }

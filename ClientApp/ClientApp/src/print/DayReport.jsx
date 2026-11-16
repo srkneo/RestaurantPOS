@@ -68,6 +68,15 @@ export default function DayReport({ report, lang = 'en', width = 80 }) {
         </>
       )}
 
+      {(r.creditNotes ?? []).length > 0 && (
+        <>
+          <div className="receipt-line" />
+          <Row label={`${t('print.creditNotes')} (${r.creditNotes.length})`} value={`-${money(r.creditTotal)}`} />
+          {r.creditNotes.map((c) => <div key={c.id} className="receipt-note">{c.number} ({c.billNumber}) – {c.reason}</div>)}
+          <Row label={t('print.netSales')} value={money(r.netSales)} strong />
+        </>
+      )}
+
       {r.items.length > 0 && (
         <>
           <div className="receipt-line" />
