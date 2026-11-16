@@ -133,7 +133,8 @@ describe('Bill dialog', () => {
     mockApi({ 'GET /api/orders/3/bill': { status: 200, body: BILL } }, ['cashier']);
     renderDialog();
     expect(await screen.findByRole('button', { name: 'Print bill' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Void bill' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Void bill' }));
+    expect(screen.getByLabelText('Manager PIN')).toBeInTheDocument();  // cashiers void with a manager PIN
     cleanup();
     vi.unstubAllGlobals();
 

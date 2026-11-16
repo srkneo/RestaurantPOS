@@ -17,7 +17,7 @@ import SettingsPage from './admin/SettingsPage';
 import BillingSettingsPage from './admin/BillingSettingsPage';
 import PlatformPage from './admin/PlatformPage';
 import StoreBrand from './ui/StoreBrand';
-import { PrintBillPage, PrintKotPage, PrintDayPage } from './print/PrintPages';
+import { PrintBillPage, PrintKotPage, PrintDayPage, PrintCreditNotePage } from './print/PrintPages';
 import DayClosePage from './components/DayClosePage';
 import DayReportPage from './admin/DayReportPage';
 
@@ -93,6 +93,7 @@ function Layout() {
         <Route path="/print/bill/:id" element={<RequireRole roles={POS_ROLES}><PrintBillPage /></RequireRole>} />
         <Route path="/print/kot/:id" element={<RequireRole roles={[...POS_ROLES, 'kitchen']}><PrintKotPage /></RequireRole>} />
         <Route path="/print/day" element={<RequireRole roles={MENU_ROLES}><PrintDayPage /></RequireRole>} />
+        <Route path="/print/credit-note/:id" element={<RequireRole roles={POS_ROLES}><PrintCreditNotePage /></RequireRole>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

@@ -5,6 +5,7 @@ import FormDialog from '../ui/FormDialog';
 import StateMessage from '../ui/StateMessage';
 import '../components/OrderHistory.css';
 import './StaffPage.css';
+import StaffPinDialog from './StaffPinDialog';
 
 const ROLES = ['admin', 'manager', 'cashier', 'kitchen'];
 const NEW_STAFF = { displayName: '', email: '', role: 'cashier', password: '', isDevice: false };
@@ -43,6 +44,7 @@ export default function StaffPage() {
   const [staff, setStaff] = useState([]);
   const [loadState, setLoadState] = useState('loading');
   const [mode, setMode] = useState(null); // 'add' | 'edit' | 'password'
+  const [pinFor, setPinFor] = useState(null);
   const [current, setCurrent] = useState(null);
   const [form, setForm] = useState(NEW_STAFF);
   const [errors, setErrors] = useState({});
@@ -175,6 +177,9 @@ export default function StaffPage() {
                       <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => open('password', s, { password: '' })}>
                         {t('staff.resetPassword')}
                       </button>
+                      {(s.role === 'manager' || s.role === 'admin') && !s.isDevice && (
+                        <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => setPinFor(s)}>{t('staff.pinButton')}</button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -216,6 +221,8 @@ export default function StaffPage() {
         busy={busy} error={generalError} onCancel={close} onSubmit={submit}>
         {passwordField(t('staff.newPassword'))}
       </FormDialog>
+
+      {pinFor && <StaffPinDialog staff={pinFor} onClose={() => setPinFor(null)} onSaved={load} />}
     </main>
   );
 }

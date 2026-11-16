@@ -5,6 +5,7 @@ import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
 import { formatMoney } from '../ui/format';
 import './BillDialog.css';
+import CreditNoteForm from './CreditNoteForm';
 
 export const METHODS = ['Cash', 'Upi', 'Card'];
 const VOID_ROLES = ['manager', 'admin'];
@@ -29,6 +30,7 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
   const auth = useAuth();
   const { showToast } = useToast();
   const roles = auth?.user?.roles ?? [];
+  const isApprover = roles.some((r) => VOID_ROLES.includes(r));  // managers and the owner need no PIN
 
   const [stage, setStage] = useState('loading'); // loading | create | pay | error
   const [bill, setBill] = useState(null);
@@ -41,6 +43,9 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
   const [reference, setReference] = useState('');
   const [voiding, setVoiding] = useState(false);
   const [voidReason, setVoidReason] = useState('');
+  const [pin, setPin] = useState('');
+  const [askReprint, setAskReprint] = useState(false);
+  const [crediting, setCrediting] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -157,13 +162,16 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
 
   const confirmVoid = () => {
     if (!voidReason.trim()) { setError(t('bill.voidReasonRequired')); return; }
+    if (!isApprover && !pin.trim()) { setError(t('approval.pinRequired')); return; }
     run(async () => {
-      const { res, data } = await postJson(`/api/bills/${bill.id}/void`, { reason: voidReason.trim(), version: bill.version });
+      const { res, data } = await postJson(`/api/bills/${bill.id}/void`,
+        { reason: voidReason.trim(), version: bill.version, ...(isApprover ? {} : { approverPin: pin.trim() }) });
       if (res.ok) {
         showToast(t('bill.voidedToast', { number: bill.invoiceNumber }));
         setBill(null);
         setVoiding(false);
         setVoidReason('');
+        setPin('');
         setStage('create');
         onChanged?.();
       } else if (res.status === 409) {
@@ -175,7 +183,35 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
     });
   };
 
-  const printBill = () => window.open(`/print/bill/${bill.id}?auto=1`, '_blank', 'noopener');
+  const openPrint = () => window.open(`/print/bill/${bill.id}?auto=1`, '_blank', 'noopener');
+
+  // Printing a bill again needs a manager PIN when a cashier does it.
+  const printBill = () => {
+    if (Number(bill.printCount ?? 0) > 0 && !isApprover) { setAskReprint(true); setError(''); return; }
+    openPrint();
+  };
+
+  const approveReprint = () => {
+    if (!pin.trim()) { setError(t('approval.pinRequired')); return; }
+    run(async () => {
+      const { res, data } = await postJson('/api/approvals', { pin: pin.trim(), action: 'reprint', billId: bill.id });
+      if (res.ok) {
+        setAskReprint(false);
+        setPin('');
+        openPrint();
+      } else {
+        setError(data.message || t('common.error'));
+      }
+    });
+  };
+
+  const creditDone = (note) => {
+    setCrediting(false);
+    showToast(t('credit.createdToast', { number: note.number }));
+    window.open(`/print/credit-note/${note.id}?auto=1`, '_blank', 'noopener');
+    onChanged?.();
+    load();
+  };
 
   return (
     <div className="pos-overlay">
@@ -262,19 +298,39 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
               <div>
                 <label htmlFor="bill-void-reason" className="form-label">{t('bill.voidReason')}</label>
                 <input id="bill-void-reason" className="form-control" maxLength={200} value={voidReason} onChange={(e) => setVoidReason(e.target.value)} />
+                {!isApprover && (
+                  <>
+                    <label htmlFor="bill-void-pin" className="form-label mt-2">{t('approval.pin')}</label>
+                    <input id="bill-void-pin" type="password" inputMode="numeric" autoComplete="off" maxLength={6} className="form-control"
+                      value={pin} onChange={(e) => setPin(e.target.value)} />
+                  </>
+                )}
                 <button type="button" className="btn btn-danger mt-2" disabled={busy} onClick={confirmVoid}>{t('bill.voidConfirm')}</button>
               </div>
             )}
           </>
         )}
 
+        {askReprint && bill && (
+          <div>
+            <label htmlFor="bill-reprint-pin" className="form-label">{t('approval.pinReprint')}</label>
+            <input id="bill-reprint-pin" type="password" inputMode="numeric" autoComplete="off" maxLength={6} className="form-control"
+              value={pin} onChange={(e) => setPin(e.target.value)} />
+            <button type="button" className="btn btn-primary mt-2" disabled={busy} onClick={approveReprint}>{t('approval.approve')}</button>
+          </div>
+        )}
+        {crediting && bill && <CreditNoteForm bill={bill} needPin={!isApprover} onDone={creditDone} onCancel={() => setCrediting(false)} />}
+
         {error && <p className="text-danger mb-0" role="alert">{error}</p>}
 
         <div className="pos-dialog-actions mt-0">
-          {stage === 'pay' && bill && roles.some((r) => VOID_ROLES.includes(r)) && !voiding && (
+          {stage === 'pay' && bill && !bill.creditedAt && !voiding && (
             <button type="button" className="btn btn-outline-danger" onClick={() => { setVoiding(true); setError(''); }}>{t('bill.void')}</button>
           )}
           {stage === 'pay' && bill && <button type="button" className="btn btn-outline-primary" onClick={printBill}>{t('bill.print')}</button>}
+          {stage === 'pay' && bill && !bill.creditedAt && !crediting && (
+            <button type="button" className="btn btn-outline-secondary" onClick={() => { setCrediting(true); setError(''); }}>{t('credit.button')}</button>
+          )}
           <button type="button" className="btn btn-outline-secondary" onClick={onClose}>{t('common.close')}</button>
         </div>
       </div>
