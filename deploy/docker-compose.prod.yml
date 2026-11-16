@@ -32,7 +32,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       # Caddy is the only way in, so its X-Forwarded-For and X-Forwarded-Proto headers are trusted.
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
-      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=restaurant_pos;Username=pos;Password=${POSTGRES_PASSWORD}"
+      # At most 40 of the database's 100 connections, so backups and admin can always connect.
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=restaurant_pos;Username=pos;Password=${POSTGRES_PASSWORD};Maximum Pool Size=40"
       Platform__Email: ${PLATFORM_EMAIL:?Set PLATFORM_EMAIL in .env}
       Platform__Password: ${PLATFORM_PASSWORD:?Set PLATFORM_PASSWORD in .env}
       # Empty = the safe defaults (10 sign-ins and 600 requests a minute). Raised only on the load-test server.
