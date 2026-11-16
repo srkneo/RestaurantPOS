@@ -35,6 +35,7 @@ jobs:
         run: |
           bash -n deploy/backup.sh
           bash -n deploy/restore-test.sh
+          bash -n deploy/bill-check.sh
           docker run -d --name pos-db-1 -e POSTGRES_USER=pos -e POSTGRES_PASSWORD=x -e POSTGRES_DB=restaurant_pos postgres:17
           for i in $(seq 1 60); do docker exec pos-db-1 pg_isready -h 127.0.0.1 -U pos -d restaurant_pos && break; sleep 2; done
           docker exec pos-db-1 psql -U pos -d restaurant_pos -c '
