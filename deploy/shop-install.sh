@@ -15,6 +15,8 @@
 set -euo pipefail
 
 REPO="srkneo/RestaurantPOS"
+# Downloads give up on a dead connection instead of hanging, and try again a few times.
+fetch() { curl -fsSL --connect-timeout 30 --max-time 600 --retry 3 --retry-delay 3 "$@"; }
 FILES="docker-compose.prod.yml Caddyfile deploy.sh backup.sh restore-test.sh bill-check.sh"
 LICENCE_KEY_FILE="licence-public.key"
 DEFAULT_LICENCE_URL="https://13-236-102-22.sslip.io"
@@ -51,7 +53,7 @@ VERSION="${POS_VERSION:-${1:-}}"
 VERSION="${VERSION#v}"
 if [ -z "$VERSION" ]; then
   say "Looking up the newest version"
-  VERSION="$(curl -fsSL "https://api.github.com/repos/$REPO/tags?per_page=100" \
+  VERSION="$(fetch "https://api.github.com/repos/$REPO/tags?per_page=100" \
     | grep -o '"name": *"v[0-9]*\.[0-9]*\.[0-9]*"' | grep -o '[0-9]*\.[0-9]*\.[0-9]*' | sort -V | tail -n 1 || true)"
   if [ -z "$VERSION" ]; then echo "Could not find the newest version. Give it yourself:  sudo bash shop-install.sh 1.7.0"; exit 1; fi
 fi
@@ -60,7 +62,7 @@ echo "Version: $VERSION"
 if ! command -v docker > /dev/null 2>&1; then
   say "Installing Docker (needs internet, takes a few minutes)"
   for try in 1 2 3; do
-    if curl -fsSL https://get.docker.com | sh; then break; fi
+    if fetch https://get.docker.com | sh; then break; fi
     if [ "$try" -eq 3 ]; then echo "Docker could not be installed. Check the internet connection and run this script again."; exit 1; fi
     sleep 10
   done
@@ -71,7 +73,10 @@ mkdir -p "$DIR/backups"
 cd "$DIR"
 for f in $FILES; do
   if [ -n "${POS_FILES_DIR:-}" ]; then cp "$POS_FILES_DIR/$f" "$f"
-  else curl -fsSL "https://raw.githubusercontent.com/$REPO/v$VERSION/deploy/$f" -o "$f"; fi
+  else
+    fetch "https://raw.githubusercontent.com/$REPO/v$VERSION/deploy/$f" -o "$f" \
+      || { echo "Could not download $f. Check the internet connection and run this script again."; exit 1; }
+  fi
 done
 
 # The public key that checks licences (it is not secret). It is committed in the repo as deploy/licence-public.key.
@@ -80,7 +85,7 @@ if [ -z "${POS_NO_LICENCE:-}" ]; then
   if [ -n "${POS_FILES_DIR:-}" ]; then
     if [ -f "$POS_FILES_DIR/$LICENCE_KEY_FILE" ]; then cp "$POS_FILES_DIR/$LICENCE_KEY_FILE" "$LICENCE_KEY_FILE"; fi
   else
-    curl -fsSL "https://raw.githubusercontent.com/$REPO/v$VERSION/deploy/$LICENCE_KEY_FILE" -o "$LICENCE_KEY_FILE" 2> /dev/null || rm -f "$LICENCE_KEY_FILE"
+    fetch "https://raw.githubusercontent.com/$REPO/v$VERSION/deploy/$LICENCE_KEY_FILE" -o "$LICENCE_KEY_FILE" 2> /dev/null || rm -f "$LICENCE_KEY_FILE"
   fi
   if [ ! -s "$LICENCE_KEY_FILE" ]; then
     echo "The licence key file ($LICENCE_KEY_FILE) is missing for version $VERSION, so no licence can be checked."
@@ -139,7 +144,8 @@ bash deploy.sh "$VERSION"
 say "Waiting for the POS to answer"
 ok=0
 for i in $(seq 1 90); do
-  if curl -fsS -o /dev/null http://localhost/health; then ok=1; break; fi
+  # Quiet while the POS is still starting; only the final result is shown.
+  if curl -fs --max-time 5 -o /dev/null http://localhost/health; then ok=1; break; fi
   sleep 2
 done
 if [ "$ok" -ne 1 ]; then
