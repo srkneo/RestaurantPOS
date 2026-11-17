@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   check:
@@ -49,3 +50,17 @@ jobs:
           bash /tmp/pos/restore-test.sh | tee /tmp/restore.txt
           grep -q "restore test passed" /tmp/restore.txt
           docker rm -f pos-db-1
+      - name: Caddyfile also works for a shop PC (plain HTTP on the local network)
+        run: docker run --rm -e SITE_ADDRESS=:80 -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+      - name: Shop PC installer works end to end (newest released version)
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+        run: |
+          bash -n deploy/shop-install.sh
+          sudo -E POS_FILES_DIR="$PWD/deploy" POS_OWNER_EMAIL=owner@test.local POS_OWNER_PASSWORD='Owner#2026x' bash deploy/shop-install.sh
+          sudo grep -q '^ADMIN_PASSWORD=$' /root/pos/.env
+          sudo crontab -l | grep -q '^0 3 \* \* \* /root/pos/backup.sh'
+          # Running it again is an update: settings are kept and the POS still answers.
+          sudo -E POS_FILES_DIR="$PWD/deploy" bash deploy/shop-install.sh
+          curl -fsS -o /dev/null http://localhost/health
