@@ -48,6 +48,7 @@ try
     builder.Services.AddPosKeyStorage();
     builder.Services.AddMenuScan();
     builder.Services.AddPosRateLimits(builder.Configuration);
+    builder.Services.AddPosLicence(builder.Configuration);
     builder.Services.AddTelegramErrorAlerts(builder.Configuration);
     builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database", tags: new[] { "ready" });
     builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -79,6 +80,7 @@ try
     app.MapBillEndpoints();
     app.MapDayCloseEndpoints();
     app.MapApprovalEndpoints();
+    app.MapLicenceEndpoints();
 
     // Requests slower than 1 second go to the log with their path, so load tests show where time is spent.
     app.Use(async (context, next) =>
@@ -93,6 +95,7 @@ try
     app.UseExceptionHandler();
     app.UsePosAuth();
     app.UseRateLimiter();
+    app.UseMiddleware<LicenceGate>();
 
     var logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "logs");
     if (!Directory.Exists(logDirectory))
