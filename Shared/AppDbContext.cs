@@ -142,6 +142,7 @@ namespace POSSystem.Data
             ConfigureShifts(modelBuilder);
             ConfigureCreditNotes(modelBuilder);
             ConfigureLicence(modelBuilder);
+            ConfigureShopLicences(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
 

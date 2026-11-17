@@ -52,6 +52,8 @@ services:
       Licence__Required: ${LICENCE_REQUIRED:-}
       Licence__PublicKey: ${LICENCE_PUBLIC_KEY:-}
       Licence__ServerUrl: ${LICENCE_SERVER_URL:-}
+      # Only on the cloud server: signs shop licences. Never on a shop PC.
+      Licence__PrivateKey: ${LICENCE_PRIVATE_KEY:-}
     volumes:
       - keys:/app/keys
       - applogs:/app/logs
