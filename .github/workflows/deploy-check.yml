@@ -63,8 +63,9 @@ jobs:
           test -s "$RUNNER_TEMP/licence-keys/licence-private.b64"
           test -s "$RUNNER_TEMP/licence-keys/licence-public.b64"
           # Until the real public key is committed as deploy/licence-public.key, the installer test runs without a licence.
-          if [ ! -f deploy/licence-public.key ]; then export POS_NO_LICENCE=1; fi
-          sudo -E POS_FILES_DIR="$PWD/deploy" POS_OWNER_EMAIL=owner@test.local POS_OWNER_PASSWORD='Owner#2026x' bash deploy/shop-install.sh
+          NO_LIC=""; if [ ! -f deploy/licence-public.key ]; then NO_LIC=1; fi
+          # Newer sudo ignores -E, so every setting is passed by name.
+          sudo POS_NO_LICENCE="$NO_LIC" GHCR_TOKEN="$GHCR_TOKEN" GHCR_USER="$GHCR_USER" POS_FILES_DIR="$PWD/deploy" POS_OWNER_EMAIL=owner@test.local POS_OWNER_PASSWORD='Owner#2026x' bash deploy/shop-install.sh
           sudo grep -q '^ADMIN_PASSWORD=$' /root/pos/.env
           if [ -f deploy/licence-public.key ]; then
             sudo grep -q '^LICENCE_REQUIRED=true$' /root/pos/.env
@@ -73,7 +74,7 @@ jobs:
           fi
           sudo crontab -l | grep -q '^0 3 \* \* \* /root/pos/backup.sh'
           # Running it again is an update: settings are kept and the POS still answers.
-          sudo -E POS_FILES_DIR="$PWD/deploy" bash deploy/shop-install.sh
+          sudo POS_NO_LICENCE="$NO_LIC" GHCR_TOKEN="$GHCR_TOKEN" GHCR_USER="$GHCR_USER" POS_FILES_DIR="$PWD/deploy" bash deploy/shop-install.sh
           curl -fsS -o /dev/null http://localhost/health
           # The licence settings are replaced, not added twice, when the installer runs again.
           if [ -f deploy/licence-public.key ]; then test "$(sudo grep -c '^LICENCE_REQUIRED=' /root/pos/.env)" = 1; fi
