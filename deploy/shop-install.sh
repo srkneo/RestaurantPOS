@@ -10,10 +10,14 @@
 # Run it again later with a newer version to update: the database is backed up first and all settings are kept.
 # Without questions (for tests): POS_OWNER_EMAIL, POS_OWNER_PASSWORD, POS_VERSION, POS_FILES_DIR (use local files),
 # GHCR_TOKEN and GHCR_USER (only while the images are private).
+# Licence: POS_LICENCE_KEY (the key from support), POS_LICENCE_SERVER (another licence server address),
+# POS_NO_LICENCE=1 (install without a licence, for tests only).
 set -euo pipefail
 
 REPO="srkneo/RestaurantPOS"
 FILES="docker-compose.prod.yml Caddyfile deploy.sh backup.sh restore-test.sh bill-check.sh"
+LICENCE_KEY_FILE="licence-public.key"
+DEFAULT_LICENCE_URL="https://13-236-102-22.sslip.io"
 
 if [ "$(id -u)" -ne 0 ]; then echo "Run it with sudo:  sudo bash shop-install.sh"; exit 1; fi
 export HOME=/root
@@ -70,6 +74,22 @@ for f in $FILES; do
   else curl -fsSL "https://raw.githubusercontent.com/$REPO/v$VERSION/deploy/$f" -o "$f"; fi
 done
 
+# The public key that checks licences (it is not secret). It is committed in the repo as deploy/licence-public.key.
+LICENCE_ON=0
+if [ -z "${POS_NO_LICENCE:-}" ]; then
+  if [ -n "${POS_FILES_DIR:-}" ]; then
+    if [ -f "$POS_FILES_DIR/$LICENCE_KEY_FILE" ]; then cp "$POS_FILES_DIR/$LICENCE_KEY_FILE" "$LICENCE_KEY_FILE"; fi
+  else
+    curl -fsSL "https://raw.githubusercontent.com/$REPO/v$VERSION/deploy/$LICENCE_KEY_FILE" -o "$LICENCE_KEY_FILE" 2> /dev/null || rm -f "$LICENCE_KEY_FILE"
+  fi
+  if [ ! -s "$LICENCE_KEY_FILE" ]; then
+    echo "The licence key file ($LICENCE_KEY_FILE) is missing for version $VERSION, so no licence can be checked."
+    echo "Use a newer version, or set POS_NO_LICENCE=1 to install without a licence (tests only)."
+    exit 1
+  fi
+  LICENCE_ON=1
+fi
+
 FIRST_TIME=0
 if [ ! -f .env ]; then
   FIRST_TIME=1
@@ -80,6 +100,9 @@ if [ ! -f .env ]; then
     POS_OWNER_PASSWORD=""
     ask POS_OWNER_PASSWORD "Owner's password: " hidden
   done
+  if [ "$LICENCE_ON" -eq 1 ] && [ -z "${POS_LICENCE_KEY:-}" ] && { : < /dev/tty; } 2> /dev/null; then
+    read -r -p "Licence key (from support; press Enter to add it later in the app): " POS_LICENCE_KEY < /dev/tty
+  fi
   umask 077
   cat > .env <<ENV
 # Settings of this shop PC. Keep this file private.
@@ -94,6 +117,17 @@ ADMIN_PASSWORD='$POS_OWNER_PASSWORD'
 ENV
 fi
 chmod 600 .env
+
+# Licence settings are refreshed on every run, so a new public key arrives with an update. The server address is kept.
+if [ "$LICENCE_ON" -eq 1 ]; then
+  current_url="$(sed -n 's/^LICENCE_SERVER_URL=//p' .env | head -n 1)"
+  sed -i '/^LICENCE_REQUIRED=/d;/^LICENCE_PUBLIC_KEY=/d;/^LICENCE_SERVER_URL=/d' .env
+  {
+    echo "LICENCE_REQUIRED=true"
+    echo "LICENCE_PUBLIC_KEY=$(tr -d ' \r\n' < "$LICENCE_KEY_FILE")"
+    echo "LICENCE_SERVER_URL=${POS_LICENCE_SERVER:-${current_url:-$DEFAULT_LICENCE_URL}}"
+  } >> .env
+fi
 
 if [ -n "${GHCR_TOKEN:-}" ]; then
   printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "${GHCR_USER:-srkneo}" --password-stdin > /dev/null
@@ -129,6 +163,18 @@ if [ "$FIRST_TIME" -eq 1 ]; then
     exit 1
   fi
   sed -i "s/^ADMIN_PASSWORD=.*/ADMIN_PASSWORD=/" .env
+
+  if [ "$LICENCE_ON" -eq 1 ] && [ -n "${POS_LICENCE_KEY:-}" ]; then
+    say "Activating the licence"
+    jar="$(mktemp)"
+    curl -s -o /dev/null -c "$jar" -X POST http://localhost/api/auth/login -H 'Content-Type: application/json' -d "$body" || true
+    answer="$(curl -s -b "$jar" -w ' [%{http_code}]' -X POST http://localhost/api/licence/activate -H 'Content-Type: application/json' -d "{\"key\":\"$(json_text "$POS_LICENCE_KEY")\"}" || true)"
+    rm -f "$jar"
+    case "$answer" in
+      *'[200]') echo "Licence activated." ;;
+      *) echo "The licence could not be activated now: $answer"; echo "Sign in as the owner and enter the key on the Licence page." ;;
+    esac
+  fi
 fi
 
 ip="$(hostname -I 2> /dev/null | awk '{print $1}' || true)"
@@ -137,6 +183,10 @@ echo "On this PC:             http://localhost"
 if [ -z "$ip" ]; then ip="<address of this PC>"; fi
 echo "On tills and tablets:   http://$ip   (same network or Wi-Fi as this PC)"
 if [ "$FIRST_TIME" -eq 1 ]; then echo "Sign in as the owner:   $POS_OWNER_EMAIL"; fi
+if [ "$LICENCE_ON" -eq 1 ]; then
+  licence_text="$(curl -fsS http://localhost/api/licence/status 2> /dev/null | grep -o '"message":"[^"]*"' | head -n 1 | cut -d'"' -f4 || true)"
+  echo "Licence:                ${licence_text:-not known yet (sign in as the owner and open Licence)}"
+fi
 echo
 echo "Tips: give this PC a fixed address in the router, so the link above never changes."
 echo "      A backup is made every night at 03:00 in $DIR/backups. Copy that folder to a USB disk regularly."
