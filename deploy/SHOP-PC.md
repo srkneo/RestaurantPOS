@@ -19,6 +19,13 @@ for example `http://192.168.1.20`. Sign in there as the owner and set up Store, 
 
 In the router, give the mini PC a fixed address (DHCP reservation), so the link never changes.
 
+## Licence
+- Each shop PC needs a licence key from support, like `POS-7KQ2M-X4TNB-C9WRD-3HFZ6`. The installer asks for it. You can also enter it later: sign in as the owner and open **Licence**.
+- The first 30 days are a free trial. After that the licence is yearly.
+- The PC renews its licence by itself whenever it is online. Without internet it keeps working for 7 days.
+- When the licence ends, the PC has been offline for more than 7 days, or its clock is set wrong, new orders and bills stop. Signing in and viewing or printing old bills stay open. Connect the PC to the internet, or contact support.
+- A key works on one PC. For a new PC, ask support to reset the key.
+
 ## Update
 ```
 sudo bash shop-install.sh 1.7.1
