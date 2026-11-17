@@ -48,6 +48,10 @@ services:
       Gemini__ApiKey: ${GEMINI_API_KEY:-}
       Gemini__Model: ${GEMINI_MODEL:-}
       Gemini__FallbackModel: ${GEMINI_FALLBACK_MODEL:-}
+      # Shop PC licence. Empty = no licence needed (the cloud version). The installer sets these on a shop PC.
+      Licence__Required: ${LICENCE_REQUIRED:-}
+      Licence__PublicKey: ${LICENCE_PUBLIC_KEY:-}
+      Licence__ServerUrl: ${LICENCE_SERVER_URL:-}
     volumes:
       - keys:/app/keys
       - applogs:/app/logs
