@@ -26,12 +26,15 @@ echo "POS_VERSION=$VERSION" > version.env
 "${COMPOSE[@]}" up -d --remove-orphans
 docker image prune -f > /dev/null
 
-# Nightly backup at 03:00 India time (21:30 UTC); restore test on Sunday 03:30; bill check every night at 04:00.
+# Nightly backup at 03:00 India time; restore test on Sunday 03:30; bill check every night at 04:00.
+# Cloud servers run on UTC (03:00 in India is 21:30 UTC). A shop PC (SHOP_PC=1 in .env) keeps its own local time.
+backup_at="30 21 * * *"; restore_at="0 22 * * 6"; check_at="30 22 * * *"
+if grep -q '^SHOP_PC=1' .env; then backup_at="0 3 * * *"; restore_at="30 3 * * 0"; check_at="0 4 * * *"; fi
 chmod +x backup.sh restore-test.sh bill-check.sh
 {
   crontab -l 2>/dev/null | grep -v -e 'pos/backup.sh' -e 'pos/restore-test.sh' -e 'pos/bill-check.sh' || true
-  echo "30 21 * * * $HOME/pos/backup.sh >> $HOME/pos/backups/backup.log 2>&1"
-  echo "0 22 * * 6 $HOME/pos/restore-test.sh >> $HOME/pos/backups/restore-test.log 2>&1"
-  echo "30 22 * * * $HOME/pos/bill-check.sh >> $HOME/pos/backups/bill-check.log 2>&1"
+  echo "$backup_at $HOME/pos/backup.sh >> $HOME/pos/backups/backup.log 2>&1"
+  echo "$restore_at $HOME/pos/restore-test.sh >> $HOME/pos/backups/restore-test.log 2>&1"
+  echo "$check_at $HOME/pos/bill-check.sh >> $HOME/pos/backups/bill-check.log 2>&1"
 } | crontab -
 echo "Version $VERSION started."
