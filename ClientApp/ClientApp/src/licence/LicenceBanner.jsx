@@ -22,9 +22,11 @@ export default function LicenceBanner() {
     load();
     const timer = setInterval(load, 300000);
     window.addEventListener('online', load);
+    window.addEventListener('licence-changed', load);
     return () => {
       clearInterval(timer);
       window.removeEventListener('online', load);
+      window.removeEventListener('licence-changed', load);
     };
   }, [load]);
 

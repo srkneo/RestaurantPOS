@@ -43,7 +43,14 @@ namespace RestaurantPOS.Tests
             }
         }
 
-        private WebApplicationFactory<Program> Build(FakeCloud cloud, bool required = true)
+        // A clock the test can move, like someone changing the PC's date.
+        private sealed class MovableClock : TimeProvider
+        {
+            public DateTimeOffset Now { get; set; } = DateTimeOffset.UtcNow;
+            public override DateTimeOffset GetUtcNow() => Now;
+        }
+
+        private WebApplicationFactory<Program> Build(FakeCloud cloud, bool required = true, TimeProvider? clock = null)
         {
             var dbName = Guid.NewGuid().ToString();
             var publicKey = Convert.ToBase64String(_key.ExportSubjectPublicKeyInfo());
@@ -61,6 +68,11 @@ namespace RestaurantPOS.Tests
                     services.AddDbContext<AppDbContext>(o => o.UseInMemoryDatabase(dbName));
                     services.RemoveAll(typeof(ILicenceCloud));
                     services.AddSingleton<ILicenceCloud>(cloud);
+                    if (clock is not null)
+                    {
+                        services.RemoveAll(typeof(TimeProvider));
+                        services.AddSingleton<TimeProvider>(clock);
+                    }
                     services.AddAuthentication("Test").AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
                     services.PostConfigure<AuthenticationOptions>(o => { o.DefaultScheme = "Test"; o.DefaultAuthenticateScheme = "Test"; o.DefaultChallengeScheme = "Test"; });
                 });
@@ -221,6 +233,22 @@ namespace RestaurantPOS.Tests
             var refreshed = await As(f, "admin").PostAsync("/api/licence/refresh", null);
             Assert.Equal(HttpStatusCode.OK, refreshed.StatusCode);
             Assert.Equal("Active", (await Read(refreshed)).GetProperty("state").GetString());
+        }
+
+        [Fact]
+        public async Task ClockSetBack_LocksAtOnce_EvenRightAfterACheck()
+        {
+            var clock = new MovableClock();
+            var f = Build(new FakeCloud { Handler = _ => Signed() }, clock: clock);
+            Assert.Equal(HttpStatusCode.OK, (await As(f, "admin").PostAsync("/api/licence/activate", Json(new { key = "KEY-1" }))).StatusCode);
+            Assert.False((await Read(await As(f, "admin").GetAsync("/api/licence/status"))).GetProperty("locked").GetBoolean());
+
+            clock.Now = clock.Now.AddDays(-1); // someone sets the PC clock back a day, seconds after the last check
+
+            var status = await Read(await As(f, "admin").GetAsync("/api/licence/status"));
+            Assert.Equal("ClockBack", status.GetProperty("state").GetString());
+            Assert.True(status.GetProperty("locked").GetBoolean());
+            Assert.Equal(HttpStatusCode.PaymentRequired, (await As(f, "cashier").PostAsync("/api/shifts/open", OpenShift())).StatusCode);
         }
     }
 }

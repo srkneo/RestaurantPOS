@@ -49,6 +49,8 @@ export default function LicencePage() {
       if (res.ok) {
         setStatus(await res.json());
         setKey('');
+        // The banner at the top checks again, so it does not keep saying billing is stopped.
+        window.dispatchEvent(new Event('licence-changed'));
         showToast(t(doneKey));
       } else {
         const errors = await readErrors(res);

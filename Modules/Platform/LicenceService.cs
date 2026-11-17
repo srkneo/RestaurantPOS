@@ -97,7 +97,9 @@ namespace POSSystem.Platform
             if (!Required) return new LicenceStatus(LicenceState.Active, false, null, null, null, null, "Licence not required.");
 
             var cached = _cache;
-            if (cached is not null && _time.GetUtcNow().UtcDateTime - cached.At < CacheFor) return cached.Status;
+            // Only a fresh answer is reused. A clock set back makes the age negative, so the licence is checked again at once.
+            var age = cached is null ? CacheFor : _time.GetUtcNow().UtcDateTime - cached.At;
+            if (cached is not null && age >= TimeSpan.Zero && age < CacheFor) return cached.Status;
 
             return await InRecord(async (db, record, now) =>
             {

@@ -49,6 +49,15 @@ describe('Licence banner', () => {
     expect(screen.queryByText('Billing is stopped on this PC.')).not.toBeInTheDocument();
   });
 
+  it('checks again when the licence changes on this PC', async () => {
+    answer({ state: 'Missing', locked: true, required: true, message: 'This PC has no licence yet.' });
+    renderBanner();
+    expect(await screen.findByText('Billing is stopped on this PC.')).toBeInTheDocument();
+    answer({ state: 'Active', locked: false, required: true, message: 'Licence active.' });
+    window.dispatchEvent(new Event('licence-changed'));
+    await waitFor(() => expect(screen.queryByText('Billing is stopped on this PC.')).not.toBeInTheDocument());
+  });
+
   it('stays quiet when the server cannot be reached', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('Failed to fetch'); }));
     const { container } = renderBanner();
