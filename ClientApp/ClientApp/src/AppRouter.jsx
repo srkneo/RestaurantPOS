@@ -21,6 +21,9 @@ import { PrintBillPage, PrintKotPage, PrintDayPage, PrintCreditNotePage } from '
 import DayClosePage from './components/DayClosePage';
 import DayReportPage from './admin/DayReportPage';
 import OfflineBanner from './offline/OfflineBanner';
+import LicenceBanner from './licence/LicenceBanner';
+import LicencePage from './admin/LicencePage';
+import ShopLicencesPage from './admin/ShopLicencesPage';
 
 const POS_ROLES = ['cashier', 'manager', 'admin'];
 const KITCHEN_ROLES = ['kitchen', 'manager', 'admin'];
@@ -59,7 +62,9 @@ function AppHeader() {
         {can(ADMIN_ROLES) && <NavLink to="/admin/store">{t('nav.store')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/settings">{t('nav.settings')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/billing">{t('nav.billing')}</NavLink>}
-        {can(PLATFORM_ROLES) && <NavLink to="/platform">{t('nav.platform')}</NavLink>}
+        {can(ADMIN_ROLES) && <NavLink to="/admin/licence">{t('nav.licence')}</NavLink>}
+        {can(PLATFORM_ROLES) && <NavLink to="/platform" end>{t('nav.platform')}</NavLink>}
+        {can(PLATFORM_ROLES) && <NavLink to="/platform/licences">{t('nav.licences')}</NavLink>}
       </nav>
       <div className="pos-user">
         {mainRole && <span className="pos-role" title={user.email}>{t(`role.${mainRole}`)}</span>}
@@ -68,6 +73,7 @@ function AppHeader() {
       </div>
     </header>
     {can(POS_ROLES) && <OfflineBanner />}
+    {!can(PLATFORM_ROLES) && <LicenceBanner />}
     </>
   );
 }
@@ -93,7 +99,9 @@ function Layout() {
         <Route path="/admin/store" element={<RequireRole roles={ADMIN_ROLES}><StorePage /></RequireRole>} />
         <Route path="/admin/settings" element={<RequireRole roles={ADMIN_ROLES}><SettingsPage /></RequireRole>} />
         <Route path="/admin/billing" element={<RequireRole roles={ADMIN_ROLES}><BillingSettingsPage /></RequireRole>} />
+        <Route path="/admin/licence" element={<RequireRole roles={ADMIN_ROLES}><LicencePage /></RequireRole>} />
         <Route path="/platform" element={<RequireRole roles={PLATFORM_ROLES}><PlatformPage /></RequireRole>} />
+        <Route path="/platform/licences" element={<RequireRole roles={PLATFORM_ROLES}><ShopLicencesPage /></RequireRole>} />
         <Route path="/print/bill/:id" element={<RequireRole roles={POS_ROLES}><PrintBillPage /></RequireRole>} />
         <Route path="/print/kot/:id" element={<RequireRole roles={[...POS_ROLES, 'kitchen']}><PrintKotPage /></RequireRole>} />
         <Route path="/print/day" element={<RequireRole roles={MENU_ROLES}><PrintDayPage /></RequireRole>} />
