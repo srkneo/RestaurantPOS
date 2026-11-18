@@ -16,6 +16,7 @@ import TablesPage from './admin/TablesPage';
 import QrSheetPage from './admin/QrSheetPage';
 import GuestOrderPage from './components/GuestOrderPage';
 import StorePage from './admin/StorePage';
+import SetupPage from './admin/SetupPage';
 import SettingsPage from './admin/SettingsPage';
 import BillingSettingsPage from './admin/BillingSettingsPage';
 import PlatformPage from './admin/PlatformPage';
@@ -76,6 +77,7 @@ function AppHeader() {
         {can(MENU_ROLES) && <NavLink to="/admin/tables">{t('nav.tables')}</NavLink>}
         {can(MENU_ROLES) && <NavLink to="/admin/reports">{t('nav.reports')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/staff">{t('nav.staff')}</NavLink>}
+        {can(ADMIN_ROLES) && <NavLink to="/admin/setup">{t('nav.setup')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/store">{t('nav.store')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/settings">{t('nav.settings')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/billing">{t('nav.billing')}</NavLink>}
@@ -129,6 +131,7 @@ function Layout() {
         <Route path="/admin/tables/qr" element={<RequireRole roles={MENU_ROLES}><QrSheetPage /></RequireRole>} />
         <Route path="/t/:token" element={<GuestOrderPage />} />
         <Route path="/admin/store" element={<RequireRole roles={ADMIN_ROLES}><StorePage /></RequireRole>} />
+        <Route path="/admin/setup" element={<RequireRole roles={ADMIN_ROLES}><SetupPage /></RequireRole>} />
         <Route path="/admin/settings" element={<RequireRole roles={ADMIN_ROLES}><SettingsPage /></RequireRole>} />
         <Route path="/admin/billing" element={<RequireRole roles={ADMIN_ROLES}><BillingSettingsPage /></RequireRole>} />
         <Route path="/admin/licence" element={<RequireRole roles={ADMIN_ROLES}><LicencePage /></RequireRole>} />
