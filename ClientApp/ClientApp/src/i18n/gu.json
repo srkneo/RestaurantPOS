@@ -333,6 +333,7 @@
   "share.billTotal": "કુલ: {total}",
   "share.billPaid": "ચૂકવાઈ ગયું. આભાર!",
   "share.billDue": "બાકી: {amount}",
+  "share.billFeedback": "અમારી સેવા કેવી લાગી તે જણાવો: {link}",
   "print.reviewUs": "Google પર અમને રેટ કરો",
   "review.title": "બિલ પર Google રિવ્યૂ QR",
   "review.label": "Google રિવ્યૂ લિંક",

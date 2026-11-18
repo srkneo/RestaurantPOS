@@ -36,6 +36,8 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
   const [stage, setStage] = useState('loading'); // loading | create | pay | error
   const [bill, setBill] = useState(null);
   const [upiReady, setUpiReady] = useState(false);
+  const [feedbackReady, setFeedbackReady] = useState(false);
+  const [feedbackLink, setFeedbackLink] = useState(null);
   const [discountMode, setDiscountMode] = useState('none'); // none | percent | amount
   const [discountValue, setDiscountValue] = useState('');
   const [method, setMethod] = useState('Cash');
@@ -72,6 +74,7 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
       const [billRes, settingsRes] = await Promise.all([fetch(`/api/orders/${orderId}/bill`), fetch('/api/print-settings')]);
       const settings = settingsRes.ok ? await settingsRes.json() : {};
       setUpiReady(!!settings.upiReady);
+      setFeedbackReady(!!settings.feedbackReady);
       if (billRes.status === 404) {
         setBill(null);
         setStage('create');
@@ -84,6 +87,23 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
       setStage('error');
     }
   }, [orderId, showBill]);
+
+  // The bill's feedback page, fetched ahead so the WhatsApp button opens at once (pop-up blockers stop a late window.open).
+  const billId = bill?.id;
+  useEffect(() => {
+    setFeedbackLink(null);
+    if (!feedbackReady || billId == null) return undefined;
+    let alive = true;
+    fetch(`/api/bills/${billId}/feedback-link`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (alive && data?.token) setFeedbackLink(`${window.location.origin}/feedback/${data.token}`);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [feedbackReady, billId]);
 
   useEffect(() => {
     if (orderId == null) return;
@@ -394,7 +414,7 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
           )}
           {stage === 'pay' && bill && <button type="button" className="btn btn-outline-primary" onClick={printBill}>{t('bill.print')}</button>}
           {stage === 'pay' && bill && bill.status !== 'Void' && (
-            <button type="button" className="btn btn-outline-success" onClick={() => window.open(billWhatsAppUrl(bill, t), '_blank', 'noopener')}>{t('bill.whatsapp')}</button>
+            <button type="button" className="btn btn-outline-success" onClick={() => window.open(billWhatsAppUrl(bill, t, feedbackLink), '_blank', 'noopener')}>{t('bill.whatsapp')}</button>
           )}
           {stage === 'pay' && bill && !bill.creditedAt && !crediting && (
             <button type="button" className="btn btn-outline-secondary" onClick={() => { setCrediting(true); setError(''); }}>{t('credit.button')}</button>
