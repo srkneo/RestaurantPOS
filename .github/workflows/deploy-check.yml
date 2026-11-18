@@ -131,3 +131,24 @@ jobs:
           sudo POS_UPDATE_DRY_RUN=1 GITHUB_TOKEN="$GITHUB_TOKEN" bash /root/pos/auto-update.sh requested
           test ! -f /root/pos/update/request
           sudo grep -q '"trigger":"requested"' /root/pos/update/status.json
+      - name: Backups are copied off the PC (a folder stands in for the NAS)
+        run: |
+          bash -n deploy/copy-backup.sh
+          sudo crontab -l | grep -q 'copy-backup.sh requested'
+          sudo mkdir -p /tmp/nas
+          echo "BACKUP_COPY_DIR=/tmp/nas" | sudo tee -a /root/pos/.env > /dev/null
+          sudo bash /root/pos/backup.sh
+          ls /tmp/nas/pos-*.dump
+          sudo grep -q '"result":"copied"' /root/pos/update/backup-status.json
+          sudo grep -q '"lastCopiedAt":"20' /root/pos/update/backup-status.json
+          # "Back up now" from the app is used once and makes a new copy.
+          sleep 1
+          sudo touch /root/pos/update/backup-request
+          sudo bash /root/pos/copy-backup.sh requested
+          test ! -f /root/pos/update/backup-request
+          test "$(ls /tmp/nas/pos-*.dump | wc -l)" -ge 2
+          # No disk: the last good copy time is kept, so the app can warn when it gets old.
+          sudo sed -i 's#^BACKUP_COPY_DIR=.*#BACKUP_COPY_DIR=/tmp/missing#' /root/pos/.env
+          sudo bash /root/pos/copy-backup.sh
+          sudo grep -q '"result":"no-disk"' /root/pos/update/backup-status.json
+          sudo grep -q '"lastCopiedAt":"20' /root/pos/update/backup-status.json

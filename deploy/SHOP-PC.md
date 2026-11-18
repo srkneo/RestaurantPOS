@@ -40,7 +40,13 @@ If the new version does not start within 3 minutes, the old version is put back 
 
 ## Backups
 - Every night at 03:00 a backup is written to `/root/pos/backups/nightly` (7 days are kept).
-- Copy that folder to a USB disk regularly. A backup that sits only on the same PC does not survive a broken disk.
+- Right after, it is copied off the PC, because a backup that sits only on the same PC does not survive a broken disk:
+  - **USB disk** (easiest): format a USB disk as exFAT with the name `POSBACKUP` (on Windows: right-click the drive, Format,
+    Volume label POSBACKUP) and leave it plugged into the mini PC. The 14 newest backups are kept on it.
+  - **NAS or another disk**: mount it (for example through `/etc/fstab`) and add `BACKUP_COPY_DIR=/the/folder` to `/root/pos/.env`.
+- The owner sees the last copy on the **Licence** page and can press **Back up now**. When no copy was made for more than
+  2 days, a yellow bar asks to plug in the backup disk.
+- To restore on a new PC: install the POS, then follow "Restoring for real" in `deploy/README.md` with the newest file from the disk.
 
 ## Good to know
 - The link is plain `http://` and works only inside the shop's network. Do not open the PC to the internet.

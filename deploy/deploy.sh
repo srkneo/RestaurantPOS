@@ -103,8 +103,9 @@ backup_at="30 21 * * *"; restore_at="0 22 * * 6"; check_at="30 22 * * *"
 if grep -q '^SHOP_PC=1' .env; then backup_at="0 3 * * *"; restore_at="30 3 * * 0"; check_at="0 4 * * *"; fi
 chmod +x backup.sh restore-test.sh bill-check.sh
 if [ -f auto-update.sh ]; then chmod +x auto-update.sh; fi
+if [ -f copy-backup.sh ]; then chmod +x copy-backup.sh; fi
 {
-  crontab -l 2>/dev/null | grep -v -e 'pos/backup.sh' -e 'pos/restore-test.sh' -e 'pos/bill-check.sh' -e 'pos/auto-update.sh' || true
+  crontab -l 2>/dev/null | grep -v -e 'pos/backup.sh' -e 'pos/restore-test.sh' -e 'pos/bill-check.sh' -e 'pos/auto-update.sh' -e 'pos/copy-backup.sh' || true
   echo "$backup_at $HOME/pos/backup.sh >> $HOME/pos/backups/backup.log 2>&1"
   echo "$restore_at $HOME/pos/restore-test.sh >> $HOME/pos/backups/restore-test.log 2>&1"
   echo "$check_at $HOME/pos/bill-check.sh >> $HOME/pos/backups/bill-check.log 2>&1"
@@ -112,6 +113,10 @@ if [ -f auto-update.sh ]; then chmod +x auto-update.sh; fi
   if grep -q '^SHOP_PC=1' .env && [ -f auto-update.sh ]; then
     echo "30 3 * * * $HOME/pos/auto-update.sh nightly >> $HOME/pos/backups/auto-update.log 2>&1"
     echo "*/2 * * * * $HOME/pos/auto-update.sh requested >> $HOME/pos/backups/auto-update.log 2>&1"
+  fi
+  # Shop PC: "Back up now" from the app (checked every 2 minutes).
+  if grep -q '^SHOP_PC=1' .env && [ -f copy-backup.sh ]; then
+    echo "*/2 * * * * $HOME/pos/copy-backup.sh requested >> $HOME/pos/backups/backup.log 2>&1"
   fi
 } | crontab -
 echo "Version $VERSION started."
