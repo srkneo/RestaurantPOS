@@ -265,6 +265,7 @@ const POSMenu = () => {
 
   const qtyOf = (id) => cart.find((l) => l.id === id)?.quantity ?? 0;
   const itemCount = cart.reduce((sum, l) => sum + l.quantity, 0);
+  const orderPanel = useRef(null);
   const total = cart.reduce((sum, l) => sum + l.price * l.quantity, 0);
   const tableNumber = tables.find((tb) => String(tb.id) === selectedTable)?.tableNumber;
   const orderLabel = orderType === 'Takeaway'
@@ -272,7 +273,7 @@ const POSMenu = () => {
     : (tableNumber ? t('pos.tableName', { number: tableNumber }) : '');
 
   return (
-    <div className="pos-screen">
+    <div className={`pos-screen${cart.length > 0 ? ' has-cart-bar' : ''}`}>
       <main className="pos-menu">
         {editing && (
           <div className="pos-editing" role="status">
@@ -362,7 +363,7 @@ const POSMenu = () => {
         )}
       </main>
 
-      <aside className="pos-order" aria-label={t('pos.currentOrder')}>
+      <aside className="pos-order" aria-label={t('pos.currentOrder')} ref={orderPanel}>
         <div className="pos-order-head">
           <h2>{t('pos.currentOrder')}</h2>
           {orderLabel && <span className="pos-order-table">{orderLabel}</span>}
@@ -415,6 +416,17 @@ const POSMenu = () => {
           {t('pos.clearOrder')}
         </button>
       </aside>
+
+      {/* Phones and tablets: the order is below a long menu, so this bar shows the total and jumps to it. */}
+      {cart.length > 0 && (
+        <div className="pos-cart-bar d-lg-none" role="region" aria-label={t('pos.orderBar')}>
+          <strong className="pos-cart-bar-text">{t('pos.barSummary', { count: itemCount, total: formatMoney(total) })}</strong>
+          <button type="button" className="btn btn-primary px-4"
+            onClick={() => orderPanel.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+            {t('pos.reviewOrder')}
+          </button>
+        </div>
+      )}
 
       <ConfirmDialog open={confirmClear} title={t('pos.clearTitle')} confirmLabel={t('pos.clearConfirm')} danger
         onCancel={() => setConfirmClear(false)}

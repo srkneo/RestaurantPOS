@@ -1,0 +1,5 @@
+{
+  "pos.reviewOrder": ["Review order", "ઓર્ડર જુઓ"],
+  "pos.orderBar": ["Order so far", "અત્યાર સુધીનો ઓર્ડર"],
+  "pos.barSummary": ["{count} items · {total}", "{count} વસ્તુ · {total}"]
+}

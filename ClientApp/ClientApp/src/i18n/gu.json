@@ -574,5 +574,8 @@
   "support.websiteHint": "વૈકલ્પિક. https:// થી શરૂ થતું પૂરું સરનામું.",
   "support.required": "આ જરૂરી છે.",
   "support.save": "સાચવો",
-  "support.saved": "સપોર્ટ વિગતો સચવાઈ. દુકાનના PC ને આગલા લાઇસન્સ રિન્યુ વખતે મળશે."
+  "support.saved": "સપોર્ટ વિગતો સચવાઈ. દુકાનના PC ને આગલા લાઇસન્સ રિન્યુ વખતે મળશે.",
+  "pos.reviewOrder": "ઓર્ડર જુઓ",
+  "pos.orderBar": "અત્યાર સુધીનો ઓર્ડર",
+  "pos.barSummary": "{count} વસ્તુ · {total}"
 }
