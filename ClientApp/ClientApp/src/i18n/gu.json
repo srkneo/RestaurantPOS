@@ -845,5 +845,8 @@
   "qr.renew": "નવો કોડ",
   "qr.renewTitle": "ટેબલ {number} માટે નવો QR કોડ?",
   "qr.renewHint": "આ ટેબલ પર છાપેલો કોડ બંધ થઈ જશે. નવો છાપો.",
-  "qr.renewed": "ટેબલ {number} માટે નવો QR કોડ. ફરી છાપો."
+  "qr.renewed": "ટેબલ {number} માટે નવો QR કોડ. ફરી છાપો.",
+  "help.title": "મદદ",
+  "help.contents": "વિષયો",
+  "help.link": "મદદ"
 }

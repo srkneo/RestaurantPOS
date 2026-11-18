@@ -845,5 +845,8 @@
   "qr.renew": "New code",
   "qr.renewTitle": "New QR code for table {number}?",
   "qr.renewHint": "The code printed on this table stops working. Print the new one.",
-  "qr.renewed": "New QR code for table {number}. Print it again."
+  "qr.renewed": "New QR code for table {number}. Print it again.",
+  "help.title": "Help",
+  "help.contents": "Contents",
+  "help.link": "Help"
 }

@@ -32,6 +32,8 @@ export default function AppFooter() {
       )}
       <span className="mx-2" aria-hidden="true">·</span>
       <Link to="/about">{t('about.link')}</Link>
+      <span className="mx-2" aria-hidden="true">·</span>
+      <Link to="/help">{t('help.link')}</Link>
     </footer>
   );
 }

@@ -32,6 +32,7 @@ import LicencePage from './admin/LicencePage';
 import ShopLicencesPage from './admin/ShopLicencesPage';
 import PlatformSupportPage from './admin/PlatformSupportPage';
 import AboutPage from './about/AboutPage';
+import HelpPage from './about/HelpPage';
 import AppFooter from './about/AppFooter';
 import ServerWatch from './about/ServerWatch';
 import ResetPasswordPage from './components/ResetPasswordPage';
@@ -135,6 +136,7 @@ function Layout() {
         <Route path="/platform/licences" element={<RequireRole roles={PLATFORM_ROLES}><ShopLicencesPage /></RequireRole>} />
         <Route path="/platform/support" element={<RequireRole roles={PLATFORM_ROLES}><PlatformSupportPage /></RequireRole>} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/help" element={<HelpPage />} />
         <Route path="/print/bill/:id" element={<RequireRole roles={POS_ROLES}><PrintBillPage /></RequireRole>} />
         <Route path="/print/kot/:id" element={<RequireRole roles={[...CAPTAIN_ROLES, 'kitchen']}><PrintKotPage /></RequireRole>} />
         <Route path="/print/day" element={<RequireRole roles={MENU_ROLES}><PrintDayPage /></RequireRole>} />
