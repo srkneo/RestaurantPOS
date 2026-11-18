@@ -121,6 +121,26 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task TheDayReportShowsTheDaysRatings()
+        {
+            var s = Build();
+            using var f = s.Factory;
+            var admin = As(f, "admin");
+            Assert.Equal(HttpStatusCode.OK, (await admin.PutAsync("/api/admin/feedback-setting", Json(new { enabled = true }))).StatusCode);
+            var guest = f.CreateClient();
+            foreach (var rating in new[] { 4, 5 })
+            {
+                var billId = (await Bill(s)).GetProperty("id").GetInt32();
+                var token = (await Read(await admin.GetAsync($"/api/bills/{billId}/feedback-link"))).GetProperty("token").GetString()!;
+                Assert.Equal(HttpStatusCode.OK, (await guest.PostAsync($"/api/feedback/{token}", Json(new { rating }))).StatusCode);
+            }
+
+            var day = await Read(await As(f, "manager").GetAsync("/api/reports/day"));
+            Assert.Equal(2, day.GetProperty("feedbackCount").GetInt32());
+            Assert.Equal(4.5m, day.GetProperty("feedbackAverage").GetDecimal());
+        }
+
+        [Fact]
         public async Task BadTokens_FeedbackOff_AndRoles()
         {
             var s = Build();

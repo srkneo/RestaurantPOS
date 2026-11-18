@@ -28,7 +28,8 @@ namespace POSSystem.Billing
         IReadOnlyList<TaxSummaryRow> TaxSummary, IReadOnlyList<ItemSalesDto> Items,
         int VoidCount, decimal VoidTotal, IReadOnlyList<VoidedBillDto> VoidedBills, IReadOnlyList<ShiftDto> Shifts,
         IReadOnlyList<CreditNoteSummaryDto> CreditNotes, decimal CreditTaxable, decimal CreditCgst, decimal CreditSgst, decimal CreditTotal,
-        decimal NetSales, decimal TipTotal = 0m, decimal ExpenseTotal = 0m, decimal ExpenseFromTill = 0m);
+        decimal NetSales, decimal TipTotal = 0m, decimal ExpenseTotal = 0m, decimal ExpenseFromTill = 0m,
+        int FeedbackCount = 0, decimal? FeedbackAverage = null);
 
     // Till shifts (open with float, cash in/out, close with count) and the end-of-day (Z) report.
     public class DayCloseService
@@ -195,6 +196,11 @@ namespace POSSystem.Billing
             var tipTotal = await _db.Tips.Where(x => x.OutletId == _db.CurrentOutletId && x.BusinessDate == date).SumAsync(x => x.Amount);
             var dayExpenses = await _db.Expenses.Where(x => x.OutletId == _db.CurrentOutletId && x.BusinessDate == date).ToListAsync();
 
+            // Guest ratings given for this day's bills (feedback QR).
+            var dayBillIds = all.Select(b => b.Id).ToList();
+            var ratings = await _db.GuestFeedbacks.Where(f => dayBillIds.Contains(f.BillId)).Select(f => f.Rating).ToListAsync();
+            decimal? feedbackAverage = ratings.Count == 0 ? null : Math.Round((decimal)ratings.Average(), 1);
+
             var shifts = new List<ShiftDto>();
             foreach (var shift in await GetShifts(date)) shifts.Add(await Describe(shift));
 
@@ -207,7 +213,8 @@ namespace POSSystem.Billing
                 voided.Count, voided.Sum(b => b.Total), voided.Select(b => new VoidedBillDto(b.Id, b.InvoiceNumber, b.Total, b.VoidReason)).ToList(),
                 shifts, creditList, credits.Sum(c => c.TaxableValue), credits.Sum(c => c.Cgst), credits.Sum(c => c.Sgst),
                 credits.Sum(c => c.Total), bills.Sum(b => b.Total) - credits.Sum(c => c.Total),
-                tipTotal, dayExpenses.Sum(e => e.Amount), dayExpenses.Where(e => e.PaidFrom == ExpensePaidFrom.Till).Sum(e => e.Amount));
+                tipTotal, dayExpenses.Sum(e => e.Amount), dayExpenses.Where(e => e.PaidFrom == ExpensePaidFrom.Till).Sum(e => e.Amount),
+                ratings.Count, feedbackAverage);
         }
     }
 }
