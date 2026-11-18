@@ -105,3 +105,29 @@ jobs:
           curl -fsS -o /dev/null http://localhost/health/ready
           # The owner made at setup is still there after the database was put back.
           sudo docker exec pos-db-1 psql -U pos -d restaurant_pos -tAc "SELECT count(*) FROM \"AspNetUsers\" WHERE \"Email\" = 'owner@test.local'" | grep -qx 1
+      - name: Automatic updates decide correctly (test run, nothing is changed)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash -n deploy/auto-update.sh
+          sudo crontab -l | grep -q 'auto-update.sh nightly'
+          sudo crontab -l | grep -q 'auto-update.sh requested'
+          # The installed version is the newest finished release, so there is nothing to do.
+          sudo POS_UPDATE_DRY_RUN=1 GITHUB_TOKEN="$GITHUB_TOKEN" bash /root/pos/auto-update.sh nightly
+          sudo grep -q '"result":"up-to-date"' /root/pos/update/status.json
+          # Support paused updates.
+          echo "mode=paused" | sudo tee /root/pos/update/policy > /dev/null
+          sudo bash /root/pos/auto-update.sh nightly
+          sudo grep -q '"result":"paused"' /root/pos/update/status.json
+          # A pinned older version is never installed by itself.
+          printf 'mode=pinned\nversion=1.0.0\n' | sudo tee /root/pos/update/policy > /dev/null
+          sudo bash /root/pos/auto-update.sh nightly
+          sudo grep -q '"result":"up-to-date"' /root/pos/update/status.json
+          sudo rm /root/pos/update/policy
+          # Nothing happens without a request; "Update now" is used once.
+          sudo bash /root/pos/auto-update.sh requested
+          sudo grep -q '"trigger":"nightly"' /root/pos/update/status.json
+          sudo touch /root/pos/update/request
+          sudo POS_UPDATE_DRY_RUN=1 GITHUB_TOKEN="$GITHUB_TOKEN" bash /root/pos/auto-update.sh requested
+          test ! -f /root/pos/update/request
+          sudo grep -q '"trigger":"requested"' /root/pos/update/status.json

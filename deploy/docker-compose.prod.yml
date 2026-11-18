@@ -59,6 +59,8 @@ services:
     volumes:
       - keys:/app/keys
       - applogs:/app/logs
+      # Shared with auto-update.sh on a shop PC: "Update now" requests, the update status and the update policy.
+      - ./update:/app/update
     depends_on:
       db:
         condition: service_healthy
