@@ -48,6 +48,44 @@ afterEach(() => {
 });
 
 describe('Order history', () => {
+  it('splits some items off to a new order', async () => {
+    const calls = [];
+    vi.stubGlobal('fetch', vi.fn(async (url, options) => {
+      calls.push({ url, options });
+      if (url === '/api/orders/60/split') return { ok: true, status: 200, json: async () => ({ id: 61, tokenNumber: 33 }) };
+      return { ok: true, json: async () => [{ id: 60, tokenNumber: 30, orderType: 'DineIn', tableId: 1, table: { id: 1, tableNumber: '1' }, status: 'Ready', version: 2,
+        createdAt: '2026-11-14T07:00:00Z', items: [{ id: 5, itemName: 'Butter Naan', quantity: 3, unitPrice: 40 }, { id: 6, itemName: 'Tea', quantity: 1, unitPrice: 20 }] }] };
+    }));
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Split bill' }));
+    const dialog = screen.getByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('3 x Butter Naan'), { target: { value: '1' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Split' }));
+
+    expect(await screen.findByText('Split off as token 33. Bill it from this list.')).toBeInTheDocument();
+    expect(JSON.parse(calls.find((c) => c.url === '/api/orders/60/split').options.body)).toEqual({ lines: [{ orderItemId: 5, quantity: 1 }], version: 2 });
+  });
+
+  it('merges another table into this order', async () => {
+    const calls = [];
+    vi.stubGlobal('fetch', vi.fn(async (url, options) => {
+      calls.push({ url, options });
+      if (url === '/api/orders/70/merge') return { ok: true, status: 200, json: async () => ({ id: 70, tokenNumber: 30 }) };
+      return { ok: true, json: async () => [
+        { id: 70, tokenNumber: 30, orderType: 'DineIn', tableId: 1, table: { id: 1, tableNumber: '1' }, status: 'Preparing', version: 4, createdAt: '2026-11-14T09:00:00Z', items: [] },
+        { id: 71, tokenNumber: 31, orderType: 'DineIn', tableId: 2, table: { id: 2, tableNumber: '2' }, status: 'Received', version: 2, createdAt: '2026-11-14T08:00:00Z', items: [] },
+      ] };
+    }));
+    renderPage();
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Merge table' }))[0]);
+    const dialog = screen.getByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Merge in'), { target: { value: '71' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Merge' }));
+
+    expect(await screen.findByText('Token 31 merged into token 30.')).toBeInTheDocument();
+    expect(JSON.parse(calls.find((c) => c.url === '/api/orders/70/merge').options.body)).toEqual({ fromOrderId: 71, version: 4, fromVersion: 2 });
+  });
+
   it('moves an open dine-in order to a free table', async () => {
     const calls = mockMove();
     renderPage();

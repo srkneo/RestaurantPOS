@@ -688,5 +688,20 @@
   "orders.moveTo": "આ ટેબલ પર",
   "orders.moveChoose": "ખાલી ટેબલ પસંદ કરો",
   "orders.moveConfirm": "ખસેડો",
-  "orders.moved": "ટોકન {token} ટેબલ {number} પર ખસેડાયું."
+  "orders.moved": "ટોકન {token} ટેબલ {number} પર ખસેડાયું.",
+  "orders.merge": "ટેબલ જોડો",
+  "orders.split": "બિલ વહેંચો",
+  "orders.mergeTitle": "ટોકન {token} માં જોડો",
+  "orders.mergeFrom": "આ ઓર્ડર જોડો",
+  "orders.mergeChoose": "ચાલુ ઓર્ડર પસંદ કરો",
+  "orders.mergeOption": "ટોકન {token} · ટેબલ {number}",
+  "orders.mergeHint": "તેની વસ્તુઓ આ ઓર્ડરમાં આવશે અને તેનો ટોકન બંધ થશે. બંને ટેબલનું એક બિલ.",
+  "orders.mergeConfirm": "જોડો",
+  "orders.merged": "ટોકન {from} ટોકન {token} માં જોડાયો.",
+  "orders.splitTitle": "ટોકન {token} વહેંચો",
+  "orders.splitHint": "દરેક વસ્તુમાંથી કેટલી નવા ઓર્ડરમાં (અલગ બિલ સાથે) જાય તે પસંદ કરો.",
+  "orders.splitChoose": "અલગ કરવા ઓછામાં ઓછી એક વસ્તુ પસંદ કરો.",
+  "orders.splitConfirm": "વહેંચો",
+  "orders.splitDone": "ટોકન {token} તરીકે અલગ થયું. આ યાદીમાંથી તેનું બિલ બનાવો.",
+  "orders.billedFirst": "આ ઓર્ડરનું બિલ બની ગયું છે. પહેલાં બિલ રદ કરો."
 }

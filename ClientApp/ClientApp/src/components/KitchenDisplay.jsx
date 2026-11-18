@@ -101,7 +101,8 @@ const KitchenDisplay = () => {
         : (ACTIVE.includes(order.status) ? [...prev, { ...order, createdAt: order.createdAt ?? new Date().toISOString() }] : prev)));
     });
     connection.on('OrderStatusChanged', (data) => {
-      if (data.status === 'Cancelled' && ordersRef.current.some((o) => o.id === data.orderId)) {
+      // A merged order is not cancelled for the kitchen: its items moved to the other token.
+      if (data.status === 'Cancelled' && !data.mergedInto && ordersRef.current.some((o) => o.id === data.orderId)) {
         showToast(tRef.current('kitchen.cancelled', { token: data.tokenNumber }), 'error');
       }
       if (ACTIVE.includes(data.status)) {
