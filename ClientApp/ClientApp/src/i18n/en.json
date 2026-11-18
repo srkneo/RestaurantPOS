@@ -333,6 +333,7 @@
   "share.billTotal": "Total: {total}",
   "share.billPaid": "Paid. Thank you!",
   "share.billDue": "Due: {amount}",
+  "share.billFeedback": "Tell us how we did: {link}",
   "print.reviewUs": "Rate us on Google",
   "review.title": "Google review QR on bills",
   "review.label": "Google review link",

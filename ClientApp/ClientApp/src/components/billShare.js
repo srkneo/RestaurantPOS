@@ -10,7 +10,7 @@ export function whatsAppNumber(phone) {
 }
 
 // The bill as a short WhatsApp message. With the customer's phone it opens their chat; otherwise the cashier picks the contact.
-export function billWhatsAppUrl(bill, t) {
+export function billWhatsAppUrl(bill, t, feedbackLink = null) {
   const store = bill.store ?? {};
   const lines = [t('share.billTitle', { restaurant: store.restaurantName ?? '', number: bill.invoiceNumber })];
   (bill.lines ?? []).forEach((line) => {
@@ -20,6 +20,7 @@ export function billWhatsAppUrl(bill, t) {
   lines.push(t('share.billTotal', { total: formatMoney(bill.total) }));
   if (bill.status === 'Paid') lines.push(t('share.billPaid'));
   else if (Number(bill.amountDue) > 0) lines.push(t('share.billDue', { amount: formatMoney(bill.amountDue) }));
+  if (feedbackLink) lines.push(t('share.billFeedback', { link: feedbackLink }));
   if (store.footer) lines.push(store.footer);
   const number = whatsAppNumber(bill.customerPhone);
   return `https://wa.me/${number ?? ''}?text=${encodeURIComponent(lines.join('\n'))}`;

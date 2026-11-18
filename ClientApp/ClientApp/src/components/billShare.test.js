@@ -18,6 +18,14 @@ describe('Bill on WhatsApp', () => {
     expect(billWhatsAppUrl({ ...bill, customerPhone: null }, t).startsWith('https://wa.me/?text=')).toBe(true);
   });
 
+  it('adds the feedback link when there is one', () => {
+    const bill = { invoiceNumber: 'INV/3', total: 50, amountDue: 0, status: 'Paid', store: { restaurantName: 'Cafe' }, lines: [] };
+    const text = decodeURIComponent(billWhatsAppUrl(bill, t, 'https://pos.example.com/feedback/abc').split('?text=')[1]).split('\n');
+    expect(text).toContain('share.billFeedback:https://pos.example.com/feedback/abc');
+    const plain = decodeURIComponent(billWhatsAppUrl(bill, t).split('?text=')[1]);
+    expect(plain).not.toContain('share.billFeedback');
+  });
+
   it('lists the lines, discount, total and what is due', () => {
     const bill = {
       invoiceNumber: 'INV/2', total: 450, discount: 50, amountDue: 450, status: 'Unpaid', store: { restaurantName: 'Cafe', footer: 'Visit again' },
