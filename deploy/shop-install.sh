@@ -17,7 +17,7 @@ set -euo pipefail
 REPO="srkneo/RestaurantPOS"
 # Downloads give up on a dead connection instead of hanging, and try again a few times.
 fetch() { curl -fsSL --connect-timeout 30 --max-time 600 --retry 3 --retry-delay 3 "$@"; }
-FILES="docker-compose.prod.yml Caddyfile deploy.sh backup.sh restore-test.sh bill-check.sh"
+FILES="docker-compose.prod.yml Caddyfile deploy.sh backup.sh restore-test.sh bill-check.sh auto-update.sh"
 LICENCE_KEY_FILE="licence-public.key"
 DEFAULT_LICENCE_URL="https://13-236-102-22.sslip.io"
 
@@ -53,8 +53,16 @@ VERSION="${POS_VERSION:-${1:-}}"
 VERSION="${VERSION#v}"
 if [ -z "$VERSION" ]; then
   say "Looking up the newest version"
-  VERSION="$(fetch "https://api.github.com/repos/$REPO/tags?per_page=100" \
-    | grep -o '"name": *"v[0-9]*\.[0-9]*\.[0-9]*"' | grep -o '[0-9]*\.[0-9]*\.[0-9]*' | sort -V | tail -n 1 || true)"
+  # The newest release whose images are published (right after a release they may still be building).
+  # Before Docker is installed this cannot be checked, so the newest tag is taken.
+  VERSION=""
+  for v in $(fetch "https://api.github.com/repos/$REPO/tags?per_page=100" \
+      | grep -o '"name": *"v[0-9]*\.[0-9]*\.[0-9]*"' | grep -o '[0-9]*\.[0-9]*\.[0-9]*' | sort -rV || true); do
+    if command -v docker > /dev/null 2>&1 && ! { docker manifest inspect "ghcr.io/srkneo/restaurantpos-api:$v" > /dev/null 2>&1 \
+      && docker manifest inspect "ghcr.io/srkneo/restaurantpos-web:$v" > /dev/null 2>&1; }; then continue; fi
+    VERSION="$v"
+    break
+  done
   if [ -z "$VERSION" ]; then echo "Could not find the newest version. Give it yourself:  sudo bash shop-install.sh 1.7.0"; exit 1; fi
 fi
 echo "Version: $VERSION"
@@ -196,4 +204,4 @@ fi
 echo
 echo "Tips: give this PC a fixed address in the router, so the link above never changes."
 echo "      A backup is made every night at 03:00 in $DIR/backups. Copy that folder to a USB disk regularly."
-echo "      To update later:  sudo bash shop-install.sh <new version>"
+echo "      Updates install themselves at night (03:30). To update now:  sudo bash shop-install.sh"

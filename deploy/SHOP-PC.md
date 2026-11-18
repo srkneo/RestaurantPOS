@@ -27,8 +27,13 @@ In the router, give the mini PC a fixed address (DHCP reservation), so the link 
 - A key works on one PC. For a new PC, ask support to reset the key.
 
 ## Update
+The PC updates itself every night at 03:30 to the newest release, when it has internet. Without internet it simply
+stays on its version; billing is not affected. Support can pause updates for a shop, or keep it on one version.
+Log: `/root/pos/backups/auto-update.log`.
+
+To update right away:
 ```
-sudo bash shop-install.sh 1.7.1
+sudo bash shop-install.sh
 ```
 The database is backed up first (`/root/pos/backups`), settings are kept.
 If the new version does not start within 3 minutes, the old version is put back by itself, with the database as it was just before the update.
