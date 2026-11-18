@@ -57,6 +57,10 @@ namespace POSSystem.Platform
                 Run(async () => Results.Ok(await issuer.SetUpdates(id, request, ct))))
                 .WithName("SetShopLicenceUpdates").WithSummary("Automatic updates for this shop: auto, paused, or pinned to one version");
 
+            group.MapPost("/{id:int}/owner-reset", (int id, LicenceIssuer issuer, CancellationToken ct) =>
+                Run(async () => Results.Ok(await issuer.CreateOwnerReset(id, ct))))
+                .WithName("CreateOwnerResetCode").WithSummary("A one-time code (24 hours) for a shop owner who forgot the password");
+
             return app;
         }
 

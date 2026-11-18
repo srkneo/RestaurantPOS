@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { LanguageSwitch, useT } from '../i18n/I18nContext';
 
@@ -48,6 +48,7 @@ const Login = () => {
         <button type="submit" className="btn btn-primary btn-lg" disabled={busy}>
           {busy ? t('login.submitting') : t('login.submit')}
         </button>
+        <Link to="/reset-password" className="text-center">{t('login.forgot')}</Link>
       </form>
     </main>
   );

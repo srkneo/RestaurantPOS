@@ -6,6 +6,8 @@
 #   ./copy-backup.sh              copy the newest backup (backup.sh runs this after each nightly backup)
 #   ./copy-backup.sh requested    only when the owner pressed "Back up now" (update/backup-request): back up, then copy
 set -uo pipefail
+# Cron starts jobs with a short PATH that misses /usr/sbin (blkid, mount). Without this the USB disk is never found.
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
 
 main() {
   cd "$(dirname "$0")" || exit 1

@@ -3,6 +3,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using POSSystem.Data;
+using POSSystem.Models;
 
 namespace POSSystem.Platform
 {
@@ -42,6 +45,43 @@ namespace POSSystem.Platform
             group.MapPost("/backups/run", (ShopBackups backups) => Run(() => Task.FromResult(Results.Ok(backups.RequestNow()))))
                 .RequireAuthorization(p => p.RequireRole("admin"))
                 .WithName("RunShopBackup").WithSummary("Back up now: a fresh backup is made and copied within 2 minutes");
+
+            // Owner forgot the password on a shop PC: support reads a one-time code from the platform page.
+            app.MapPost("/api/auth/owner-reset", async (OwnerResetRequest request, LicenceService licence, UserManager<AppUser> users, CancellationToken ct) =>
+            {
+                if (!licence.Required) return Results.NotFound(new { message = "Ask support to reset your password." });
+                var email = (request.Email ?? "").Trim();
+                var password = request.NewPassword ?? "";
+                if (email == "" || string.IsNullOrWhiteSpace(request.Code) || password == "")
+                    return Results.BadRequest(new { message = "Enter your email, the code from support and a new password." });
+
+                // The newest code comes with a licence renewal (needs internet for a moment; an earlier one may already be here).
+                try { await licence.RenewStored(ct); }
+                catch (Exception e) when (e is not OperationCanceledException) { }
+
+                const string wrong = "The email or the code is not right, or the code has expired. Ask support for a new code.";
+                var user = await users.FindByEmailAsync(email);
+                if (user is null || !user.IsActive || user.IsPlatformAdmin || !await users.IsInRoleAsync(user, "admin")) return Results.BadRequest(new { message = wrong });
+                if (!await licence.CheckOwnerReset(request.Code, use: false, ct)) return Results.BadRequest(new { message = wrong });
+
+                // The password rules are checked before the code is used up, so a weak password does not waste it.
+                foreach (var validator in users.PasswordValidators)
+                {
+                    var check = await validator.ValidateAsync(users, user, password);
+                    if (!check.Succeeded) return Results.BadRequest(new { message = string.Join(" ", check.Errors.Select(e => e.Description)) });
+                }
+                if (!await licence.CheckOwnerReset(request.Code, use: true, ct)) return Results.BadRequest(new { message = wrong });
+
+                await users.RemovePasswordAsync(user);
+                var added = await users.AddPasswordAsync(user, password);
+                if (!added.Succeeded) return Results.BadRequest(new { message = string.Join(" ", added.Errors.Select(e => e.Description)) });
+                await users.SetLockoutEndDateAsync(user, null);
+                await users.ResetAccessFailedCountAsync(user);
+                await users.UpdateSecurityStampAsync(user);
+                return Results.Ok(new { message = "Password changed. Sign in with the new password." });
+            })
+                .AllowAnonymous().RequireRateLimiting(RateLimits.Login).WithTags("Auth")
+                .WithName("ResetOwnerPassword").WithSummary("Shop PC: the owner sets a new password with a one-time code from support");
 
             return app;
         }

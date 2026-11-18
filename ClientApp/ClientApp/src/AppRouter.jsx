@@ -28,6 +28,8 @@ import ShopLicencesPage from './admin/ShopLicencesPage';
 import PlatformSupportPage from './admin/PlatformSupportPage';
 import AboutPage from './about/AboutPage';
 import AppFooter from './about/AppFooter';
+import ServerWatch from './about/ServerWatch';
+import ResetPasswordPage from './components/ResetPasswordPage';
 
 const POS_ROLES = ['cashier', 'manager', 'admin'];
 const KITCHEN_ROLES = ['kitchen', 'manager', 'admin'];
@@ -93,9 +95,11 @@ function Layout() {
   const hideFooter = pathname.startsWith('/kitchen') || pathname.startsWith('/print') || pathname.startsWith('/pos');
   return (
     <>
+      {!pathname.startsWith('/print') && <ServerWatch />}
       {!hideHeader && <AppHeader />}
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/pos" element={<RequireRole roles={POS_ROLES}><POSMenu /></RequireRole>} />
         <Route path="/orders" element={<RequireRole roles={POS_ROLES}><OrderHistory /></RequireRole>} />

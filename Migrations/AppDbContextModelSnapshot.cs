@@ -986,6 +986,17 @@ namespace RestaurantPOS.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<DateTime?>("OwnerResetExpires")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("OwnerResetHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("OwnerResetUsedHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<string>("Payload")
                         .HasColumnType("text");
 
@@ -1382,6 +1393,13 @@ namespace RestaurantPOS.Migrations
                     b.Property<string>("LastVersion")
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
+
+                    b.Property<DateTime?>("OwnerResetExpires")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("OwnerResetHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<DateTime>("PaidUntil")
                         .HasColumnType("timestamp with time zone");

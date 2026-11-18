@@ -133,6 +133,19 @@ namespace POSSystem.Platform
 
         private static string UpdateModeOf(ShopLicence l) => string.IsNullOrEmpty(l.UpdateMode) ? "auto" : l.UpdateMode;
 
+        // A one-time code for a shop owner who forgot the password. Support reads it out; the shop PC gets its hash with
+        // the next renewal (the reset page asks for one). A new code replaces the old one.
+        public async Task<OwnerResetCodeDto> CreateOwnerReset(int id, CancellationToken ct)
+        {
+            var licence = await Find(id, ct);
+            var chars = RandomNumberGenerator.GetBytes(8).Select(b => Alphabet[b % Alphabet.Length]).ToArray();
+            var code = new string(chars, 0, 4) + "-" + new string(chars, 4, 4);
+            licence.OwnerResetHash = OwnerReset.Hash(code);
+            licence.OwnerResetExpires = Now.Add(OwnerReset.Lifetime);
+            await _db.SaveChangesAsync(ct);
+            return new OwnerResetCodeDto(code, licence.OwnerResetExpires.Value);
+        }
+
         // A shop PC asks for a fresh lease. The lease never reaches past the paid period.
         public async Task<RenewResponse> Renew(RenewRequest request, CancellationToken ct)
         {
@@ -162,7 +175,9 @@ namespace POSSystem.Platform
             var lease = now.AddDays(LeaseDays);
             var payload = new LicencePayload(licence.Id.ToString(), licence.Customer, licence.Plan, now, lease < licence.PaidUntil ? lease : licence.PaidUntil, licence.PaidUntil);
             using var privateKey = Licence.PrivateKeyFromBase64(privateKeyText);
-            return new RenewResponse(Licence.Sign(payload, privateKey), now, null, new UpdatePolicyDto(UpdateModeOf(licence), licence.PinnedVersion));
+            var reset = licence.OwnerResetHash is not null && licence.OwnerResetExpires > now
+                ? new OwnerResetInfoDto(licence.OwnerResetHash, licence.OwnerResetExpires.Value) : null;
+            return new RenewResponse(Licence.Sign(payload, privateKey), now, null, new UpdatePolicyDto(UpdateModeOf(licence), licence.PinnedVersion), reset);
         }
 
         private async Task<ShopLicence> Find(int id, CancellationToken ct) =>

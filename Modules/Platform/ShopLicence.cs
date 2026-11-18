@@ -19,6 +19,9 @@ namespace POSSystem.Models
         // Automatic updates for this shop: auto (empty means auto), paused, or pinned to PinnedVersion.
         public string UpdateMode { get; set; } = "auto";
         public string? PinnedVersion { get; set; }
+        // A one-time password reset code for the shop owner (only its hash is kept), valid until OwnerResetExpires.
+        public string? OwnerResetHash { get; set; }
+        public DateTime? OwnerResetExpires { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }
