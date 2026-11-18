@@ -37,6 +37,23 @@ export default function DayReportPage() {
 
   const print = () => window.open(`/print/day?date=${state.report.businessDate}&auto=1`, '_blank', 'noopener');
 
+  // The day in a few lines for the owner or a partner, opened in WhatsApp (they choose who to send it to).
+  const share = () => {
+    const r = state.report;
+    const paid = (method) => formatMoney(r.payments?.find((p) => p.method === method)?.amount ?? 0);
+    const lines = [
+      t('share.title', { restaurant: r.restaurantName, outlet: r.outletName, date: r.businessDate }),
+      t('share.sales', { count: r.billCount, total: formatMoney(r.total) }),
+      t('share.payments', { cash: paid('Cash'), upi: paid('Upi'), card: paid('Card') }),
+    ];
+    if (Number(r.unpaidCount) > 0) lines.push(t('share.unpaid', { count: r.unpaidCount, amount: formatMoney(r.amountDue) }));
+    if (Number(r.expenseTotal ?? 0) > 0 || Number(r.tipTotal ?? 0) > 0) {
+      lines.push(t('share.extra', { expenses: formatMoney(r.expenseTotal ?? 0), tips: formatMoney(r.tipTotal ?? 0) }));
+    }
+    lines.push(t('share.net', { net: formatMoney(r.netSales) }));
+    window.open(`https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`, '_blank', 'noopener');
+  };
+
   return (
     <main className="pos-page">
       <div className="pos-page-head"><h1>{t('dayReport.title')}</h1></div>
@@ -45,6 +62,7 @@ export default function DayReportPage() {
         <input id="report-date" type="date" className="form-control" value={date} onChange={(e) => setDate(e.target.value)} />
         <button type="submit" className="btn btn-outline-secondary">{t('dayReport.show')}</button>
         {state.status === 'ready' && <button type="button" className="btn btn-primary px-4" onClick={print}>{t('dayReport.print')}</button>}
+        {state.status === 'ready' && <button type="button" className="btn btn-outline-success px-4" onClick={share}>{t('share.button')}</button>}
       </form>
       {state.status === 'loading' && <StateMessage kind="loading" />}
       {state.status === 'error' && <StateMessage kind="error" onRetry={() => load(date)} />}
