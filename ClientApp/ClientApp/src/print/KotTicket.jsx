@@ -20,10 +20,12 @@ function byStation(items) {
 
 // Kitchen order ticket: what to cook, big and plain; no prices.
 // With kitchen stations, one ticket per station is printed, each on its own page (the printer cuts between them).
-export default function KotTicket({ order, lang = 'en', width = 80 }) {
+export default function KotTicket({ order, lang = 'en', width = 80, round = null }) {
   const t = printT(lang);
   const dineIn = order.orderType === 'DineIn';
-  const groups = byStation(order.items ?? []);
+  // A running tab prints only the round just added (/print/kot/12?round=2).
+  const all = order.items ?? [];
+  const groups = byStation(round ? all.filter((i) => (i.round ?? 1) === round) : all);
   const showStation = groups.length > 1 || groups[0].key !== '';
   return (
     <>
@@ -32,6 +34,7 @@ export default function KotTicket({ order, lang = 'en', width = 80 }) {
           <div className="receipt-center">
             <div className="receipt-title">{t('print.kot')}</div>
             {showStation && <div className="receipt-big kot-station">{group.key || t('print.mainKitchen')}</div>}
+            {round > 1 && <div className="receipt-big">{t('print.round', { round })}</div>}
             <div className="kot-token">#{order.tokenNumber}</div>
             <div className="receipt-big">
               {dineIn && order.table ? t('print.table', { table: order.table.tableNumber }) : t('print.takeaway')}

@@ -27,12 +27,42 @@ function renderPage() {
   render(<MemoryRouter><I18nProvider><ToastProvider><OrderHistory /></ToastProvider></I18nProvider></MemoryRouter>);
 }
 
+function mockMove() {
+  const calls = [];
+  vi.stubGlobal('fetch', vi.fn(async (url, options) => {
+    calls.push({ url, options });
+    if (url === '/api/tables') {
+      return { ok: true, json: async () => [
+        { id: 1, tableNumber: '1', status: 'Occupied' }, { id: 2, tableNumber: '2', status: 'Free' }, { id: 3, tableNumber: '3', status: 'Billed' }] };
+    }
+    if (url === '/api/orders/50/move') return { ok: true, status: 200, json: async () => ({ id: 50, table: { id: 2, tableNumber: '2' } }) };
+    return { ok: true, json: async () => [{ id: 50, tokenNumber: 21, orderType: 'DineIn', tableId: 1, table: { id: 1, tableNumber: '1' },
+      status: 'Preparing', version: 6, createdAt: '2026-11-14T07:00:00Z', items: [] }] };
+  }));
+  return calls;
+}
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
 });
 
 describe('Order history', () => {
+  it('moves an open dine-in order to a free table', async () => {
+    const calls = mockMove();
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Move table' }));
+    const dialog = await screen.findByRole('dialog');
+    const select = within(dialog).getByLabelText('Move to');
+    await vi.waitFor(() => expect(within(select).getAllByRole('option')).toHaveLength(2));
+    fireEvent.change(select, { target: { value: '2' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Move' }));
+
+    expect(await screen.findByText('Token 21 moved to Table 2.')).toBeInTheDocument();
+    const post = calls.find((c) => c.url === '/api/orders/50/move');
+    expect(JSON.parse(post.options.body)).toEqual({ tableId: 2, version: 6 });
+  });
+
   it('lists orders newest first with type, notes and totals', async () => {
     mockApi();
     renderPage();

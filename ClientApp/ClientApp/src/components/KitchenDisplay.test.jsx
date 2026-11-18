@@ -76,6 +76,14 @@ describe('Kitchen screen', () => {
     localStorage.clear();
   });
 
+  it('marks the lines of a new round', async () => {
+    mockApi([{ id: 9, tokenNumber: 40, tableId: 1, status: 'Received', version: 3, createdAt: minutesAgo(1),
+      items: [{ id: 1, quantity: 2, itemName: 'Butter Naan', round: 1 }, { id: 2, quantity: 1, itemName: 'Lassi', round: 2 }] }]);
+    renderKitchen();
+    const ticket = await screen.findByRole('article', { name: 'Token 40' });
+    expect(within(ticket).getAllByText('Round 2')).toHaveLength(1);
+  });
+
   it('shows takeaway name and line notes', async () => {
     mockApi([{ id: 8, tokenNumber: 5, orderType: 'Takeaway', customerName: 'Ravi', status: 'Received', version: 1, createdAt: minutesAgo(0),
       items: [{ id: 1, quantity: 1, itemName: 'Fries', note: 'Jain' }] }]);

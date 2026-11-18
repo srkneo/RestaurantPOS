@@ -95,7 +95,10 @@ const KitchenDisplay = () => {
         : [...prev, { ...order, createdAt: order.createdAt ?? new Date().toISOString() }]));
     });
     connection.on('OrderUpdated', (order) => {
-      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, ...order } : o)));
+      setOrders((prev) => (prev.some((o) => o.id === order.id)
+        ? prev.map((o) => (o.id === order.id ? { ...o, ...order } : o))
+        // A new round on an order that was already Ready brings it back to this screen.
+        : (ACTIVE.includes(order.status) ? [...prev, { ...order, createdAt: order.createdAt ?? new Date().toISOString() }] : prev)));
     });
     connection.on('OrderStatusChanged', (data) => {
       if (data.status === 'Cancelled' && ordersRef.current.some((o) => o.id === data.orderId)) {
@@ -194,6 +197,7 @@ const KitchenDisplay = () => {
           const minutes = minutesSince(order.createdAt, now);
           const stage = kitchenStage(minutes);
           const cooking = order.status === 'Preparing';
+          const lastRound = Math.max(1, ...(order.items ?? []).map((i) => i.round ?? 1));
           const where = order.orderType === 'Takeaway'
             ? t('pos.takeawayName', { name: order.customerName || '' })
             : t('pos.tableName', { number: order.table?.tableNumber ?? order.tableId });
@@ -214,6 +218,7 @@ const KitchenDisplay = () => {
                   <li key={item.id ?? i}>
                     <span>{item.quantity} x {item.itemName ?? item.name}</span>
                     {shown === 'all' && item.stationName && <span className="kds-station">{item.stationName}</span>}
+                    {lastRound > 1 && (item.round ?? 1) === lastRound && <span className="kds-new-round">{t('kitchen.newRound', { round: lastRound })}</span>}
                     {item.options && <span className="kds-note">+ {item.options}</span>}
                     {item.note && <span className="kds-note">{item.note}</span>}
                   </li>

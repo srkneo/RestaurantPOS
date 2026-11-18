@@ -42,6 +42,7 @@
 .kds-items li { display: flex; flex-direction: column; }
 .kds-note { font-size: 18px; font-weight: 600; font-style: italic; color: #F2C14E; }
 .kds-station { font-size: 14px; font-weight: 700; color: #9FD8C2; text-transform: uppercase; letter-spacing: 0.04em; }
+.kds-new-round { align-self: flex-start; font-size: 14px; font-weight: 700; color: #16211D; background: #F2C14E; border-radius: 6px; padding: 1px 8px; }
 .kds-station-pick { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 600; }
 .kds-station-pick select { font-size: 18px; padding: 6px 10px; border-radius: 8px; }
 .kds-actions { display: flex; gap: 12px; }

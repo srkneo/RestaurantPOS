@@ -100,13 +100,15 @@ export function PrintKotPage() {
     return { order, settings };
   }, [id]);
 
+  const [search] = useSearchParams();
+  const round = Number(search.get('round')) || null;
   const { state, reload, doPrint } = usePrintPage(load, null);
   if (state.status === 'loading') return <StateMessage kind="loading" />;
   if (state.status === 'error') return <StateMessage kind="error" onRetry={reload} />;
   return (
     <>
       <Toolbar onPrint={doPrint} />
-      <KotTicket order={state.order} lang={state.settings.printLanguage} width={state.settings.paperWidth} />
+      <KotTicket order={state.order} lang={state.settings.printLanguage} width={state.settings.paperWidth} round={round} />
     </>
   );
 }

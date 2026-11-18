@@ -674,5 +674,19 @@
   "menu.stationName": "Station name",
   "menu.stationOff": "{name} (off)",
   "menu.stationActive": "In use",
-  "menu.mainKitchen": "Main kitchen"
+  "menu.mainKitchen": "Main kitchen",
+  "pos.tableBusy": "Table {number} · token {token}",
+  "pos.tableBilled": "Table {number} · bill printed",
+  "pos.tabOpen": "Table {number} has token {token} open. New items are added to it.",
+  "pos.tabBilled": "Table {number} has a printed bill. Take payment or void the bill before adding items.",
+  "pos.addToOrder": "Add to token {token}",
+  "pos.roundAdded": "Added to token {token}.",
+  "kitchen.newRound": "Round {round}",
+  "print.round": "Round {round} · added items",
+  "orders.move": "Move table",
+  "orders.moveTitle": "Move token {token}",
+  "orders.moveTo": "Move to",
+  "orders.moveChoose": "Choose a free table",
+  "orders.moveConfirm": "Move",
+  "orders.moved": "Token {token} moved to Table {number}."
 }
