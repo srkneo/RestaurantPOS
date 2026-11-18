@@ -93,6 +93,14 @@ namespace POSSystem.Orders
                 await Change(() => orderService.MoveTable(id, request.TableId, request.Version), order => Results.Ok(order.ToDto())))
                 .WithName("MoveOrderTable").WithSummary("Move an open dine-in order to a free table");
 
+            app.MapPost("/api/orders/{id:int}/merge", async (int id, MergeOrderRequest request, IOrderService orderService) =>
+                await Change(() => orderService.MergeInto(id, request.FromOrderId, request.Version, request.FromVersion), order => Results.Ok(order.ToDto())))
+                .WithName("MergeOrders").WithSummary("Merge another open order (another table) into this one for one bill");
+
+            app.MapPost("/api/orders/{id:int}/split", async (int id, SplitOrderRequest request, IOrderService orderService) =>
+                await Change(() => orderService.Split(id, request.Lines, request.Version), order => Results.Ok(order.ToDto())))
+                .WithName("SplitOrder").WithSummary("Move some items of an order to a new order with its own bill");
+
             return app;
         }
 
