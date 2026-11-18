@@ -86,6 +86,26 @@ describe('Bill dialog', () => {
     expect(posted(calls, 'POST /api/orders/3/bill')).toEqual([{ discountPercent: 20 }, { discountPercent: 20, approverPin: '4321' }]);
   });
 
+  it('sends the bill on WhatsApp to the customer phone', async () => {
+    mockApi({
+      'GET /api/orders/3/bill': {
+        status: 200,
+        body: { ...BILL, customerPhone: '98765 43210', store: { restaurantName: 'Anand Thali House' }, lines: [{ itemName: 'Thali', quantity: 2, amount: 500 }] },
+      },
+    });
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null);
+    renderDialog();
+    fireEvent.click(await screen.findByRole('button', { name: 'Send on WhatsApp' }));
+
+    const url = open.mock.calls[0][0];
+    expect(url.startsWith('https://wa.me/919876543210?text=')).toBe(true);
+    const text = decodeURIComponent(url.split('?text=')[1]);
+    expect(text).toContain('Anand Thali House · Bill INV/26-27/000007');
+    expect(text).toContain('2 x Thali = ₹500.00');
+    expect(text).toContain('Due: ₹500.00');
+    open.mockRestore();
+  });
+
   it('takes cash, shows the change, and marks the bill paid', async () => {
     const calls = mockApi({
       'GET /api/orders/3/bill': { status: 200, body: BILL },
