@@ -64,10 +64,17 @@ jobs:
           test -s "$RUNNER_TEMP/licence-keys/licence-public.b64"
           # Until the real public key is committed as deploy/licence-public.key, the installer test runs without a licence.
           NO_LIC=""; if [ ! -f deploy/licence-public.key ]; then NO_LIC=1; fi
-          # The newest release, looked up signed in: GitHub often refuses anonymous calls from shared test machines.
-          VER="$(curl -fsSL -H "Authorization: Bearer $GHCR_TOKEN" "https://api.github.com/repos/${{ github.repository }}/tags?per_page=100" \
-            | grep -o '"name": *"v[0-9]*\.[0-9]*\.[0-9]*"' | grep -o '[0-9]*\.[0-9]*\.[0-9]*' | sort -V | tail -n 1)"
+          # The newest release whose images are published (right after a tag, the Release workflow may still be building them).
+          # Looked up signed in: GitHub often refuses anonymous calls from shared test machines.
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin > /dev/null
+          VER=""
+          for v in $(curl -fsSL -H "Authorization: Bearer $GHCR_TOKEN" "https://api.github.com/repos/${{ github.repository }}/tags?per_page=100" \
+              | grep -o '"name": *"v[0-9]*\.[0-9]*\.[0-9]*"' | grep -o '[0-9]*\.[0-9]*\.[0-9]*' | sort -rV); do
+            if docker manifest inspect "ghcr.io/srkneo/restaurantpos-api:$v" > /dev/null 2>&1 \
+              && docker manifest inspect "ghcr.io/srkneo/restaurantpos-web:$v" > /dev/null 2>&1; then VER="$v"; break; fi
+          done
           test -n "$VER"
+          echo "Testing with version $VER"
           # Newer sudo ignores -E, so every setting is passed by name.
           sudo POS_VERSION="$VER" POS_NO_LICENCE="$NO_LIC" GHCR_TOKEN="$GHCR_TOKEN" GHCR_USER="$GHCR_USER" POS_FILES_DIR="$PWD/deploy" POS_OWNER_EMAIL=owner@test.local POS_OWNER_PASSWORD='Owner#2026x' bash deploy/shop-install.sh
           sudo grep -q '^ADMIN_PASSWORD=$' /root/pos/.env
@@ -82,3 +89,19 @@ jobs:
           curl -fsS -o /dev/null http://localhost/health
           # The licence settings are replaced, not added twice, when the installer runs again.
           if [ -f deploy/licence-public.key ]; then test "$(sudo grep -c '^LICENCE_REQUIRED=' /root/pos/.env)" = 1; fi
+      - name: An update that does not start is rolled back by itself
+        run: |
+          set -o pipefail
+          VER="$(sudo sed -n 's/^POS_VERSION=//p' /root/pos/version.env)"
+          # A fake version 9.9.9 whose API stops at once, made from the installed version's images.
+          printf 'FROM ghcr.io/srkneo/restaurantpos-api:%s\nENTRYPOINT ["sh", "-c", "exit 1"]\n' "$VER" | docker build -q -t ghcr.io/srkneo/restaurantpos-api:9.9.9 -
+          docker tag "ghcr.io/srkneo/restaurantpos-web:$VER" ghcr.io/srkneo/restaurantpos-web:9.9.9
+          if sudo POS_SKIP_PULL=1 POS_READY_WAIT=30 bash /root/pos/deploy.sh 9.9.9 2>&1 | tee /tmp/update.txt; then
+            echo "deploy.sh should have failed for 9.9.9"; exit 1
+          fi
+          grep -q "Putting version $VER back" /tmp/update.txt
+          grep -q "Version $VER is running again" /tmp/update.txt
+          test "$(sudo cat /root/pos/version.env)" = "POS_VERSION=$VER"
+          curl -fsS -o /dev/null http://localhost/health/ready
+          # The owner made at setup is still there after the database was put back.
+          sudo docker exec pos-db-1 psql -U pos -d restaurant_pos -tAc "SELECT count(*) FROM \"AspNetUsers\" WHERE \"Email\" = 'owner@test.local'" | grep -qx 1

@@ -10,14 +10,16 @@ Address: the server's static IP with dashes plus `.sslip.io`, e.g. `https://13-2
 3. The **Release** workflow builds both images, publishes them to GitHub Packages, copies these files to `~/pos` on the server, backs up the database and starts the new version.
 
 To put an older version back: Actions → Release → Run workflow → enter the version (e.g. `1.4.0`).
-Database changes are not undone automatically; use a backup (below) if needed.
+If the new version is not ready within 3 minutes, `deploy.sh` puts the previous version back by itself, restores the database
+from the backup it made just before, sends a Telegram message and fails the Release run.
+Going back by hand later does not undo database changes; use a backup (below) if needed.
 
 ## Backups
 
 | What | When | Where | Kept |
 |---|---|---|---|
 | Nightly backup (`backup.sh`) | 03:00 India time | `~/pos/backups/nightly` and `s3://<bucket>/nightly` | 7 days on the server, 30 days in S3 |
-| Before each deploy (`deploy.sh`) | every release | `~/pos/backups/before-*.sql.gz` | newest 10 |
+| Before each deploy (`deploy.sh`) | every release | `~/pos/backups/before-*.dump` | newest 10 |
 | Restore test (`restore-test.sh`) | Sunday 03:30 India time | throwaway database, removed after | Telegram ✅ or ❌ |
 
 A failed backup or restore test sends a Telegram message. No ✅ on Sunday morning means something is wrong.
