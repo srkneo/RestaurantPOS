@@ -113,6 +113,26 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task SalesCsv_HasEverySection()
+        {
+            var s = Build();
+            using var f = s.Factory;
+            var naanBill = await Bill(s, s.NaanId, 2);
+            await Bill(s, s.TeaId, 1);
+            Assert.Equal(HttpStatusCode.OK, (await As(f, "cashier").PostAsync($"/api/bills/{naanBill.GetProperty("id").GetInt32()}/payments",
+                Json(new { method = "Cash", amount = 80m, version = naanBill.GetProperty("version").GetInt32() }))).StatusCode);
+
+            var response = await As(f, "manager").GetAsync("/api/reports/sales.csv");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var csv = await response.Content.ReadAsStringAsync();
+            Assert.Contains("Section,Name,Count,Amount", csv);
+            Assert.Contains("Category,Breads,2,80.00", csv);
+            Assert.Contains("Payment,Cash,1,80.00", csv);
+            Assert.Contains("Staff,Not recorded,2,100.00", csv);
+            Assert.Equal(HttpStatusCode.Forbidden, (await As(f, "cashier").GetAsync("/api/reports/sales.csv")).StatusCode);
+        }
+
+        [Fact]
         public async Task GstCsv_ListsEveryBill()
         {
             var s = Build();
