@@ -41,10 +41,11 @@ namespace POSSystem.Orders
                 return order == null ? Results.NotFound() : Results.Ok(order.ToDto());
             }).WithName("GetOrder").WithSummary("Get one order");
 
-            app.MapPost("/api/orders", async (OrderRequest orderRequest, IOrderService orderService, ILogger<OrderService> logger) =>
+            app.MapPost("/api/orders", async (OrderRequest orderRequest, IOrderService orderService, ILogger<OrderService> logger, System.Security.Claims.ClaimsPrincipal user) =>
             {
                 try
                 {
+                    orderRequest.TakenBy = user.FindFirst("display_name")?.Value;
                     var order = await orderService.CreateOrder(orderRequest);
                     logger.LogInformation("Order placed: OrderId={OrderId}, TokenNumber={TokenNumber}, Type={OrderType}", order.Id, order.TokenNumber, order.OrderType);
                     return Results.Ok(new { message = "Order placed", orderId = order.Id, tokenNumber = order.TokenNumber, version = order.Version });

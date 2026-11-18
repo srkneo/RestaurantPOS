@@ -12,6 +12,10 @@ public class OrderRequest
     public string? CustomerPhone { get; set; }
     public List<OrderItemRequest> Items { get; set; } = new();
     public Guid? ClientOrderId { get; set; }
+
+    // Set by the server from the signed-in user, never read from the request body.
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? TakenBy { get; set; }
 }
 
 public class OrderItemRequest

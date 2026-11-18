@@ -99,6 +99,7 @@ namespace POSSystem.Services
                 Items = orderItems,
                 BusinessDate = businessDate,
                 ClientOrderId = orderRequest.ClientOrderId ?? Guid.NewGuid(),
+                TakenBy = orderRequest.TakenBy,
                 Version = 1
             };
             order.TokenNumber = await NextToken(businessDate, settings.FirstToken);

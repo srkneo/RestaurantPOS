@@ -49,6 +49,10 @@ namespace POSSystem.Models
 
         [MaxLength(200)]
         public string? CancelReason { get; set; }
+
+        // Name of the staff member who took the order (the waiter in captain mode); tips go to this person.
+        [MaxLength(100)]
+        public string? TakenBy { get; set; }
     }
 
     // Last token handed out per outlet per business day. Increased in one database statement, so two tills never get the same token.

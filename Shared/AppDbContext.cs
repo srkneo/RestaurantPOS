@@ -146,6 +146,7 @@ namespace POSSystem.Data
             ConfigureSupport(modelBuilder);
             ConfigureMenuOptions(modelBuilder);
             ConfigureStations(modelBuilder);
+            ConfigureTips(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
 
