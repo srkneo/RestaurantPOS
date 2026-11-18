@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import ConfirmDialog from '../ui/ConfirmDialog';
+import MenuOptionsDialog from './MenuOptionsDialog';
 import FormDialog from '../ui/FormDialog';
 import StateMessage from '../ui/StateMessage';
 import { VegMark } from '../components/POSMenu';
@@ -53,6 +54,7 @@ export default function MenuPage() {
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
   const [deleting, setDeleting] = useState(null);
+  const [optionsFor, setOptionsFor] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -222,6 +224,7 @@ export default function MenuPage() {
                       <td>
                         <div className="pos-row-actions">
                           <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openItem(item)}>{t('menu.edit')}</button>
+                          <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => setOptionsFor(item)}>{t('options.button')}</button>
                           <button type="button" className="btn btn-outline-danger btn-sm px-3" onClick={() => setDeleting(item)}>{t('menu.delete')}</button>
                         </div>
                       </td>
@@ -277,6 +280,7 @@ export default function MenuPage() {
         </Field>
       </FormDialog>
 
+      <MenuOptionsDialog item={optionsFor} onClose={() => setOptionsFor(null)} />
       <FormDialog open={dialog === 'category'} title={current ? t('menu.editItem', { name: current.name }) : t('menu.addCategory')} submitLabel={t('staff.save')}
         busy={busy} error={generalError} onCancel={close} onSubmit={save}>
         <Field id="category-name" label={t('menu.categoryName')} error={errors.name}>

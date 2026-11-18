@@ -159,6 +159,7 @@ const KitchenDisplay = () => {
                 {(order.items ?? []).map((item, i) => (
                   <li key={item.id ?? i}>
                     <span>{item.quantity} x {item.itemName ?? item.name}</span>
+                    {item.options && <span className="kds-note">+ {item.options}</span>}
                     {item.note && <span className="kds-note">{item.note}</span>}
                   </li>
                 ))}

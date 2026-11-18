@@ -22,6 +22,7 @@ export default function KotTicket({ order, lang = 'en', width = 80 }) {
       {items.map((item) => (
         <div key={item.id}>
           <div className="receipt-row kot-item"><span>{item.itemName}</span><span>x {item.quantity}</span></div>
+          {item.options && <div className="kot-note">+ {item.options}</div>}
           {item.note && <div className="kot-note">{t('print.note')}: {item.note}</div>}
         </div>
       ))}
