@@ -28,6 +28,8 @@
 .kot-token { font-size: 2.2em; font-weight: 700; }
 .kot-item { font-size: 1.15em; font-weight: 600; }
 .kot-note { font-style: italic; padding-left: 3mm; }
+.kot-station { text-transform: uppercase; }
+.kot-break { break-before: page; page-break-before: always; }
 
 .print-toolbar { display: flex; gap: 8px; justify-content: center; padding: 12px; }
 

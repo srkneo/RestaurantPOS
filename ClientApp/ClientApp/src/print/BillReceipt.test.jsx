@@ -101,6 +101,24 @@ describe('Kitchen ticket', () => {
     expect(screen.queryByText(/220/)).not.toBeInTheDocument();
   });
 
+  it('prints one ticket per kitchen station', () => {
+    const order = { id: 5, tokenNumber: 14, orderType: 'DineIn', table: { id: 1, tableNumber: '2' }, createdAt: '2026-11-15T06:30:00Z',
+      items: [
+        { id: 1, itemName: 'Butter Naan', quantity: 4, stationId: 3, stationName: 'Tandoor' },
+        { id: 2, itemName: 'Dal Fry', quantity: 1 },
+        { id: 3, itemName: 'Lassi', quantity: 2, stationId: 4, stationName: 'Bar' },
+      ] };
+    render(<KotTicket order={order} />);
+    const tickets = screen.getAllByTestId('kot-ticket');
+    expect(tickets).toHaveLength(3);
+    expect(tickets[0]).toHaveTextContent('Main kitchen');
+    expect(tickets[0]).toHaveTextContent('Dal Fry');
+    expect(tickets[1]).toHaveTextContent('Tandoor');
+    expect(tickets[1]).toHaveTextContent('4 items');
+    expect(tickets[1]).not.toHaveTextContent('Dal Fry');
+    expect(tickets[2]).toHaveTextContent('Lassi');
+  });
+
   it('shows the customer for takeaway', () => {
     render(<KotTicket order={{ id: 4, tokenNumber: 13, orderType: 'Takeaway', customerName: 'Ravi', table: null, createdAt: '2026-11-15T06:30:00Z', items: [] }} lang="gu" />);
     expect(screen.getByText('ટેકઅવે')).toBeInTheDocument();

@@ -52,6 +52,30 @@ describe('Kitchen screen', () => {
     expect(screen.getByText('3 orders waiting')).toBeInTheDocument();
   });
 
+  it('shows only the lines of the station chosen on this screen', async () => {
+    localStorage.clear();
+    const orders = [
+      { id: 21, tokenNumber: 31, tableId: 1, status: 'Received', version: 1, createdAt: minutesAgo(2),
+        items: [{ id: 1, quantity: 4, itemName: 'Butter Naan', stationId: 3, stationName: 'Tandoor' }, { id: 2, quantity: 1, itemName: 'Dal Fry' }] },
+      { id: 22, tokenNumber: 32, tableId: 2, status: 'Received', version: 1, createdAt: minutesAgo(1),
+        items: [{ id: 3, quantity: 1, itemName: 'Jeera Rice' }] },
+    ];
+    vi.stubGlobal('fetch', vi.fn(async (url) => {
+      if (url === '/api/orders') return { ok: true, json: async () => orders };
+      if (url === '/api/stations') return { ok: true, json: async () => [{ id: 3, name: 'Tandoor', sortOrder: 1, isActive: true }] };
+      return { ok: false, json: async () => ({}) };
+    }));
+    renderKitchen();
+    const first = await screen.findByRole('article', { name: 'Token 31' });
+    expect(within(first).getByText('Tandoor')).toBeInTheDocument();
+    fireEvent.change(await screen.findByLabelText('Station'), { target: { value: '3' } });
+    expect(within(screen.getByRole('article', { name: 'Token 31' })).getByText('4 x Butter Naan')).toBeInTheDocument();
+    expect(screen.queryByText('1 x Dal Fry')).not.toBeInTheDocument();
+    expect(screen.queryByRole('article', { name: 'Token 32' })).not.toBeInTheDocument();
+    expect(localStorage.getItem('pos.kitchenStation')).toBe('3');
+    localStorage.clear();
+  });
+
   it('shows takeaway name and line notes', async () => {
     mockApi([{ id: 8, tokenNumber: 5, orderType: 'Takeaway', customerName: 'Ravi', status: 'Received', version: 1, createdAt: minutesAgo(0),
       items: [{ id: 1, quantity: 1, itemName: 'Fries', note: 'Jain' }] }]);

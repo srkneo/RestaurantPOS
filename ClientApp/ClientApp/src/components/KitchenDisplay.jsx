@@ -10,6 +10,23 @@ import './KitchenDisplay.css';
 
 const ACTIVE = ['Received', 'Preparing'];
 const POS_ROLES = ['cashier', 'manager', 'admin'];
+const STATION_KEY = 'pos.kitchenStation';
+
+// Which station this screen shows is remembered on this device: 'all', 'main' (items without a station) or a station id.
+function readStation() {
+  try {
+    return localStorage.getItem(STATION_KEY) || 'all';
+  } catch {
+    return 'all';
+  }
+}
+
+function itemsFor(order, station) {
+  const items = order.items ?? [];
+  if (station === 'all') return items;
+  if (station === 'main') return items.filter((i) => !i.stationId);
+  return items.filter((i) => String(i.stationId) === station);
+}
 
 const KitchenDisplay = () => {
   const t = useT();
@@ -23,6 +40,30 @@ const KitchenDisplay = () => {
   const loaded = useRef(false);
   const tRef = useRef(t);
   const ordersRef = useRef([]);
+  const [stations, setStations] = useState([]);
+  const [station, setStation] = useState(readStation);
+
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/stations')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (alive) setStations(Array.isArray(data) ? data.filter((s) => s && typeof s.name === 'string') : []);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const chooseStation = (value) => {
+    setStation(value);
+    try {
+      localStorage.setItem(STATION_KEY, value);
+    } catch {
+      // This device cannot remember the choice; it still works until the page is reloaded.
+    }
+  };
 
   useEffect(() => {
     tRef.current = t;
@@ -112,7 +153,10 @@ const KitchenDisplay = () => {
     }
   };
 
-  const sorted = [...orders].sort(
+  // A station that was removed or switched off falls back to showing everything.
+  const shown = stations.length === 0 ? 'all'
+    : (station === 'all' || station === 'main' || stations.some((s) => String(s.id) === station) ? station : 'all');
+  const sorted = [...orders].filter((o) => shown === 'all' || itemsFor(o, shown).length > 0).sort(
     (a, b) => (parseServerDate(a.createdAt)?.getTime() ?? 0) - (parseServerDate(b.createdAt)?.getTime() ?? 0),
   );
   const user = auth?.user;
@@ -123,6 +167,16 @@ const KitchenDisplay = () => {
       <header className="kds-header">
         <h1>{t('kitchen.title')}</h1>
         <span className="kds-count">{t('kitchen.waitingCount', { count: sorted.length })}</span>
+        {stations.length > 0 && (
+          <div className="kds-station-pick">
+            <label htmlFor="kds-station">{t('kitchen.station')}</label>
+            <select id="kds-station" value={shown} onChange={(e) => chooseStation(e.target.value)}>
+              <option value="all">{t('kitchen.allStations')}</option>
+              <option value="main">{t('kitchen.mainKitchen')}</option>
+              {stations.map((s) => <option key={s.id} value={String(s.id)}>{s.name}</option>)}
+            </select>
+          </div>
+        )}
         <span className={`kds-live${live ? '' : ' off'}`}>
           <span className="kds-dot" aria-hidden="true" />
           {live ? t('kitchen.live') : t('kitchen.offline')}
@@ -156,9 +210,10 @@ const KitchenDisplay = () => {
                 </div>
               </div>
               <ul className="kds-items">
-                {(order.items ?? []).map((item, i) => (
+                {itemsFor(order, shown).map((item, i) => (
                   <li key={item.id ?? i}>
                     <span>{item.quantity} x {item.itemName ?? item.name}</span>
+                    {shown === 'all' && item.stationName && <span className="kds-station">{item.stationName}</span>}
                     {item.options && <span className="kds-note">+ {item.options}</span>}
                     {item.note && <span className="kds-note">{item.note}</span>}
                   </li>
