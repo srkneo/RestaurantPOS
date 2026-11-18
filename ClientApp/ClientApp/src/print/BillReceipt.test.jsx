@@ -101,6 +101,15 @@ describe('Kitchen ticket', () => {
     expect(screen.queryByText(/220/)).not.toBeInTheDocument();
   });
 
+  it('prints only the new round of a running tab', () => {
+    const order = { id: 6, tokenNumber: 15, orderType: 'DineIn', table: { id: 1, tableNumber: '4' }, createdAt: '2026-11-15T06:30:00Z',
+      items: [{ id: 1, itemName: 'Butter Naan', quantity: 2, round: 1 }, { id: 2, itemName: 'Lassi', quantity: 1, round: 2 }] };
+    render(<KotTicket order={order} round={2} />);
+    expect(screen.getByText('Round 2 · added items')).toBeInTheDocument();
+    expect(screen.getByText('Lassi')).toBeInTheDocument();
+    expect(screen.queryByText('Butter Naan')).not.toBeInTheDocument();
+  });
+
   it('prints one ticket per kitchen station', () => {
     const order = { id: 5, tokenNumber: 14, orderType: 'DineIn', table: { id: 1, tableNumber: '2' }, createdAt: '2026-11-15T06:30:00Z',
       items: [

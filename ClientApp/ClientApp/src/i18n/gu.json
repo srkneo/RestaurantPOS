@@ -674,5 +674,19 @@
   "menu.stationName": "સ્ટેશનનું નામ",
   "menu.stationOff": "{name} (બંધ)",
   "menu.stationActive": "ચાલુ",
-  "menu.mainKitchen": "મુખ્ય રસોડું"
+  "menu.mainKitchen": "મુખ્ય રસોડું",
+  "pos.tableBusy": "ટેબલ {number} · ટોકન {token}",
+  "pos.tableBilled": "ટેબલ {number} · બિલ છપાયું",
+  "pos.tabOpen": "ટેબલ {number} પર ટોકન {token} ચાલુ છે. નવી વસ્તુઓ તેમાં ઉમેરાશે.",
+  "pos.tabBilled": "ટેબલ {number} નું બિલ છપાઈ ગયું છે. વસ્તુ ઉમેરતા પહેલાં ચુકવણી લો અથવા બિલ રદ કરો.",
+  "pos.addToOrder": "ટોકન {token} માં ઉમેરો",
+  "pos.roundAdded": "ટોકન {token} માં ઉમેરાયું.",
+  "kitchen.newRound": "રાઉન્ડ {round}",
+  "print.round": "રાઉન્ડ {round} · ઉમેરેલી વસ્તુઓ",
+  "orders.move": "ટેબલ બદલો",
+  "orders.moveTitle": "ટોકન {token} ખસેડો",
+  "orders.moveTo": "આ ટેબલ પર",
+  "orders.moveChoose": "ખાલી ટેબલ પસંદ કરો",
+  "orders.moveConfirm": "ખસેડો",
+  "orders.moved": "ટોકન {token} ટેબલ {number} પર ખસેડાયું."
 }

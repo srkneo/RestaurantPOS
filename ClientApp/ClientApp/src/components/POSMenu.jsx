@@ -59,6 +59,16 @@ const POSMenu = () => {
   // The cashier's own choice wins over the outlet default that arrives with the settings.
   const typeChosen = useRef(false);
 
+  // Table status (free, occupied, billed) changes as orders come and go; only the tables are loaded again for it.
+  const refreshTables = useCallback(async () => {
+    try {
+      const res = await fetch('/api/tables');
+      if (res.ok) setTables(await res.json());
+    } catch {
+      // Keeps the last list; the next change tries again.
+    }
+  }, []);
+
   useEffect(() => {
     tRef.current = t;
   }, [t]);
@@ -164,12 +174,15 @@ const POSMenu = () => {
     const connection = new signalR.HubConnectionBuilder().withUrl('/orderHub').withAutomaticReconnect().build();
     connection.on('OrderStatusChanged', (data) => {
       if (data.status === 'Ready') showToast(tRef.current('pos.orderReady', { token: data.tokenNumber }));
+      refreshTables();
     });
+    connection.on('ReceiveNewOrder', () => refreshTables());
+    connection.on('OrderUpdated', () => refreshTables());
     const started = connection.start().catch((err) => console.error(err));
     return () => {
       started.then(() => connection.stop());
     };
-  }, [showToast]);
+  }, [showToast, refreshTables]);
 
   // Adds one of a line (item, size and extras). The same item with another size or other extras is its own line.
   const addLine = (line) => {
@@ -208,7 +221,42 @@ const POSMenu = () => {
     ...(l.addOnIds?.length ? { addOnIds: l.addOnIds } : {}),
   }));
 
+  const tableInfo = orderType === 'DineIn' ? tables.find((tb) => String(tb.id) === selectedTable) : null;
+  // Running tab: the table already has an open order, so these items become its next round.
+  const tab = !editing && tableInfo?.status === 'Occupied' && tableInfo.orderId ? tableInfo : null;
+
+  const addRound = async (open) => {
+    try {
+      const res = await fetch(`/api/orders/${open.orderId}/add-items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: lines(), version: open.orderVersion }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 409) {
+        showToast(data.code === 'billed' ? t('pos.tabBilled', { number: open.tableNumber }) : t('pos.conflict'), 'error');
+        refreshTables();
+        return;
+      }
+      if (!res.ok) {
+        showToast(data.message || t('pos.orderFailed'), 'error');
+        return;
+      }
+      const round = Math.max(1, ...(data.items ?? []).map((i) => i.round ?? 1));
+      showToast(t('pos.roundAdded', { token: open.tokenNumber }));
+      setLastPlaced({ id: open.orderId, tokenNumber: open.tokenNumber, round });
+      resetOrder();
+      refreshTables();
+    } catch {
+      showToast(t('pos.networkError'), 'error');
+    }
+  };
+
   const placeOrder = async () => {
+    if (!editing && tableInfo?.status === 'Billed') {
+      showToast(t('pos.tabBilled', { number: tableInfo.tableNumber }), 'error');
+      return;
+    }
     if (!editing && orderType === 'DineIn' && !selectedTable) {
       showToast(t('pos.needTable'), 'error');
       return;
@@ -236,6 +284,11 @@ const POSMenu = () => {
       resetOrder();
     };
     setPlacing(true);
+    if (tab) {
+      await addRound(tab);
+      setPlacing(false);
+      return;
+    }
     try {
       const res = editing
         ? await fetch(`/api/orders/${editing.id}/items`, {
@@ -268,6 +321,7 @@ const POSMenu = () => {
       } else {
         showToast(t('pos.orderPlaced', { token: data.tokenNumber }));
         setLastPlaced({ id: data.orderId, tokenNumber: data.tokenNumber });
+        refreshTables();
         resetOrder();
       }
     } catch {
@@ -327,9 +381,17 @@ const POSMenu = () => {
               <select id="pos-table" className="form-select" value={selectedTable} disabled={!!editing} onChange={(e) => setSelectedTable(e.target.value)}>
                 <option value="">{t('pos.chooseTable')}</option>
                 {tables.map((tb) => (
-                  <option key={tb.id} value={tb.id}>{t('pos.tableName', { number: tb.tableNumber })}</option>
+                  <option key={tb.id} value={tb.id}>
+                    {tb.status === 'Occupied' ? t('pos.tableBusy', { number: tb.tableNumber, token: tb.tokenNumber })
+                      : tb.status === 'Billed' ? t('pos.tableBilled', { number: tb.tableNumber })
+                        : t('pos.tableName', { number: tb.tableNumber })}
+                  </option>
                 ))}
               </select>
+              {tab && <div className="pos-hint pos-tab-hint" role="status">{t('pos.tabOpen', { number: tab.tableNumber, token: tab.tokenNumber })}</div>}
+              {!editing && tableInfo?.status === 'Billed' && (
+                <div className="pos-hint text-danger" role="status">{t('pos.tabBilled', { number: tableInfo.tableNumber })}</div>
+              )}
             </div>
           ) : (
             <>
@@ -437,12 +499,15 @@ const POSMenu = () => {
             <span className="fw-semibold">{t('bill.lastOrder', { token: lastPlaced.tokenNumber })}</span>
             <div className="d-flex gap-2">
               <button type="button" className="btn btn-outline-primary btn-sm px-3" onClick={() => setBillOrderId(lastPlaced.id)}>{t('bill.billAndPay')}</button>
-              <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => window.open(`/print/kot/${lastPlaced.id}?auto=1`, '_blank', 'noopener')}>{t('bill.printKot')}</button>
+              <button type="button" className="btn btn-outline-secondary btn-sm px-3"
+                onClick={() => window.open(`/print/kot/${lastPlaced.id}?auto=1${lastPlaced.round > 1 ? `&round=${lastPlaced.round}` : ''}`, '_blank', 'noopener')}>
+                {t('bill.printKot')}
+              </button>
             </div>
           </div>
         )}
         <button type="button" className="btn btn-primary pos-place" onClick={placeOrder} disabled={placing}>
-          {placing ? t('pos.placing') : editing ? t('pos.saveChanges') : t('pos.placeOrder')}
+          {placing ? t('pos.placing') : editing ? t('pos.saveChanges') : tab ? t('pos.addToOrder', { token: tab.tokenNumber }) : t('pos.placeOrder')}
         </button>
         <button type="button" className="btn btn-outline-secondary" onClick={() => setConfirmClear(true)} disabled={cart.length === 0}>
           {t('pos.clearOrder')}

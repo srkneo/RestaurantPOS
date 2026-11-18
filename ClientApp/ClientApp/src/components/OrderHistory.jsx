@@ -31,6 +31,10 @@ const OrderHistory = () => {
   const [cancelError, setCancelError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [billOrderId, setBillOrderId] = useState(null);
+  const [moving, setMoving] = useState(null);
+  const [moveTables, setMoveTables] = useState([]);
+  const [moveTo, setMoveTo] = useState('');
+  const [moveError, setMoveError] = useState(null);
 
   const load = useCallback(async () => {
     setLoadState('loading');
@@ -83,6 +87,54 @@ const OrderHistory = () => {
       load();
     } catch {
       setCancelError(t('pos.networkError'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Guests changed tables: only free tables are offered.
+  const openMove = async (order) => {
+    setMoving(order);
+    setMoveTo('');
+    setMoveError(null);
+    setMoveTables([]);
+    try {
+      const res = await fetch('/api/tables');
+      if (!res.ok) throw new Error('load failed');
+      const list = await res.json();
+      setMoveTables(list.filter((tb) => tb.status === 'Free' && tb.id !== order.tableId));
+    } catch {
+      setMoveError(t('common.error'));
+    }
+  };
+
+  const confirmMove = async () => {
+    if (!moveTo) {
+      setMoveError(t('orders.moveChoose'));
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/orders/${moving.id}/move`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tableId: Number(moveTo), version: moving.version }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 409) {
+        setMoveError(t('pos.conflict'));
+        load();
+        return;
+      }
+      if (!res.ok) {
+        setMoveError(data.message || t('common.error'));
+        return;
+      }
+      showToast(t('orders.moved', { token: moving.tokenNumber, number: data.table?.tableNumber ?? '' }));
+      setMoving(null);
+      load();
+    } catch {
+      setMoveError(t('pos.networkError'));
     } finally {
       setBusy(false);
     }
@@ -154,6 +206,11 @@ const OrderHistory = () => {
                           <button type="button" className="btn btn-outline-danger btn-sm px-3" onClick={() => openCancel(order)}>{t('orders.cancel')}</button>
                         </div>
                       )}
+                      {order.orderType !== 'Takeaway' && ['Received', 'Preparing', 'Ready'].includes(order.status) && (
+                        <div className="pos-row-actions mt-1">
+                          <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openMove(order)}>{t('orders.move')}</button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );
@@ -180,6 +237,16 @@ const OrderHistory = () => {
         )}
       </FormDialog>
       <BillDialog orderId={billOrderId} onClose={() => setBillOrderId(null)} onChanged={load} />
+      <FormDialog open={!!moving} title={t('orders.moveTitle', { token: moving?.tokenNumber ?? '' })} submitLabel={t('orders.moveConfirm')}
+        busy={busy} error={moveError} onCancel={() => setMoving(null)} onSubmit={confirmMove}>
+        <div>
+          <label htmlFor="move-table" className="form-label">{t('orders.moveTo')}</label>
+          <select id="move-table" className="form-select" value={moveTo} onChange={(e) => setMoveTo(e.target.value)}>
+            <option value="">{t('orders.moveChoose')}</option>
+            {moveTables.map((tb) => <option key={tb.id} value={tb.id}>{t('pos.tableName', { number: tb.tableNumber })}</option>)}
+          </select>
+        </div>
+      </FormDialog>
     </main>
   );
 };

@@ -180,6 +180,32 @@ describe('POS screen', () => {
     expect(screen.getByText("Cooking has started, so this order can't be changed.")).toBeInTheDocument();
   });
 
+  it('adds to the open order of an occupied table as a new round', async () => {
+    const calls = [];
+    vi.stubGlobal('fetch', vi.fn(async (url, options) => {
+      calls.push({ url, options });
+      if (url === '/api/menuitems') return { ok: true, json: async () => MENU };
+      if (url === '/api/tables') return { ok: true, json: async () => [{ id: 1, tableNumber: '1', status: 'Occupied', orderId: 42, tokenNumber: 9, orderVersion: 4 }] };
+      if (url === '/api/orders/42/add-items') {
+        return { ok: true, status: 200, json: async () => ({ id: 42, tokenNumber: 9, version: 5, items: [{ id: 1, round: 1 }, { id: 2, round: 2 }] }) };
+      }
+      return { ok: false, status: 404, json: async () => ({}) };
+    }));
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null);
+    renderPos();
+    fireEvent.click(await screen.findByRole('button', { name: 'Add Fries' }));
+    fireEvent.change(screen.getByLabelText('Table'), { target: { value: '1' } });
+    expect(screen.getByText('Table 1 has token 9 open. New items are added to it.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Add to token 9' }));
+
+    expect(await screen.findByText('Added to token 9.')).toBeInTheDocument();
+    const post = calls.find((c) => c.url === '/api/orders/42/add-items');
+    expect(JSON.parse(post.options.body)).toEqual({ items: [{ menuItemId: 3, quantity: 1, note: null }], version: 4 });
+    fireEvent.click(screen.getByRole('button', { name: 'Print KOT' }));
+    expect(open).toHaveBeenCalledWith('/print/kot/42?auto=1&round=2', '_blank', 'noopener');
+    open.mockRestore();
+  });
+
   it('shows a toast when the kitchen marks an order ready', async () => {
     mockApi();
     renderPos();
