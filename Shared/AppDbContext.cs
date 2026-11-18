@@ -150,6 +150,7 @@ namespace POSSystem.Data
             ConfigureCombos(modelBuilder);
             ConfigureExpenses(modelBuilder);
             ConfigureQr(modelBuilder);
+            ConfigureFeedback(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
 
