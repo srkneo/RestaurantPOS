@@ -77,6 +77,15 @@ export default function DayReport({ report, lang = 'en', width = 80 }) {
         </>
       )}
 
+      {(Number(r.tipTotal ?? 0) > 0 || Number(r.expenseTotal ?? 0) > 0) && (
+        <>
+          <div className="receipt-line" />
+          {Number(r.tipTotal ?? 0) > 0 && <Row label={t('print.tips')} value={money(r.tipTotal)} />}
+          {Number(r.expenseTotal ?? 0) > 0 && <Row label={t('print.expenses')} value={money(r.expenseTotal)} />}
+          {Number(r.expenseFromTill ?? 0) > 0 && <Row label={t('print.expensesFromTill')} value={money(r.expenseFromTill)} />}
+        </>
+      )}
+
       {r.items.length > 0 && (
         <>
           <div className="receipt-line" />

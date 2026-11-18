@@ -87,7 +87,8 @@ export default function ReportsPage() {
         <button type="button" className="btn btn-outline-secondary" onClick={() => pick('today')}>{t('reports.today')}</button>
         <button type="button" className="btn btn-outline-secondary" onClick={() => pick('week')}>{t('reports.week')}</button>
         <button type="button" className="btn btn-outline-secondary" onClick={() => pick('month')}>{t('reports.month')}</button>
-        <a className="btn btn-outline-primary ms-auto" href={`/api/reports/gst.csv?from=${range.from}&to=${range.to}`} download>{t('reports.csv')}</a>
+        <a className="btn btn-outline-primary ms-auto" href={`/api/reports/sales.csv?from=${range.from}&to=${range.to}`} download>{t('reports.salesCsv')}</a>
+        <a className="btn btn-outline-primary" href={`/api/reports/gst.csv?from=${range.from}&to=${range.to}`} download>{t('reports.csv')}</a>
       </form>
 
       {state.status === 'loading' && <StateMessage kind="loading" />}

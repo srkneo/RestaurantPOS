@@ -805,5 +805,9 @@
   "expenses.cat.Rent": "ભાડું",
   "expenses.cat.Electricity": "વીજળી",
   "expenses.cat.Repairs": "રિપેર",
-  "expenses.cat.Other": "અન્ય"
+  "expenses.cat.Other": "અન્ય",
+  "print.tips": "ટિપ (વેચાણમાં નહીં)",
+  "print.expenses": "ખર્ચ",
+  "print.expensesFromTill": "ગલ્લામાંથી ખર્ચ",
+  "reports.salesCsv": "વેચાણ ડાઉનલોડ (CSV)"
 }
