@@ -144,6 +144,7 @@ namespace POSSystem.Data
             ConfigureLicence(modelBuilder);
             ConfigureShopLicences(modelBuilder);
             ConfigureSupport(modelBuilder);
+            ConfigureMenuOptions(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
 

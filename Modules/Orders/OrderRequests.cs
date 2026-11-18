@@ -19,6 +19,9 @@ public class OrderItemRequest
     public int MenuItemId { get; set; }
     public int Quantity { get; set; } = 1;
     public string? Note { get; set; }
+    // Size and extras of the item (see Menu/MenuOptionsEndpoints.cs). Prices always come from the menu.
+    public int? VariantId { get; set; }
+    public List<int>? AddOnIds { get; set; }
 }
 
 public class StatusUpdateRequest
