@@ -718,5 +718,12 @@
   "tips.count": "Tips",
   "tips.cash": "In cash",
   "tips.total": "Total",
-  "tips.hint": "Tips are not part of sales or GST. Cash tips are counted in the till shift as cash in."
+  "tips.hint": "Tips are not part of sales or GST. Cash tips are counted in the till shift as cash in.",
+  "nav.tokens": "Token screen",
+  "tokens.title": "Order status",
+  "tokens.preparing": "Preparing",
+  "tokens.ready": "Ready to collect",
+  "tokens.empty": "No orders right now.",
+  "tokens.live": "Live",
+  "tokens.offline": "Reconnecting…"
 }

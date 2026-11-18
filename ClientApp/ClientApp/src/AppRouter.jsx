@@ -6,6 +6,7 @@ import { ToastProvider } from './ui/ToastContext';
 import RequireRole from './components/RequireRole';
 import POSMenu from './components/POSMenu';
 import KitchenDisplay from './components/KitchenDisplay';
+import TokenDisplay from './components/TokenDisplay';
 import OrderHistory from './components/OrderHistory';
 import Login from './components/Login';
 import StaffPage from './admin/StaffPage';
@@ -64,6 +65,7 @@ function AppHeader() {
         {can(POS_ROLES) && <NavLink to="/orders">{t('nav.orders')}</NavLink>}
         {can(POS_ROLES) && <NavLink to="/day-close">{t('nav.dayClose')}</NavLink>}
         {can(KITCHEN_ROLES) && <NavLink to="/kitchen">{t('nav.kitchen')}</NavLink>}
+        {can(KITCHEN_ROLES) && <NavLink to="/tokens">{t('nav.tokens')}</NavLink>}
         {can(MENU_ROLES) && <NavLink to="/admin/menu">{t('nav.menu')}</NavLink>}
         {can(MENU_ROLES) && <NavLink to="/admin/tables">{t('nav.tables')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/staff">{t('nav.staff')}</NavLink>}
@@ -91,10 +93,10 @@ function AppHeader() {
 
 function Layout() {
   const { pathname } = useLocation();
-  const hideHeader = pathname.startsWith('/kitchen') || pathname.startsWith('/login') || pathname.startsWith('/print');
+  const hideHeader = pathname.startsWith('/kitchen') || pathname.startsWith('/tokens') || pathname.startsWith('/login') || pathname.startsWith('/print');
   // The kitchen screen and printouts stay clean; every other screen shows the support line at the bottom.
   // The POS screen fills the window (menu and order side by side), so the footer would push the order buttons off screen.
-  const hideFooter = pathname.startsWith('/kitchen') || pathname.startsWith('/print') || pathname.startsWith('/pos');
+  const hideFooter = pathname.startsWith('/kitchen') || pathname.startsWith('/tokens') || pathname.startsWith('/print') || pathname.startsWith('/pos');
   return (
     <>
       {!pathname.startsWith('/print') && <ServerWatch />}
@@ -108,6 +110,7 @@ function Layout() {
         <Route path="/day-close" element={<RequireRole roles={POS_ROLES}><DayClosePage /></RequireRole>} />
         <Route path="/reports/day" element={<RequireRole roles={MENU_ROLES}><DayReportPage /></RequireRole>} />
         <Route path="/kitchen" element={<RequireRole roles={KITCHEN_ROLES}><KitchenDisplay /></RequireRole>} />
+        <Route path="/tokens" element={<RequireRole roles={KITCHEN_ROLES}><TokenDisplay /></RequireRole>} />
         <Route path="/admin/menu" element={<RequireRole roles={MENU_ROLES}><MenuPage /></RequireRole>} />
         <Route path="/admin/menu/scan" element={<RequireRole roles={MENU_ROLES}><MenuScanPage /></RequireRole>} />
         <Route path="/admin/staff" element={<RequireRole roles={ADMIN_ROLES}><StaffPage /></RequireRole>} />
