@@ -304,6 +304,125 @@ namespace POSSystem.Services
             return order;
         }
 
+        // Open order without a bill, at the version the screen saw.
+        private async Task<KitchenOrder> LoadOpen(int id, int version)
+        {
+            var order = await _context.KitchenOrders.Include(o => o.Items).Include(o => o.Table).FirstOrDefaultAsync(o => o.Id == id)
+                ?? throw new KeyNotFoundException("Order not found.");
+            if (order.Version != version) throw new OrderConflictException("This order was changed on another screen.");
+            if (order.Status is OrderStatus.Completed or OrderStatus.Cancelled) throw new OrderStateException("This order is closed.");
+            if (await _context.Bills.AnyAsync(b => b.KitchenOrderId == id && b.Status != BillStatus.Void))
+                throw new POSSystem.Billing.BilledOrderException();
+            return order;
+        }
+
+        // A copy of an order line for another order (lines are copied, never moved between orders).
+        private static OrderItem CopyLine(OrderItem item, int quantity, int round) => new()
+        {
+            TenantId = item.TenantId, MenuItemId = item.MenuItemId, ItemName = item.ItemName, UnitPrice = item.UnitPrice,
+            Quantity = quantity, Note = item.Note, VariantId = item.VariantId, AddOnIds = item.AddOnIds, Options = item.Options,
+            StationId = item.StationId, StationName = item.StationName, Round = round,
+        };
+
+        private static int Stage(OrderStatus status) => status switch
+        {
+            OrderStatus.Received => 0,
+            OrderStatus.Preparing => 1,
+            _ => 2,
+        };
+
+        // Merge tables: the other order's items join this one as later rounds, and the other order is closed
+        // (cancelled with "Merged into token N", never deleted). One bill for both tables.
+        public async Task<KitchenOrder> MergeInto(int id, int fromOrderId, int version, int fromVersion)
+        {
+            if (id == fromOrderId) throw new ArgumentException("Choose another order to merge.");
+            var order = await LoadOpen(id, version);
+            var from = await LoadOpen(fromOrderId, fromVersion);
+
+            var offset = order.Items.Count == 0 ? 0 : order.Items.Max(i => i.Round);
+            var moving = from.Items.ToList();
+            foreach (var item in moving) order.Items.Add(CopyLine(item, item.Quantity, item.Round + offset));
+            _context.OrderItems.RemoveRange(moving);
+            from.Items.Clear();
+            // The kitchen still has to finish what the other table was waiting for.
+            if (Stage(from.Status) < Stage(order.Status))
+            {
+                order.Status = from.Status;
+                if (order.Status != OrderStatus.Ready) order.ReadyAt = null;
+            }
+            order.Version++;
+
+            from.Status = OrderStatus.Cancelled;
+            from.CancelledAt = DateTime.UtcNow;
+            from.CancelReason = $"Merged into token {order.TokenNumber}";
+            from.Version++;
+            await SaveChecked();
+
+            var group = _hubContext.Clients.Group($"tenant-{order.TenantId}");
+            await group.SendAsync("OrderUpdated", order.ToDto());
+            await group.SendAsync("OrderStatusChanged",
+                new { orderId = from.Id, tokenNumber = from.TokenNumber, status = from.Status.ToString(), version = from.Version, mergedInto = order.TokenNumber });
+            return order;
+        }
+
+        // Split the bill: the chosen quantities move to a new order (new token, same table) that is billed on its own.
+        public async Task<KitchenOrder> Split(int id, List<POSSystem.Orders.SplitLine>? lines, int version)
+        {
+            var order = await LoadOpen(id, version);
+            var chosen = (lines ?? new()).Where(l => l.Quantity > 0).ToList();
+            if (chosen.Count == 0) throw new ArgumentException("Choose the items to split off.");
+            if (chosen.Select(l => l.OrderItemId).Distinct().Count() != chosen.Count) throw new ArgumentException("Each item can be chosen once.");
+            foreach (var line in chosen)
+            {
+                var item = order.Items.FirstOrDefault(i => i.Id == line.OrderItemId)
+                    ?? throw new ArgumentException("An item is not on this order any more. Open the order again.");
+                if (line.Quantity > item.Quantity) throw new ArgumentException($"Only {item.Quantity} x {item.ItemName} on this order.");
+            }
+            if (chosen.Sum(l => l.Quantity) >= order.Items.Sum(i => i.Quantity))
+                throw new ArgumentException("Keep at least one item on this order. To move everything, use Move table.");
+
+            var outlet = await CurrentOutlet();
+            var settings = outlet?.GetSettings() ?? new OutletSettings();
+            var businessDate = TodayFor(outlet);
+            var split = new KitchenOrder
+            {
+                OrderType = order.OrderType,
+                TableId = order.TableId,
+                CustomerName = order.CustomerName,
+                CustomerPhone = order.CustomerPhone,
+                Status = order.Status,
+                PreparingAt = order.PreparingAt,
+                ReadyAt = order.ReadyAt,
+                BusinessDate = businessDate,
+                ClientOrderId = Guid.NewGuid(),
+                Version = 1,
+            };
+            foreach (var line in chosen)
+            {
+                var item = order.Items.First(i => i.Id == line.OrderItemId);
+                split.Items.Add(CopyLine(item, line.Quantity, item.Round));
+                if (line.Quantity == item.Quantity)
+                {
+                    _context.OrderItems.Remove(item);
+                    order.Items.Remove(item);
+                }
+                else
+                {
+                    item.Quantity -= line.Quantity;
+                }
+            }
+            split.TokenNumber = await NextToken(businessDate, settings.FirstToken);
+            _context.KitchenOrders.Add(split);
+            order.Version++;
+            await SaveChecked();
+            split.Table = order.Table;
+
+            var group = _hubContext.Clients.Group($"tenant-{order.TenantId}");
+            await group.SendAsync("OrderUpdated", order.ToDto());
+            await group.SendAsync("ReceiveNewOrder", split.ToDto());
+            return split;
+        }
+
         private async Task<KitchenOrder> LoadForChange(int id, int version)
         {
             var order = await _context.KitchenOrders.Include(o => o.Items).Include(o => o.Table).FirstOrDefaultAsync(o => o.Id == id)

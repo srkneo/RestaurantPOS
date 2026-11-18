@@ -17,6 +17,8 @@ namespace POSSystem.Interfaces
         Task<KitchenOrder> UpdateOrderItems(int id, List<OrderItemRequest> items, int version);
         Task<KitchenOrder> AddItems(int id, List<OrderItemRequest> items, int version);
         Task<KitchenOrder> MoveTable(int id, int tableId, int version);
+        Task<KitchenOrder> MergeInto(int id, int fromOrderId, int version, int fromVersion);
+        Task<KitchenOrder> Split(int id, List<POSSystem.Orders.SplitLine>? lines, int version);
     }
 
     // The order was changed on another screen since this screen loaded it.
