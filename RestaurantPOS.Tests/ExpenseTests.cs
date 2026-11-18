@@ -77,6 +77,10 @@ namespace RestaurantPOS.Tests
             var report = await Read(await As(f, "manager").GetAsync("/api/reports/sales"));
             Assert.Equal(5120m, report.GetProperty("expenseTotal").GetDecimal());
             Assert.Equal(2, report.GetProperty("expenses").GetArrayLength());
+
+            var z = await Read(await As(f, "manager").GetAsync("/api/reports/day"));
+            Assert.Equal(5120m, z.GetProperty("expenseTotal").GetDecimal());
+            Assert.Equal(120m, z.GetProperty("expenseFromTill").GetDecimal());
         }
 
         [Fact]

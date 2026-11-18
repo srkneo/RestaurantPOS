@@ -43,6 +43,7 @@ describe('Reports page', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Show' }));
     await vi.waitFor(() => expect(urls).toContain('/api/reports/sales?from=2026-11-01&to=2026-11-18'));
     expect(screen.getByRole('link', { name: 'Download GST bills (CSV)' })).toHaveAttribute('href', '/api/reports/gst.csv?from=2026-11-01&to=2026-11-18');
+    expect(screen.getByRole('link', { name: 'Download sales (CSV)' })).toHaveAttribute('href', '/api/reports/sales.csv?from=2026-11-01&to=2026-11-18');
   });
 
   it('shows the server message for a range that is too long', async () => {

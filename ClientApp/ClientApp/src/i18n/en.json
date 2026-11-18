@@ -805,5 +805,9 @@
   "expenses.cat.Rent": "Rent",
   "expenses.cat.Electricity": "Electricity",
   "expenses.cat.Repairs": "Repairs",
-  "expenses.cat.Other": "Other"
+  "expenses.cat.Other": "Other",
+  "print.tips": "Tips (not in sales)",
+  "print.expenses": "Expenses",
+  "print.expensesFromTill": "Expenses from till",
+  "reports.salesCsv": "Download sales (CSV)"
 }

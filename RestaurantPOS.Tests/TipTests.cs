@@ -106,6 +106,7 @@ namespace RestaurantPOS.Tests
             var ravi = report.GetProperty("waiters").EnumerateArray().Single(w => w.GetProperty("waiterName").GetString() == "Ravi");
             Assert.Equal(70m, ravi.GetProperty("amount").GetDecimal());
             Assert.Equal(2, ravi.GetProperty("count").GetInt32());
+            Assert.Equal(80m, (await Read(await As(f, "manager").GetAsync("/api/reports/day"))).GetProperty("tipTotal").GetDecimal());
         }
 
         [Fact]

@@ -52,6 +52,18 @@ namespace POSSystem.Billing
                 .WithTags("Reports")
                 .WithName("GetGstCsv").WithSummary("Every bill of a date range with taxable value, CGST and SGST, as CSV for the accountant");
 
+            app.MapGet("/api/reports/sales.csv", async (string? from, string? to, AppDbContext db, BillService bills) =>
+            {
+                var range = await Range(from, to, bills);
+                if (range.Error != null) return Results.BadRequest(new { message = range.Error });
+                var report = await Build(db, range.From, range.To);
+                var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(SalesCsv(report))).ToArray();
+                return Results.File(bytes, "text/csv", $"sales-{range.From:yyyy-MM-dd}-to-{range.To:yyyy-MM-dd}.csv");
+            })
+                .RequireAuthorization(p => p.RequireRole(Managers))
+                .WithTags("Reports")
+                .WithName("GetSalesCsv").WithSummary("The sales report of a date range as CSV: days, categories, items, payments, hours, staff, expenses");
+
             return app;
         }
 
@@ -129,6 +141,24 @@ namespace POSSystem.Billing
                     b.Status.ToString(), Cell(b.CustomerName), Money(b.TaxableValue), Money(b.Cgst), Money(b.Sgst), Money(b.RoundOff), Money(b.Total));
                 csv.Append(csvLine).Append("\r\n");
             }
+            return csv.ToString();
+        }
+
+        // One row per figure, so it opens straight in Excel: Section, Name, Count, Amount.
+        public static string SalesCsv(SalesReportDto r)
+        {
+            var csv = new StringBuilder("Section,Name,Count,Amount\r\n");
+            void Row(string section, string? name, decimal count, decimal amount) =>
+                csv.Append(string.Join(",", section, Cell(name), count.ToString(CultureInfo.InvariantCulture), Money(amount))).Append("\r\n");
+            Row("Total", "Bills", r.BillCount, r.Total);
+            Row("Total", "Net sales", r.BillCount, r.NetSales);
+            foreach (var d in r.Days) Row("Day", d.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), d.Bills, d.Total);
+            foreach (var c in r.Categories) Row("Category", c.Category, c.Quantity, c.Amount);
+            foreach (var i in r.Items) Row("Item", i.ItemName, i.Quantity, i.Amount);
+            foreach (var p in r.Payments) Row("Payment", p.Method, p.Count, p.Amount);
+            foreach (var h in r.Hours) Row("Hour", $"{h.Hour:00}:00", h.Bills, h.Total);
+            foreach (var s in r.Staff) Row("Staff", s.Name ?? "Not recorded", s.Bills, s.Total);
+            foreach (var e in r.Expenses ?? new List<ExpenseTotalDto>()) Row("Expense", e.Category, e.Count, e.Amount);
             return csv.ToString();
         }
 

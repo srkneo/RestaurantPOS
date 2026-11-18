@@ -36,6 +36,18 @@ afterEach(() => {
 });
 
 describe('Day report page', () => {
+  it('shows tips and expenses on the Z report', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url) => {
+      if (url === '/api/print-settings') return { ok: true, status: 200, json: async () => ({ paperWidth: 80, printLanguage: 'en', upiReady: false }) };
+      if (url.startsWith('/api/reports/day')) return { ok: true, status: 200, json: async () => ({ ...REPORT, tipTotal: 80, expenseTotal: 5120, expenseFromTill: 120 }) };
+      return { ok: false, status: 404, json: async () => ({}) };
+    }));
+    render(<I18nProvider><DayReportPage /></I18nProvider>);
+    expect(await screen.findByText('Tips (not in sales)')).toBeInTheDocument();
+    expect(screen.getByText('5120.00')).toBeInTheDocument();
+    expect(screen.getByText('Expenses from till')).toBeInTheDocument();
+  });
+
   it('shows tips per waiter under the report', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url) => {
       if (url === '/api/print-settings') return { ok: true, status: 200, json: async () => ({ paperWidth: 80, printLanguage: 'en', upiReady: false }) };

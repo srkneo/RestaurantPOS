@@ -28,7 +28,7 @@ namespace POSSystem.Billing
         IReadOnlyList<TaxSummaryRow> TaxSummary, IReadOnlyList<ItemSalesDto> Items,
         int VoidCount, decimal VoidTotal, IReadOnlyList<VoidedBillDto> VoidedBills, IReadOnlyList<ShiftDto> Shifts,
         IReadOnlyList<CreditNoteSummaryDto> CreditNotes, decimal CreditTaxable, decimal CreditCgst, decimal CreditSgst, decimal CreditTotal,
-        decimal NetSales);
+        decimal NetSales, decimal TipTotal = 0m, decimal ExpenseTotal = 0m, decimal ExpenseFromTill = 0m);
 
     // Till shifts (open with float, cash in/out, close with count) and the end-of-day (Z) report.
     public class DayCloseService
@@ -191,6 +191,10 @@ namespace POSSystem.Billing
             var creditList = credits.Select(c => new CreditNoteSummaryDto(c.Id, c.Number, c.BillId, creditBillNumbers.GetValueOrDefault(c.BillId, string.Empty),
                 c.Total, c.Reason, c.RefundMethod?.ToString(), c.RefundAmount)).ToList();
 
+            // Tips and expenses of the day: shown on the Z report, never part of sales.
+            var tipTotal = await _db.Tips.Where(x => x.OutletId == _db.CurrentOutletId && x.BusinessDate == date).SumAsync(x => x.Amount);
+            var dayExpenses = await _db.Expenses.Where(x => x.OutletId == _db.CurrentOutletId && x.BusinessDate == date).ToListAsync();
+
             var shifts = new List<ShiftDto>();
             foreach (var shift in await GetShifts(date)) shifts.Add(await Describe(shift));
 
@@ -202,7 +206,8 @@ namespace POSSystem.Billing
                 BillCalculator.TaxSummary(bills.Where(b => b.TaxMode == TaxMode.Regular).SelectMany(b => b.Lines)), items,
                 voided.Count, voided.Sum(b => b.Total), voided.Select(b => new VoidedBillDto(b.Id, b.InvoiceNumber, b.Total, b.VoidReason)).ToList(),
                 shifts, creditList, credits.Sum(c => c.TaxableValue), credits.Sum(c => c.Cgst), credits.Sum(c => c.Sgst),
-                credits.Sum(c => c.Total), bills.Sum(b => b.Total) - credits.Sum(c => c.Total));
+                credits.Sum(c => c.Total), bills.Sum(b => b.Total) - credits.Sum(c => c.Total),
+                tipTotal, dayExpenses.Sum(e => e.Amount), dayExpenses.Where(e => e.PaidFrom == ExpensePaidFrom.Till).Sum(e => e.Amount));
         }
     }
 }
