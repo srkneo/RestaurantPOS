@@ -16,7 +16,8 @@ namespace POSSystem.Platform
 {
     public record RenewRequest(string Key, string DeviceId, string Version);
     // Support carries the support details from the cloud, so a shop PC shows the same footer and About page.
-    public record RenewResponse(LicenceFile Licence, DateTime ServerTimeUtc, SupportInfoDto? Support = null);
+    // Updates carries support's update setting for this shop (auto, paused or pinned).
+    public record RenewResponse(LicenceFile Licence, DateTime ServerTimeUtc, SupportInfoDto? Support = null, UpdatePolicyDto? Updates = null);
     public record ActivateRequest(string? Key);
     public record LicenceStatusDto(string State, bool Locked, string? Customer, string? Plan, DateTime? LeaseUntil, DateTime? PaidUntil, string Message, bool Required);
 
@@ -87,8 +88,10 @@ namespace POSSystem.Platform
 
         public bool Required => string.Equals(_config["Licence:Required"], "true", StringComparison.OrdinalIgnoreCase);
 
-        private static string AppVersion =>
-            Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "";
+        // The released version (App:Version, from version.env), so support sees which version each shop runs.
+        private string AppVersion =>
+            !string.IsNullOrWhiteSpace(_config["App:Version"]) ? _config["App:Version"]!
+            : Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "";
 
         public LicenceStatusDto Describe(LicenceStatus s) =>
             new(s.State.ToString(), s.Locked, s.Customer, s.Plan, s.LeaseUntil, s.PaidUntil, s.Message, Required);
@@ -162,6 +165,8 @@ namespace POSSystem.Platform
                 // The support details from the cloud, for the footer and the About page on this PC.
                 if (response.Support is not null && SupportService.Validate(response.Support).Count == 0)
                     SupportService.Apply(db, SupportService.Clean(response.Support), now);
+                // Support's update setting, for deploy/auto-update.sh on this PC.
+                if (response.Updates is not null) ShopUpdates.WritePolicy(_config, response.Updates);
                 // The cloud's clock is the truth. When this PC agrees with it, forget an older "last seen" time
                 // that came from a clock that was wrong once; otherwise the PC could never unlock itself.
                 if ((response.ServerTimeUtc.ToUniversalTime() - now).Duration() <= Licence.ClockSlack) record.LastSeenUtc = now;

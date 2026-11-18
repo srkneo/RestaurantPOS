@@ -12,7 +12,9 @@ using POSSystem.Models;
 namespace POSSystem.Platform
 {
     public record ShopLicenceDto(int Id, string Key, string Customer, string Plan, string State, DateTime PaidUntil, bool Revoked,
-        bool DeviceBound, DateTime? LastSeenAt, string? LastVersion, DateTime CreatedAt);
+        bool DeviceBound, DateTime? LastSeenAt, string? LastVersion, DateTime CreatedAt, string UpdateMode, string? PinnedVersion);
+
+    public record ShopLicenceUpdatesRequest(string? Mode, string? Version);
 
     public record CreateShopLicenceRequest(string? Customer, string? Plan, int? Days);
 
@@ -63,7 +65,8 @@ namespace POSSystem.Platform
         {
             var now = Now;
             var state = l.Revoked ? "Revoked" : now > l.PaidUntil ? "Expired" : l.Plan == "trial" ? "Trial" : "Active";
-            return new ShopLicenceDto(l.Id, l.Key, l.Customer, l.Plan, state, l.PaidUntil, l.Revoked, l.DeviceId is not null, l.LastSeenAt, l.LastVersion, l.CreatedAt);
+            return new ShopLicenceDto(l.Id, l.Key, l.Customer, l.Plan, state, l.PaidUntil, l.Revoked, l.DeviceId is not null, l.LastSeenAt, l.LastVersion, l.CreatedAt,
+                UpdateModeOf(l), l.PinnedVersion);
         }
 
         public async Task<List<ShopLicenceDto>> List(CancellationToken ct) =>
@@ -114,6 +117,22 @@ namespace POSSystem.Platform
             return Describe(licence);
         }
 
+        // Automatic updates for one shop. Pinned keeps the shop on that version (it never goes back to an older one by itself).
+        public async Task<ShopLicenceDto> SetUpdates(int id, ShopLicenceUpdatesRequest request, CancellationToken ct)
+        {
+            var mode = (request.Mode ?? "").Trim().ToLowerInvariant();
+            if (Array.IndexOf(ShopUpdates.Modes, mode) < 0) throw new ArgumentException("Choose auto, paused or pinned.");
+            var version = (request.Version ?? "").Trim().TrimStart('v', 'V');
+            if (mode == "pinned" && !ShopUpdates.IsVersion(version)) throw new ArgumentException("Enter the version to keep, like 1.7.3.");
+            var licence = await Find(id, ct);
+            licence.UpdateMode = mode;
+            licence.PinnedVersion = mode == "pinned" ? version : null;
+            await _db.SaveChangesAsync(ct);
+            return Describe(licence);
+        }
+
+        private static string UpdateModeOf(ShopLicence l) => string.IsNullOrEmpty(l.UpdateMode) ? "auto" : l.UpdateMode;
+
         // A shop PC asks for a fresh lease. The lease never reaches past the paid period.
         public async Task<RenewResponse> Renew(RenewRequest request, CancellationToken ct)
         {
@@ -143,7 +162,7 @@ namespace POSSystem.Platform
             var lease = now.AddDays(LeaseDays);
             var payload = new LicencePayload(licence.Id.ToString(), licence.Customer, licence.Plan, now, lease < licence.PaidUntil ? lease : licence.PaidUntil, licence.PaidUntil);
             using var privateKey = Licence.PrivateKeyFromBase64(privateKeyText);
-            return new RenewResponse(Licence.Sign(payload, privateKey), now);
+            return new RenewResponse(Licence.Sign(payload, privateKey), now, null, new UpdatePolicyDto(UpdateModeOf(licence), licence.PinnedVersion));
         }
 
         private async Task<ShopLicence> Find(int id, CancellationToken ct) =>

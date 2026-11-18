@@ -53,6 +53,10 @@ namespace POSSystem.Platform
                 Run(async () => Results.Ok(await issuer.ResetDevice(id, ct))))
                 .WithName("ResetShopLicenceDevice").WithSummary("Let the licence be used on a different PC");
 
+            group.MapPost("/{id:int}/updates", (int id, ShopLicenceUpdatesRequest request, LicenceIssuer issuer, CancellationToken ct) =>
+                Run(async () => Results.Ok(await issuer.SetUpdates(id, request, ct))))
+                .WithName("SetShopLicenceUpdates").WithSummary("Automatic updates for this shop: auto, paused, or pinned to one version");
+
             return app;
         }
 

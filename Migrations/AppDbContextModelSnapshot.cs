@@ -1386,6 +1386,10 @@ namespace RestaurantPOS.Migrations
                     b.Property<DateTime>("PaidUntil")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("PinnedVersion")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<string>("Plan")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -1393,6 +1397,11 @@ namespace RestaurantPOS.Migrations
 
                     b.Property<bool>("Revoked")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("UpdateMode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.HasKey("Id");
 

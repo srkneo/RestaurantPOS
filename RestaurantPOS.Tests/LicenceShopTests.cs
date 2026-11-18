@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -26,10 +27,16 @@ namespace RestaurantPOS.Tests
     {
         private readonly WebApplicationFactory<Program> _factory;
         private readonly ECDsa _key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        // Stands in for the folder shared with deploy/auto-update.sh (one per test).
+        private readonly string _updates = Directory.CreateTempSubdirectory("pos-updates-").FullName;
 
         public LicenceShopTests(WebApplicationFactory<Program> factory) => _factory = factory;
 
-        public void Dispose() => _key.Dispose();
+        public void Dispose()
+        {
+            _key.Dispose();
+            try { Directory.Delete(_updates, true); } catch (IOException) { }
+        }
 
         private class FakeCloud : ILicenceCloud
         {
@@ -59,7 +66,8 @@ namespace RestaurantPOS.Tests
                 builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     ["Licence:Required"] = required ? "true" : "false",
-                    ["Licence:PublicKey"] = publicKey
+                    ["Licence:PublicKey"] = publicKey,
+                    ["Updates:Folder"] = _updates
                 }));
                 builder.ConfigureServices(services =>
                 {
@@ -248,6 +256,56 @@ namespace RestaurantPOS.Tests
             Assert.True(about.GetProperty("shopPc").GetBoolean());
             Assert.Equal("Anand Restaurant", about.GetProperty("licenceCustomer").GetString());
             Assert.Equal(8, about.GetProperty("deviceCode").GetString()!.Length);
+        }
+
+        [Fact]
+        public async Task Renewal_WritesSupportsUpdateSetting_ForTheUpdateScript()
+        {
+            var f = Build(new FakeCloud { Handler = _ => (Signed().Item1! with { Updates = new UpdatePolicyDto("pinned", "1.7.3") }, null) });
+            Assert.Equal(HttpStatusCode.OK, (await As(f, "admin").PostAsync("/api/licence/activate", Json(new { key = "KEY-1" }))).StatusCode);
+            Assert.Equal("mode=pinned\nversion=1.7.3\n", File.ReadAllText(Path.Combine(_updates, "policy")));
+
+            var updates = await Read(await As(f, "admin").GetAsync("/api/licence/updates"));
+            Assert.True(updates.GetProperty("available").GetBoolean());
+            Assert.Equal("pinned", updates.GetProperty("mode").GetString());
+            Assert.Equal("1.7.3", updates.GetProperty("pinnedVersion").GetString());
+        }
+
+        [Fact]
+        public async Task Renewal_NeverPassesAStrangeVersionToTheUpdateScript()
+        {
+            var f = Build(new FakeCloud { Handler = _ => (Signed().Item1! with { Updates = new UpdatePolicyDto("pinned", "1.7.3; rm -rf /") }, null) });
+            await As(f, "admin").PostAsync("/api/licence/activate", Json(new { key = "KEY-1" }));
+            Assert.Equal("mode=auto\nversion=\n", File.ReadAllText(Path.Combine(_updates, "policy")));
+        }
+
+        [Fact]
+        public async Task UpdateNow_LeavesARequest_AndShowsTheLastResult()
+        {
+            var f = Build(new FakeCloud());
+            File.WriteAllText(Path.Combine(_updates, "status.json"),
+                "{\"checkedAt\":\"2026-11-19T22:00:00Z\",\"trigger\":\"nightly\",\"current\":\"1.7.4\",\"target\":\"1.7.4\",\"result\":\"up-to-date\",\"message\":\"Version 1.7.4 is the newest.\"}\n");
+
+            var before = await Read(await As(f, "admin").GetAsync("/api/licence/updates"));
+            Assert.Equal("up-to-date", before.GetProperty("status").GetProperty("result").GetString());
+            Assert.Equal("1.7.4", before.GetProperty("status").GetProperty("current").GetString());
+            Assert.False(before.GetProperty("requested").GetBoolean());
+
+            Assert.Equal(HttpStatusCode.Forbidden, (await As(f, "cashier").PostAsync("/api/licence/updates/run", null)).StatusCode);
+            var run = await As(f, "admin").PostAsync("/api/licence/updates/run", null);
+            Assert.Equal(HttpStatusCode.OK, run.StatusCode);
+            Assert.True((await Read(run)).GetProperty("requested").GetBoolean());
+            Assert.True(File.Exists(Path.Combine(_updates, "request")));
+        }
+
+        [Fact]
+        public async Task UpdateNow_WhenSupportPausedUpdates_IsRefused()
+        {
+            var f = Build(new FakeCloud());
+            File.WriteAllText(Path.Combine(_updates, "policy"), "mode=paused\nversion=\n");
+            var run = await As(f, "admin").PostAsync("/api/licence/updates/run", null);
+            Assert.Equal(HttpStatusCode.BadRequest, run.StatusCode);
+            Assert.False(File.Exists(Path.Combine(_updates, "request")));
         }
 
         [Fact]
