@@ -64,6 +64,17 @@ namespace POSSystem.Billing
                 .WithTags("Reports")
                 .WithName("GetSalesCsv").WithSummary("The sales report of a date range as CSV: days, categories, items, payments, hours, staff, expenses");
 
+            app.MapGet("/api/reports/tally.xml", async (string? from, string? to, AppDbContext db, BillService bills) =>
+            {
+                var range = await Range(from, to, bills);
+                if (range.Error != null) return Results.BadRequest(new { message = range.Error });
+                var bytes = TallyExport.Bytes(await TallyExport.Xml(db, range.From, range.To));
+                return Results.File(bytes, "application/xml", $"tally-sales-{range.From:yyyy-MM-dd}-to-{range.To:yyyy-MM-dd}.xml");
+            })
+                .RequireAuthorization(p => p.RequireRole(Managers))
+                .WithTags("Reports")
+                .WithName("GetTallyXml").WithSummary("Day sales of a date range as Tally vouchers (XML for Tally Import Data)");
+
             return app;
         }
 
