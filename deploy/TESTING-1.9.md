@@ -34,5 +34,19 @@ Test on the local POS (or WSL shop PC) as owner, cashier, waiter and kitchen. Ti
 - [ ] Footer > Help in English and Gujarati.
 - [ ] Platform > Demo data on an empty restaurant fills menu and three orders; a restaurant with orders has no Demo data button.
 
+## POS and billing (later items)
+- [ ] POS > Tables: tiles show free / busy with token and minutes / bill printed; tapping a tile picks the table.
+- [ ] Billing settings > Cashier discount limit 10: as cashier a 20% discount asks for a manager PIN; wrong PIN refused; right PIN makes the bill; Audit log shows it; as manager no PIN asked.
+- [ ] Bill > Send on WhatsApp: opens WhatsApp with items and total; with a customer phone it opens that chat.
+
+## Guests
+- [ ] Store > Google review link: save a https link; printed bill shows the review QR; scanning opens the review page.
+- [ ] Store > Feedback QR on: printed bill shows the feedback QR; scan from a phone; give 4 stars and a comment; second try says already given.
+- [ ] Feedback page lists it with the average; turning Feedback QR off makes the old QR say the link does not work.
+- [ ] With Feedback QR on, the WhatsApp bill message has the feedback link.
+
+## Accountant
+- [ ] Reports > Download for Tally (XML): file opens; in Tally (if available) Import Data > Vouchers accepts it after creating the 8 ledgers; a credit note day has a Credit Note voucher.
+
 ## Shop PC (still from 1.7)
 - [ ] Update now shows the "POS is restarting" screen, then the blue reload bar.
