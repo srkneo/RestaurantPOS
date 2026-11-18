@@ -58,6 +58,7 @@ try
     builder.Services.AddScoped<BillService>();
     builder.Services.AddScoped<DayCloseService>();
     builder.Services.AddScoped<TipService>();
+    builder.Services.AddScoped<ExpenseService>();
     builder.Services.AddMemoryCache();
     builder.Services.AddScoped<ApprovalService>();
     builder.Services.AddScoped<CreditNoteService>();
@@ -84,6 +85,7 @@ try
     app.MapDayCloseEndpoints();
     app.MapTipEndpoints();
     app.MapReportEndpoints();
+    app.MapExpenseEndpoints();
     app.MapApprovalEndpoints();
     app.MapLicenceEndpoints();
     app.MapLicenceServerEndpoints();
