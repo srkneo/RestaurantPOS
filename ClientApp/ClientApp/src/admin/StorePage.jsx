@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
+import ReviewLinkCard from './ReviewLinkCard';
 import { readErrors, send, Field } from '../ui/forms';
 import '../components/OrderHistory.css';
 import './StaffPage.css';
@@ -181,6 +182,7 @@ export default function StorePage() {
                         <p className="pos-hint mb-0">{t('store.logoHint')}</p>
                         {errors.logo && <div className="invalid-feedback d-block">{errors.logo}</div>}
                     </section>
+                    <ReviewLinkCard />
                 </>
             )}
         </main>

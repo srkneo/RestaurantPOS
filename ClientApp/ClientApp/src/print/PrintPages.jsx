@@ -68,7 +68,10 @@ export function PrintBillPage() {
   const load = useCallback(async () => {
     const [bill, settings] = await Promise.all([loadJson(`/api/bills/${id}`), loadJson('/api/print-settings')]);
     const showQr = settings.upiReady && bill.status === 'Unpaid' && Number(bill.amountDue) > 0;
-    return { bill, settings, duplicate: bill.printCount > 0, qrUrl: showQr ? `/api/bills/${id}/upi-qr.svg?due=${bill.amountDue}` : null };
+    return {
+      bill, settings, duplicate: bill.printCount > 0, qrUrl: showQr ? `/api/bills/${id}/upi-qr.svg?due=${bill.amountDue}` : null,
+      reviewQrUrl: settings.reviewReady && bill.status !== 'Void' ? '/api/review-qr.svg' : null,
+    };
   }, [id]);
 
   // Counted after printing; any later print of this bill says DUPLICATE.
@@ -88,7 +91,7 @@ export function PrintBillPage() {
     <>
       <Toolbar onPrint={doPrint} />
       <BillReceipt bill={state.bill} lang={state.settings.printLanguage} width={state.settings.paperWidth}
-        duplicate={state.duplicate} qrUrl={state.qrUrl} />
+        duplicate={state.duplicate} qrUrl={state.qrUrl} reviewQrUrl={state.reviewQrUrl} />
     </>
   );
 }
