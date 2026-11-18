@@ -606,5 +606,17 @@
   "licence.update.confirmTitle": "Update this PC now?",
   "licence.update.confirmText": "The POS restarts and is away for about a minute. Do it when no bills are being made. If the new version does not start, the old one comes back by itself.",
   "licence.update.confirm": "Update now",
-  "licence.update.pausedHint": "Support has paused updates for this PC."
+  "licence.update.pausedHint": "Support has paused updates for this PC.",
+  "backup.title": "Backups",
+  "backup.lastBackup": "Last backup on this PC",
+  "backup.lastCopy": "Last copy off this PC",
+  "backup.never": "Not yet",
+  "backup.warning": "The last copy off this PC is too old. Plug in the backup USB disk, then press Back up now.",
+  "backup.howTo": "A backup is made every night at 03:00 and copied to the USB disk named POSBACKUP (or the NAS set up by support). Keep the disk plugged in.",
+  "backup.now": "Back up now",
+  "backup.requested": "Backup asked for. It runs within 2 minutes; keep the USB disk plugged in.",
+  "backup.bannerTitle": "Backups need attention.",
+  "backup.bannerNoDisk": "Plug in the backup USB disk (POSBACKUP); no copy has been made for more than 2 days.",
+  "backup.bannerOld": "Plug in the backup USB disk; the last backup copy is more than 2 days old.",
+  "backup.bannerAction": "Open backups"
 }
