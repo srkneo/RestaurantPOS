@@ -13,7 +13,7 @@ namespace POSSystem.Billing
 {
     // Tally export (v1.9): one Sales voucher per business day for Tally Prime / ERP 9 "Import Data".
     // Debit: money received by method, plus what is still unpaid. Credit: sales, CGST, SGST, round off.
-    // Every voucher balances; void bills are left out; credit notes are not part of this file.
+    // Every voucher balances; void bills are left out; credit notes come as Credit Note vouchers on the day they are issued.
     public static class TallyExport
     {
         public const string CashLedger = "Cash";
@@ -34,6 +34,15 @@ namespace POSSystem.Billing
             var message = new XElement("TALLYMESSAGE");
             foreach (var day in bills.GroupBy(b => b.BusinessDate).OrderBy(g => g.Key))
                 message.Add(Voucher(day.Key, day.ToList()));
+
+            var notes = await db.CreditNotes.AsNoTracking()
+                .Where(c => c.OutletId == db.CurrentOutletId && c.BusinessDate >= from && c.BusinessDate <= to)
+                .OrderBy(c => c.FinancialYear).ThenBy(c => c.Sequence).ToListAsync();
+            var noteBillIds = notes.Select(c => c.BillId).ToList();
+            var billNumbers = await db.Bills.AsNoTracking().Where(b => noteBillIds.Contains(b.Id))
+                .ToDictionaryAsync(b => b.Id, b => b.InvoiceNumber);
+            foreach (var note in notes)
+                message.Add(CreditVoucher(note, billNumbers.TryGetValue(note.BillId, out var number) ? number : note.BillId.ToString(CultureInfo.InvariantCulture)));
 
             var envelope = new XElement("ENVELOPE",
                 new XElement("HEADER", new XElement("TALLYREQUEST", "Import Data")),
@@ -84,6 +93,39 @@ namespace POSSystem.Billing
             Entry(SgstLedger, sgst);
             Entry(RoundOffLedger, roundOff);
             return voucher;
+        }
+
+        // A credit note reverses its bill: sales, CGST, SGST and round off are debited; the refund (or what was unpaid) is credited.
+        private static XElement CreditVoucher(CreditNote note, string billNumber)
+        {
+            var voucher = new XElement("VOUCHER", new XAttribute("VCHTYPE", "Credit Note"), new XAttribute("ACTION", "Create"),
+                new XElement("DATE", note.BusinessDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture)),
+                new XElement("VOUCHERTYPENAME", "Credit Note"),
+                new XElement("VOUCHERNUMBER", note.Number),
+                new XElement("NARRATION", $"Credit note {note.Number} for bill {billNumber}: {note.Reason}"));
+            var refundLedger = note.RefundMethod switch
+            {
+                PaymentMethod.Upi => UpiLedger,
+                PaymentMethod.Card => CardLedger,
+                _ => CashLedger
+            };
+            AddEntry(voucher, SalesLedger, -(note.Total - note.Cgst - note.Sgst - note.RoundOff));
+            AddEntry(voucher, CgstLedger, -note.Cgst);
+            AddEntry(voucher, SgstLedger, -note.Sgst);
+            AddEntry(voucher, RoundOffLedger, -note.RoundOff);
+            AddEntry(voucher, refundLedger, note.RefundAmount);
+            AddEntry(voucher, UnpaidLedger, note.Total - note.RefundAmount);
+            return voucher;
+        }
+
+        // Tally: a debit is ISDEEMEDPOSITIVE Yes with a negative amount; a credit is No with a positive amount.
+        private static void AddEntry(XElement voucher, string ledger, decimal credit)
+        {
+            if (credit == 0) return;
+            voucher.Add(new XElement("ALLLEDGERENTRIES.LIST",
+                new XElement("LEDGERNAME", ledger),
+                new XElement("ISDEEMEDPOSITIVE", credit < 0 ? "Yes" : "No"),
+                new XElement("AMOUNT", credit.ToString("0.00", CultureInfo.InvariantCulture))));
         }
 
         public static byte[] Bytes(string xml) => Encoding.UTF8.GetBytes(xml);
