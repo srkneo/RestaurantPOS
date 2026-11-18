@@ -725,5 +725,9 @@
   "tokens.ready": "Ready to collect",
   "tokens.empty": "No orders right now.",
   "tokens.live": "Live",
-  "tokens.offline": "Reconnecting…"
+  "tokens.offline": "Reconnecting…",
+  "menu.servedFrom": "Served from",
+  "menu.servedTo": "Served until",
+  "menu.hoursHint": "Leave both empty to serve all day. Outside these hours the POS hides this category.",
+  "menu.categoryHours": "{name} · {from}–{to}"
 }

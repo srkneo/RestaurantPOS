@@ -46,5 +46,9 @@ namespace POSSystem.Models
 
         public int SortOrder { get; set; }
         public bool IsActive { get; set; } = true;
+
+        // Time-based menu: served only between these times of the outlet's day; both empty = all day.
+        public TimeOnly? AvailableFrom { get; set; }
+        public TimeOnly? AvailableTo { get; set; }
     }
 }
