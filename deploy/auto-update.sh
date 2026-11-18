@@ -8,6 +8,8 @@
 # The result is written to update/status.json, which the app shows on the Licence page.
 # For tests: POS_UPDATE_DRY_RUN=1 (decide and write the status, but do not update), GITHUB_TOKEN (signed-in lookups).
 set -uo pipefail
+# Cron starts jobs with a short PATH that misses /usr/sbin (blkid, mount). Without this the USB disk is never found.
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
 
 # Everything is inside main, so bash has read the whole script before an update replaces this file.
 main() {
