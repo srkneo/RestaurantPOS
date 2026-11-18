@@ -22,6 +22,7 @@ import DayClosePage from './components/DayClosePage';
 import DayReportPage from './admin/DayReportPage';
 import OfflineBanner from './offline/OfflineBanner';
 import LicenceBanner from './licence/LicenceBanner';
+import BackupBanner from './licence/BackupBanner';
 import LicencePage from './admin/LicencePage';
 import ShopLicencesPage from './admin/ShopLicencesPage';
 import PlatformSupportPage from './admin/PlatformSupportPage';
@@ -79,6 +80,7 @@ function AppHeader() {
     </header>
     {can(POS_ROLES) && <OfflineBanner />}
     {!can(PLATFORM_ROLES) && <LicenceBanner />}
+    {can(ADMIN_ROLES) && <BackupBanner />}
     </>
   );
 }

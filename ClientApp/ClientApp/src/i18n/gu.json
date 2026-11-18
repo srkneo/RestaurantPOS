@@ -606,5 +606,17 @@
   "licence.update.confirmTitle": "આ PC હમણાં અપડેટ કરવું છે?",
   "licence.update.confirmText": "POS ફરી શરૂ થશે અને લગભગ એક મિનિટ બંધ રહેશે. જ્યારે બિલ ન બનતા હોય ત્યારે કરો. નવું વર્ઝન શરૂ ન થાય તો જૂનું આપમેળે પાછું આવશે.",
   "licence.update.confirm": "હમણાં અપડેટ કરો",
-  "licence.update.pausedHint": "સપોર્ટે આ PC માટે અપડેટ રોક્યા છે."
+  "licence.update.pausedHint": "સપોર્ટે આ PC માટે અપડેટ રોક્યા છે.",
+  "backup.title": "બેકઅપ",
+  "backup.lastBackup": "આ PC પર છેલ્લું બેકઅપ",
+  "backup.lastCopy": "આ PC ની બહાર છેલ્લી કૉપી",
+  "backup.never": "હજી નહીં",
+  "backup.warning": "આ PC ની બહારની છેલ્લી કૉપી ઘણી જૂની છે. બેકઅપ USB ડિસ્ક લગાવો, પછી 'હમણાં બેકઅપ લો' દબાવો.",
+  "backup.howTo": "દર રાત્રે 03:00 વાગ્યે બેકઅપ બને છે અને POSBACKUP નામની USB ડિસ્ક (અથવા સપોર્ટે સેટ કરેલ NAS) પર કૉપી થાય છે. ડિસ્ક લગાવેલી રાખો.",
+  "backup.now": "હમણાં બેકઅપ લો",
+  "backup.requested": "બેકઅપ માંગ્યું. 2 મિનિટમાં થશે; USB ડિસ્ક લગાવેલી રાખો.",
+  "backup.bannerTitle": "બેકઅપ પર ધ્યાન આપો.",
+  "backup.bannerNoDisk": "બેકઅપ USB ડિસ્ક (POSBACKUP) લગાવો; 2 દિવસથી વધુ સમયથી કૉપી થઈ નથી.",
+  "backup.bannerOld": "બેકઅપ USB ડિસ્ક લગાવો; છેલ્લી બેકઅપ કૉપી 2 દિવસથી જૂની છે.",
+  "backup.bannerAction": "બેકઅપ ખોલો"
 }

@@ -1,0 +1,50 @@
+{
+  "backup.title": [
+    "Backups",
+    "બેકઅપ"
+  ],
+  "backup.lastBackup": [
+    "Last backup on this PC",
+    "આ PC પર છેલ્લું બેકઅપ"
+  ],
+  "backup.lastCopy": [
+    "Last copy off this PC",
+    "આ PC ની બહાર છેલ્લી કૉપી"
+  ],
+  "backup.never": [
+    "Not yet",
+    "હજી નહીં"
+  ],
+  "backup.warning": [
+    "The last copy off this PC is too old. Plug in the backup USB disk, then press Back up now.",
+    "આ PC ની બહારની છેલ્લી કૉપી ઘણી જૂની છે. બેકઅપ USB ડિસ્ક લગાવો, પછી 'હમણાં બેકઅપ લો' દબાવો."
+  ],
+  "backup.howTo": [
+    "A backup is made every night at 03:00 and copied to the USB disk named POSBACKUP (or the NAS set up by support). Keep the disk plugged in.",
+    "દર રાત્રે 03:00 વાગ્યે બેકઅપ બને છે અને POSBACKUP નામની USB ડિસ્ક (અથવા સપોર્ટે સેટ કરેલ NAS) પર કૉપી થાય છે. ડિસ્ક લગાવેલી રાખો."
+  ],
+  "backup.now": [
+    "Back up now",
+    "હમણાં બેકઅપ લો"
+  ],
+  "backup.requested": [
+    "Backup asked for. It runs within 2 minutes; keep the USB disk plugged in.",
+    "બેકઅપ માંગ્યું. 2 મિનિટમાં થશે; USB ડિસ્ક લગાવેલી રાખો."
+  ],
+  "backup.bannerTitle": [
+    "Backups need attention.",
+    "બેકઅપ પર ધ્યાન આપો."
+  ],
+  "backup.bannerNoDisk": [
+    "Plug in the backup USB disk (POSBACKUP); no copy has been made for more than 2 days.",
+    "બેકઅપ USB ડિસ્ક (POSBACKUP) લગાવો; 2 દિવસથી વધુ સમયથી કૉપી થઈ નથી."
+  ],
+  "backup.bannerOld": [
+    "Plug in the backup USB disk; the last backup copy is more than 2 days old.",
+    "બેકઅપ USB ડિસ્ક લગાવો; છેલ્લી બેકઅપ કૉપી 2 દિવસથી જૂની છે."
+  ],
+  "backup.bannerAction": [
+    "Open backups",
+    "બેકઅપ ખોલો"
+  ]
+}

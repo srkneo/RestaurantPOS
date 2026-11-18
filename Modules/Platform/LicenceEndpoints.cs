@@ -35,6 +35,14 @@ namespace POSSystem.Platform
                 .RequireAuthorization(p => p.RequireRole("admin"))
                 .WithName("RunShopUpdate").WithSummary("Update now: the PC starts the update within 2 minutes");
 
+            group.MapGet("/backups", (ShopBackups backups) => Results.Ok(backups.Describe()))
+                .RequireAuthorization(p => p.RequireRole("admin"))
+                .WithName("GetShopBackups").WithSummary("Backups on this shop PC: the newest backup, the newest copy to the USB disk or NAS, and a warning when they are old");
+
+            group.MapPost("/backups/run", (ShopBackups backups) => Run(() => Task.FromResult(Results.Ok(backups.RequestNow()))))
+                .RequireAuthorization(p => p.RequireRole("admin"))
+                .WithName("RunShopBackup").WithSummary("Back up now: a fresh backup is made and copied within 2 minutes");
+
             return app;
         }
 

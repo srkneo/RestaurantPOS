@@ -41,3 +41,6 @@ else
 fi
 
 find backups/nightly -name 'pos-*.dump' -mtime +7 -delete
+
+# Shop PC: a copy off this PC (USB disk or NAS), so a broken PC disk loses nothing.
+if grep -q '^SHOP_PC=1' .env 2> /dev/null && [ -f copy-backup.sh ]; then bash copy-backup.sh || true; fi

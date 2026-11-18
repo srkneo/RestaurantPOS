@@ -17,7 +17,7 @@ set -euo pipefail
 REPO="srkneo/RestaurantPOS"
 # Downloads give up on a dead connection instead of hanging, and try again a few times.
 fetch() { curl -fsSL --connect-timeout 30 --max-time 600 --retry 3 --retry-delay 3 "$@"; }
-FILES="docker-compose.prod.yml Caddyfile deploy.sh backup.sh restore-test.sh bill-check.sh auto-update.sh"
+FILES="docker-compose.prod.yml Caddyfile deploy.sh backup.sh restore-test.sh bill-check.sh auto-update.sh copy-backup.sh"
 LICENCE_KEY_FILE="licence-public.key"
 DEFAULT_LICENCE_URL="https://13-236-102-22.sslip.io"
 
@@ -203,5 +203,5 @@ if [ "$LICENCE_ON" -eq 1 ]; then
 fi
 echo
 echo "Tips: give this PC a fixed address in the router, so the link above never changes."
-echo "      A backup is made every night at 03:00 in $DIR/backups. Copy that folder to a USB disk regularly."
+echo "      A backup is made every night at 03:00 and copied to a USB disk named POSBACKUP. Keep that disk plugged in."
 echo "      Updates install themselves at night (03:30). To update now:  sudo bash shop-install.sh"

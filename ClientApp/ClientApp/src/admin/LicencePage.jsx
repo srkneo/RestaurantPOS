@@ -51,10 +51,41 @@ export default function LicencePage() {
     }
   }, []);
 
+  // Backups (shop PC only): the newest backup, the newest copy to the USB disk or NAS, and "Back up now".
+  const [backups, setBackups] = useState(null);
+
+  const loadBackups = useCallback(async () => {
+    try {
+      const res = await fetch('/api/licence/backups');
+      if (res.ok) setBackups(await res.json());
+    } catch {
+      // Not shown when it cannot be read.
+    }
+  }, []);
+
   useEffect(() => {
     load();
     loadUpdates();
-  }, [load, loadUpdates]);
+    loadBackups();
+  }, [load, loadUpdates, loadBackups]);
+
+  const backupNow = async () => {
+    try {
+      const res = await send('/api/licence/backups/run', 'POST');
+      if (res.ok) {
+        setBackups(await res.json());
+        showToast(t('backup.requested'));
+        window.dispatchEvent(new Event('backups-changed'));
+      } else {
+        const errors = await readErrors(res);
+        showToast(errors.general || t('common.error'), 'error');
+      }
+    } catch {
+      showToast(t('common.error'), 'error');
+    }
+  };
+
+  const timeText = (value) => parseServerDate(value)?.toLocaleString() ?? t('backup.never');
 
   const updateNow = async () => {
     setConfirmUpdate(false);
@@ -192,6 +223,26 @@ export default function LicencePage() {
           )}
           <ConfirmDialog open={confirmUpdate} title={t('licence.update.confirmTitle')} message={t('licence.update.confirmText')}
             confirmLabel={t('licence.update.confirm')} onConfirm={updateNow} onCancel={() => setConfirmUpdate(false)} />
+          {backups?.available === true && (
+            <div className="pos-card d-flex flex-column gap-2">
+              <h2 className="h5 mb-1">{t('backup.title')}</h2>
+              {backups.warning && <p className="text-danger fw-semibold mb-0" role="alert">{t('backup.warning')}</p>}
+              <dl className="row mb-0">
+                <dt className="col-sm-5">{t('backup.lastBackup')}</dt>
+                <dd className="col-sm-7">{timeText(backups.backupAt)}</dd>
+                <dt className="col-sm-5">{t('backup.lastCopy')}</dt>
+                <dd className="col-sm-7">{timeText(backups.lastCopiedAt)}</dd>
+              </dl>
+              {backups.message && <p className="small text-body-secondary mb-0">{backups.message}</p>}
+              <p className="small text-body-secondary mb-0">{t('backup.howTo')}</p>
+              {backups.requested && <p className="mb-0" role="status">{t('backup.requested')}</p>}
+              <div>
+                <button type="button" className="btn btn-outline-primary px-4" disabled={backups.requested} onClick={backupNow}>
+                  {t('backup.now')}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </main>
