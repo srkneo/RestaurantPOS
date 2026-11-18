@@ -72,6 +72,9 @@ namespace POSSystem.Models
         public OrderType DefaultOrderType { get; set; } = OrderType.DineIn;
         public bool KitchenScreenEnabled { get; set; } = true;
 
+        // QR table ordering: guests order from the table's QR code (off until the owner turns it on).
+        public bool QrOrderingEnabled { get; set; }
+
         // Billing (v1.6). No GST until the owner sets the registration in billing settings.
         public TaxMode TaxMode { get; set; } = TaxMode.None;
         public bool PricesIncludeTax { get; set; }
