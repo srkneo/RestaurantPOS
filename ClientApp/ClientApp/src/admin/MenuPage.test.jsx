@@ -11,6 +11,7 @@ import { MemoryRouter } from 'react-router-dom';
 vi.mock('@microsoft/signalr', () => import('../test/signalr-mock'));
 
 const CATEGORIES = [{ id: 1, name: 'Snacks', sortOrder: 1, isActive: true }];
+const STATIONS = [{ id: 3, name: 'Tandoor', sortOrder: 1, isActive: true }];
 const ITEMS = [
   { id: 10, name: 'Samosa', price: 15, categoryId: 1, category: 'Snacks', description: null, isVeg: true, isAvailable: true, taxRate: 5, sortOrder: 1 },
   { id: 11, name: 'Chicken Roll', price: 90, categoryId: 1, category: 'Snacks', description: null, isVeg: false, isAvailable: false, taxRate: 5, sortOrder: 2 },
@@ -22,6 +23,7 @@ function mockApi(writeResponse = { ok: true, status: 200, json: async () => ({})
     calls.push({ url, options });
     if (options?.method) return writeResponse;
     if (url.endsWith('/categories')) return { ok: true, json: async () => CATEGORIES };
+    if (url.endsWith('/stations')) return { ok: true, json: async () => STATIONS };
     return { ok: true, json: async () => ITEMS };
   }));
   return calls;
@@ -74,8 +76,31 @@ describe('Menu page', () => {
     const post = calls.find((c) => c.options?.method === 'POST');
     expect(post.url).toBe('/api/admin/menu/items');
     expect(JSON.parse(post.options.body)).toEqual({
-      name: 'Khaman', price: 40, categoryId: 1, description: null, isVeg: true, isAvailable: true, taxRate: 18, sortOrder: 0,
+      name: 'Khaman', price: 40, categoryId: 1, description: null, isVeg: true, isAvailable: true, taxRate: 18, sortOrder: 0, stationId: null,
     });
+  });
+
+  it('adds a kitchen station and puts an item on it', async () => {
+    const calls = mockApi();
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Add station' }));
+    let dialog = screen.getByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Station name'), { target: { value: 'Bar' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText('Saved.')).toBeInTheDocument();
+    const post = calls.find((c) => c.options?.method === 'POST');
+    expect(post.url).toBe('/api/admin/menu/stations');
+    expect(JSON.parse(post.options.body)).toEqual({ name: 'Bar', sortOrder: 2, isActive: true });
+
+    const row = screen.getByText('Samosa').closest('tr');
+    fireEvent.click(within(row).getByRole('button', { name: 'Edit' }));
+    dialog = screen.getByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Kitchen station'), { target: { value: '3' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    await vi.waitFor(() => expect(calls.some((c) => c.options?.method === 'PUT')).toBe(true));
+    const put = calls.find((c) => c.options?.method === 'PUT');
+    expect(put.url).toBe('/api/admin/menu/items/10');
+    expect(JSON.parse(put.options.body).stationId).toBe(3);
   });
 
   it('asks before deleting an item', async () => {

@@ -662,5 +662,17 @@
   "options.addExtra": "+ Add extra",
   "options.needName": "Every size and extra needs a name.",
   "options.needPrice": "Enter each price as a number, like 30 or 12.50.",
-  "options.saved": "Sizes and extras of {name} saved."
+  "options.saved": "Sizes and extras of {name} saved.",
+  "kitchen.station": "Station",
+  "kitchen.allStations": "All stations",
+  "kitchen.mainKitchen": "Main kitchen",
+  "print.mainKitchen": "Main kitchen",
+  "menu.stations": "Kitchen stations",
+  "menu.stationsHint": "Send items to their own kitchen screen and KOT, like Tandoor or Bar. Items without a station go to the main kitchen.",
+  "menu.addStation": "Add station",
+  "menu.station": "Kitchen station",
+  "menu.stationName": "Station name",
+  "menu.stationOff": "{name} (off)",
+  "menu.stationActive": "In use",
+  "menu.mainKitchen": "Main kitchen"
 }

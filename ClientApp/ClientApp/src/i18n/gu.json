@@ -662,5 +662,17 @@
   "options.addExtra": "+ વધારાનું ઉમેરો",
   "options.needName": "દરેક સાઇઝ અને વધારાનાને નામ જોઈએ.",
   "options.needPrice": "દરેક કિંમત આંકડામાં લખો, જેમ કે 30 અથવા 12.50.",
-  "options.saved": "{name} ની સાઇઝ અને વધારાનું સચવાયું."
+  "options.saved": "{name} ની સાઇઝ અને વધારાનું સચવાયું.",
+  "kitchen.station": "સ્ટેશન",
+  "kitchen.allStations": "બધા સ્ટેશન",
+  "kitchen.mainKitchen": "મુખ્ય રસોડું",
+  "print.mainKitchen": "મુખ્ય રસોડું",
+  "menu.stations": "રસોડા સ્ટેશન",
+  "menu.stationsHint": "વસ્તુઓને તેમની પોતાની રસોડા સ્ક્રીન અને KOT પર મોકલો, જેમ કે તંદૂર અથવા બાર. સ્ટેશન વગરની વસ્તુઓ મુખ્ય રસોડામાં જાય છે.",
+  "menu.addStation": "સ્ટેશન ઉમેરો",
+  "menu.station": "રસોડા સ્ટેશન",
+  "menu.stationName": "સ્ટેશનનું નામ",
+  "menu.stationOff": "{name} (બંધ)",
+  "menu.stationActive": "ચાલુ",
+  "menu.mainKitchen": "મુખ્ય રસોડું"
 }

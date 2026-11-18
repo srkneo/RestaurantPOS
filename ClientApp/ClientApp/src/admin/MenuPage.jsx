@@ -55,6 +55,7 @@ export default function MenuPage() {
   const [busy, setBusy] = useState(false);
   const [deleting, setDeleting] = useState(null);
   const [optionsFor, setOptionsFor] = useState(null);
+  const [stations, setStations] = useState([]);
 
   const load = useCallback(async () => {
     try {
@@ -62,6 +63,9 @@ export default function MenuPage() {
       if (!catRes.ok || !itemRes.ok) throw new Error('load failed');
       setCategories(await catRes.json());
       setItems(await itemRes.json());
+      // Kitchen stations are optional: the menu still works if they cannot be loaded.
+      const stationRes = await fetch(`${API}/stations`).catch(() => null);
+      setStations(stationRes?.ok ? await stationRes.json() : []);
       setLoadState('ready');
     } catch {
       setLoadState('error');
@@ -81,8 +85,8 @@ export default function MenuPage() {
     setCurrent(item);
     setErrors({});
     setForm(item
-      ? { name: item.name, categoryId: String(item.categoryId ?? ''), price: String(item.price), taxRate: String(item.taxRate), description: item.description ?? '', isVeg: item.isVeg, isAvailable: item.isAvailable, sortOrder: String(item.sortOrder) }
-      : { name: '', categoryId: String(categories[0]?.id ?? ''), price: '', taxRate: '5', description: '', isVeg: true, isAvailable: true, sortOrder: '0' });
+      ? { name: item.name, categoryId: String(item.categoryId ?? ''), price: String(item.price), taxRate: String(item.taxRate), description: item.description ?? '', isVeg: item.isVeg, isAvailable: item.isAvailable, sortOrder: String(item.sortOrder), stationId: String(item.stationId ?? '') }
+      : { name: '', categoryId: String(categories[0]?.id ?? ''), price: '', taxRate: '5', description: '', isVeg: true, isAvailable: true, sortOrder: '0', stationId: '' });
     setDialog('item');
   };
 
@@ -91,6 +95,13 @@ export default function MenuPage() {
     setErrors({});
     setForm({ name: category?.name ?? '', sortOrder: String(category?.sortOrder ?? categories.length + 1) });
     setDialog('category');
+  };
+
+  const openStation = (station) => {
+    setCurrent(station);
+    setErrors({});
+    setForm({ name: station?.name ?? '', sortOrder: String(station?.sortOrder ?? stations.length + 1), isActive: station?.isActive ?? true });
+    setDialog('station');
   };
 
   const close = useCallback(() => setDialog(null), []);
@@ -113,8 +124,12 @@ export default function MenuPage() {
         const body = {
           name: form.name.trim(), price: Number(form.price), categoryId: Number(form.categoryId), description: form.description.trim() || null,
           isVeg: form.isVeg, isAvailable: form.isAvailable, taxRate: Number(form.taxRate), sortOrder: Number(form.sortOrder) || 0,
+          stationId: form.stationId ? Number(form.stationId) : null,
         };
         res = current ? await send(`${API}/items/${current.id}`, 'PUT', body) : await send(`${API}/items`, 'POST', body);
+      } else if (dialog === 'station') {
+        const body = { name: form.name.trim(), sortOrder: Number(form.sortOrder) || 0, isActive: !!form.isActive };
+        res = current ? await send(`${API}/stations/${current.id}`, 'PUT', body) : await send(`${API}/stations`, 'POST', body);
       } else {
         const body = { name: form.name.trim(), sortOrder: Number(form.sortOrder) || 0, isActive: true };
         res = current ? await send(`${API}/categories/${current.id}`, 'PUT', body) : await send(`${API}/categories`, 'POST', body);
@@ -192,6 +207,23 @@ export default function MenuPage() {
             )}
           </section>
 
+          <section className="pos-card pos-menu-cats" aria-labelledby="menu-stations-title">
+            <div className="d-flex justify-content-between align-items-center gap-2">
+              <h2 id="menu-stations-title" className="h5 mb-0">{t('menu.stations')}</h2>
+              <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openStation(null)}>{t('menu.addStation')}</button>
+            </div>
+            <p className="pos-hint mb-0">{t('menu.stationsHint')}</p>
+            {stations.length > 0 && (
+              <div className="pos-menu-cat-list">
+                {stations.map((s) => (
+                  <button key={s.id} type="button" className="pos-chip" onClick={() => openStation(s)} aria-label={t('menu.editItem', { name: s.name })}>
+                    {s.isActive ? s.name : t('menu.stationOff', { name: s.name })}
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+
           {items.length === 0 ? (
             <StateMessage kind="empty" message={t('menu.empty')} />
           ) : (
@@ -247,6 +279,14 @@ export default function MenuPage() {
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </Field>
+        {stations.length > 0 && (
+          <Field id="item-station" label={t('menu.station')} error={errors.stationid}>
+            <select id="item-station" className={`form-select${errors.stationid ? ' is-invalid' : ''}`} value={form.stationId ?? ''} onChange={set('stationId')}>
+              <option value="">{t('menu.mainKitchen')}</option>
+              {stations.filter((s) => s.isActive || String(s.id) === form.stationId).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </Field>
+        )}
         <div className="d-flex gap-3">
           <div className="flex-grow-1">
             <Field id="item-price" label={t('menu.price')} error={errors.price}>
@@ -289,6 +329,20 @@ export default function MenuPage() {
         <Field id="category-sort" label={t('menu.sortOrder')}>
           <input id="category-sort" type="number" className="form-control" value={form.sortOrder ?? '0'} onChange={set('sortOrder')} />
         </Field>
+      </FormDialog>
+
+      <FormDialog open={dialog === 'station'} title={current ? t('menu.editItem', { name: current.name }) : t('menu.addStation')} submitLabel={t('staff.save')}
+        busy={busy} error={generalError} onCancel={close} onSubmit={save}>
+        <Field id="station-name" label={t('menu.stationName')} error={errors.name}>
+          <input id="station-name" className={`form-control${errors.name ? ' is-invalid' : ''}`} maxLength={40} value={form.name ?? ''} onChange={set('name')} />
+        </Field>
+        <Field id="station-sort" label={t('menu.sortOrder')}>
+          <input id="station-sort" type="number" className="form-control" value={form.sortOrder ?? '0'} onChange={set('sortOrder')} />
+        </Field>
+        <div className="pos-check">
+          <input id="station-active" type="checkbox" className="form-check-input" checked={!!form.isActive} onChange={set('isActive')} />
+          <label htmlFor="station-active" className="mb-0 fw-semibold">{t('menu.stationActive')}</label>
+        </div>
       </FormDialog>
 
       <ConfirmDialog open={!!deleting} title={t('menu.deleteTitle', { name: deleting?.name ?? '' })} message={t('menu.deleteHint')}
