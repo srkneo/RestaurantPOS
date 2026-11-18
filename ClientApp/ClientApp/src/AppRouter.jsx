@@ -15,6 +15,7 @@ import MenuScanPage from './admin/MenuScanPage';
 import TablesPage from './admin/TablesPage';
 import QrSheetPage from './admin/QrSheetPage';
 import GuestOrderPage from './components/GuestOrderPage';
+import FeedbackPage from './components/FeedbackPage';
 import StorePage from './admin/StorePage';
 import SetupPage from './admin/SetupPage';
 import SettingsPage from './admin/SettingsPage';
@@ -25,6 +26,7 @@ import { PrintBillPage, PrintKotPage, PrintDayPage, PrintCreditNotePage } from '
 import DayClosePage from './components/DayClosePage';
 import DayReportPage from './admin/DayReportPage';
 import ReportsPage from './admin/ReportsPage';
+import FeedbackListPage from './admin/FeedbackListPage';
 import ExpensesPage from './components/ExpensesPage';
 import OfflineBanner from './offline/OfflineBanner';
 import LicenceBanner from './licence/LicenceBanner';
@@ -76,6 +78,7 @@ function AppHeader() {
         {can(MENU_ROLES) && <NavLink to="/admin/menu">{t('nav.menu')}</NavLink>}
         {can(MENU_ROLES) && <NavLink to="/admin/tables">{t('nav.tables')}</NavLink>}
         {can(MENU_ROLES) && <NavLink to="/admin/reports">{t('nav.reports')}</NavLink>}
+        {can(MENU_ROLES) && <NavLink to="/admin/feedback">{t('nav.feedback')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/staff">{t('nav.staff')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/setup">{t('nav.setup')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/store">{t('nav.store')}</NavLink>}
@@ -102,8 +105,8 @@ function AppHeader() {
 
 function Layout() {
   const { pathname } = useLocation();
-  // /t/<token> is the guest page behind a table's QR code: no staff header, footer or server watch.
-  const guest = pathname.startsWith('/t/');
+  // /t/<token> (table QR) and /feedback/<token> (bill QR) are guest pages: no staff header, footer or server watch.
+  const guest = pathname.startsWith('/t/') || pathname.startsWith('/feedback/');
   const hideHeader = guest || pathname.startsWith('/kitchen') || pathname.startsWith('/tokens') || pathname.startsWith('/login') || pathname.startsWith('/print');
   // The kitchen screen and printouts stay clean; every other screen shows the support line at the bottom.
   // The POS screen fills the window (menu and order side by side), so the footer would push the order buttons off screen.
@@ -121,6 +124,7 @@ function Layout() {
         <Route path="/day-close" element={<RequireRole roles={POS_ROLES}><DayClosePage /></RequireRole>} />
         <Route path="/reports/day" element={<RequireRole roles={MENU_ROLES}><DayReportPage /></RequireRole>} />
         <Route path="/admin/reports" element={<RequireRole roles={MENU_ROLES}><ReportsPage /></RequireRole>} />
+        <Route path="/admin/feedback" element={<RequireRole roles={MENU_ROLES}><FeedbackListPage /></RequireRole>} />
         <Route path="/expenses" element={<RequireRole roles={POS_ROLES}><ExpensesPage /></RequireRole>} />
         <Route path="/kitchen" element={<RequireRole roles={KITCHEN_ROLES}><KitchenDisplay /></RequireRole>} />
         <Route path="/tokens" element={<RequireRole roles={KITCHEN_ROLES}><TokenDisplay /></RequireRole>} />
@@ -130,6 +134,7 @@ function Layout() {
         <Route path="/admin/tables" element={<RequireRole roles={MENU_ROLES}><TablesPage /></RequireRole>} />
         <Route path="/admin/tables/qr" element={<RequireRole roles={MENU_ROLES}><QrSheetPage /></RequireRole>} />
         <Route path="/t/:token" element={<GuestOrderPage />} />
+        <Route path="/feedback/:token" element={<FeedbackPage />} />
         <Route path="/admin/store" element={<RequireRole roles={ADMIN_ROLES}><StorePage /></RequireRole>} />
         <Route path="/admin/setup" element={<RequireRole roles={ADMIN_ROLES}><SetupPage /></RequireRole>} />
         <Route path="/admin/settings" element={<RequireRole roles={ADMIN_ROLES}><SettingsPage /></RequireRole>} />

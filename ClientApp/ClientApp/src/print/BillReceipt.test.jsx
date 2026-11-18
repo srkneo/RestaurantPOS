@@ -25,6 +25,11 @@ const GST_BILL = {
 afterEach(cleanup);
 
 describe('Bill receipt', () => {
+  it('prints the feedback QR when the outlet asks guests for feedback', () => {
+    render(<BillReceipt bill={GST_BILL} feedbackQrUrl="/api/bills/7/feedback-qr.svg?origin=x" />);
+    expect(screen.getByAltText('Tell us how we did')).toHaveAttribute('src', '/api/bills/7/feedback-qr.svg?origin=x');
+  });
+
   it('prints the Google review QR when the outlet has a review link', () => {
     const { unmount } = render(<BillReceipt bill={GST_BILL} reviewQrUrl="/api/review-qr.svg" />);
     expect(screen.getByAltText('Rate us on Google')).toHaveAttribute('src', '/api/review-qr.svg');

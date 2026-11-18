@@ -3,7 +3,7 @@ import { printT, money, billDateTime, halfRate } from './printText';
 import './print.css';
 
 // The printed bill. Everything comes from the saved bill, so a reprint always matches the original.
-export default function BillReceipt({ bill, lang = 'en', width = 80, duplicate = false, qrUrl = null, reviewQrUrl = null }) {
+export default function BillReceipt({ bill, lang = 'en', width = 80, duplicate = false, qrUrl = null, reviewQrUrl = null, feedbackQrUrl = null }) {
   const t = printT(lang);
   const store = bill.store ?? {};
   const regular = bill.taxMode === 'Regular';
@@ -83,6 +83,12 @@ export default function BillReceipt({ bill, lang = 'en', width = 80, duplicate =
       {bill.taxNote && <div className="receipt-center receipt-note" style={{ marginTop: '2mm' }}>{bill.taxNote}</div>}
       <div className="receipt-line" />
       {store.footer && <div className="receipt-center">{store.footer}</div>}
+      {feedbackQrUrl && (
+        <div className="receipt-center">
+          <img className="receipt-qr" src={feedbackQrUrl} alt={t('print.feedback')} />
+          <div className="receipt-note">{t('print.feedback')}</div>
+        </div>
+      )}
       {reviewQrUrl && (
         <div className="receipt-center">
           <img className="receipt-qr" src={reviewQrUrl} alt={t('print.reviewUs')} />
