@@ -21,6 +21,7 @@ import StoreBrand from './ui/StoreBrand';
 import { PrintBillPage, PrintKotPage, PrintDayPage, PrintCreditNotePage } from './print/PrintPages';
 import DayClosePage from './components/DayClosePage';
 import DayReportPage from './admin/DayReportPage';
+import ReportsPage from './admin/ReportsPage';
 import OfflineBanner from './offline/OfflineBanner';
 import LicenceBanner from './licence/LicenceBanner';
 import BackupBanner from './licence/BackupBanner';
@@ -68,6 +69,7 @@ function AppHeader() {
         {can(KITCHEN_ROLES) && <NavLink to="/tokens">{t('nav.tokens')}</NavLink>}
         {can(MENU_ROLES) && <NavLink to="/admin/menu">{t('nav.menu')}</NavLink>}
         {can(MENU_ROLES) && <NavLink to="/admin/tables">{t('nav.tables')}</NavLink>}
+        {can(MENU_ROLES) && <NavLink to="/admin/reports">{t('nav.reports')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/staff">{t('nav.staff')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/store">{t('nav.store')}</NavLink>}
         {can(ADMIN_ROLES) && <NavLink to="/admin/settings">{t('nav.settings')}</NavLink>}
@@ -109,6 +111,7 @@ function Layout() {
         <Route path="/orders" element={<RequireRole roles={POS_ROLES}><OrderHistory /></RequireRole>} />
         <Route path="/day-close" element={<RequireRole roles={POS_ROLES}><DayClosePage /></RequireRole>} />
         <Route path="/reports/day" element={<RequireRole roles={MENU_ROLES}><DayReportPage /></RequireRole>} />
+        <Route path="/admin/reports" element={<RequireRole roles={MENU_ROLES}><ReportsPage /></RequireRole>} />
         <Route path="/kitchen" element={<RequireRole roles={KITCHEN_ROLES}><KitchenDisplay /></RequireRole>} />
         <Route path="/tokens" element={<RequireRole roles={KITCHEN_ROLES}><TokenDisplay /></RequireRole>} />
         <Route path="/admin/menu" element={<RequireRole roles={MENU_ROLES}><MenuPage /></RequireRole>} />
