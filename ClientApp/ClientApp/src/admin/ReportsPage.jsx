@@ -103,6 +103,7 @@ export default function ReportsPage() {
               <div><div className="pos-hint">{t('reports.net')}</div><div className="h4 mb-0">{n(report.netSales)}</div></div>
               <div><div className="pos-hint">{t('reports.discount')}</div><div className="h4 mb-0">{n(report.discount)}</div></div>
               <div><div className="pos-hint">{t('reports.gst')}</div><div className="h4 mb-0">{n(Number(report.cgst) + Number(report.sgst))}</div></div>
+              <div><div className="pos-hint">{t('reports.expenses')}</div><div className="h4 mb-0">{n(report.expenseTotal ?? 0)}</div></div>
             </div>
             <p className="pos-hint mb-0 mt-2">{t('reports.hint')}</p>
           </section>
@@ -120,6 +121,8 @@ export default function ReportsPage() {
             rows={report.staff.map((s) => ({ key: s.name ?? '-', cells: [s.name ?? t('reports.notRecorded'), s.bills, n(s.total)] }))} />
           <Table title={t('reports.taxByRate')} head={[t('reports.rate'), t('reports.taxable'), t('reports.cgst'), t('reports.sgst')]} empty={t('reports.noGst')}
             rows={report.taxSummary.map((r) => ({ key: r.taxRate, cells: [`${r.taxRate}%`, n(r.taxableValue), n(r.cgst), n(r.sgst)] }))} />
+          <Table title={t('reports.byExpense')} head={[t('reports.category'), t('reports.count'), t('reports.amount')]} empty={t('reports.noExpenses')}
+            rows={(report.expenses ?? []).map((e) => ({ key: e.category, cells: [t(`expenses.cat.${e.category}`), e.count, n(e.amount)] }))} />
         </div>
       )}
     </main>
