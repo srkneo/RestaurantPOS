@@ -75,6 +75,9 @@ namespace POSSystem.Models
         // QR table ordering: guests order from the table's QR code (off until the owner turns it on).
         public bool QrOrderingEnabled { get; set; }
 
+        // Most discount (percent of the bill) a cashier gives without a manager PIN; null = no limit.
+        public decimal? CashierMaxDiscountPercent { get; set; }
+
         // Billing (v1.6). No GST until the owner sets the registration in billing settings.
         public TaxMode TaxMode { get; set; } = TaxMode.None;
         public bool PricesIncludeTax { get; set; }
