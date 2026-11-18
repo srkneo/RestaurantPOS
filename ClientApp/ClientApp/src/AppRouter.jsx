@@ -32,11 +32,13 @@ import ServerWatch from './about/ServerWatch';
 import ResetPasswordPage from './components/ResetPasswordPage';
 
 const POS_ROLES = ['cashier', 'manager', 'admin'];
+// Captain mode: waiters use only the POS screen (take orders, add rounds), never billing.
+const CAPTAIN_ROLES = [...POS_ROLES, 'waiter'];
 const KITCHEN_ROLES = ['kitchen', 'manager', 'admin'];
 const ADMIN_ROLES = ['admin'];
 const MENU_ROLES = ['admin', 'manager'];
 const PLATFORM_ROLES = ['platform'];
-const ROLE_ORDER = ['platform', 'admin', 'manager', 'cashier', 'kitchen'];
+const ROLE_ORDER = ['platform', 'admin', 'manager', 'cashier', 'waiter', 'kitchen'];
 
 function HomeRedirect() {
   const { user, loading } = useAuth();
@@ -58,7 +60,7 @@ function AppHeader() {
     <header className="pos-header">
       <StoreBrand />
       <nav className="pos-nav" aria-label="Main">
-        {can(POS_ROLES) && <NavLink to="/pos">{t('nav.pos')}</NavLink>}
+        {can(CAPTAIN_ROLES) && <NavLink to="/pos">{t('nav.pos')}</NavLink>}
         {can(POS_ROLES) && <NavLink to="/orders">{t('nav.orders')}</NavLink>}
         {can(POS_ROLES) && <NavLink to="/day-close">{t('nav.dayClose')}</NavLink>}
         {can(KITCHEN_ROLES) && <NavLink to="/kitchen">{t('nav.kitchen')}</NavLink>}
@@ -101,7 +103,7 @@ function Layout() {
         <Route path="/login" element={<Login />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/" element={<HomeRedirect />} />
-        <Route path="/pos" element={<RequireRole roles={POS_ROLES}><POSMenu /></RequireRole>} />
+        <Route path="/pos" element={<RequireRole roles={CAPTAIN_ROLES}><POSMenu /></RequireRole>} />
         <Route path="/orders" element={<RequireRole roles={POS_ROLES}><OrderHistory /></RequireRole>} />
         <Route path="/day-close" element={<RequireRole roles={POS_ROLES}><DayClosePage /></RequireRole>} />
         <Route path="/reports/day" element={<RequireRole roles={MENU_ROLES}><DayReportPage /></RequireRole>} />
@@ -119,7 +121,7 @@ function Layout() {
         <Route path="/platform/support" element={<RequireRole roles={PLATFORM_ROLES}><PlatformSupportPage /></RequireRole>} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/print/bill/:id" element={<RequireRole roles={POS_ROLES}><PrintBillPage /></RequireRole>} />
-        <Route path="/print/kot/:id" element={<RequireRole roles={[...POS_ROLES, 'kitchen']}><PrintKotPage /></RequireRole>} />
+        <Route path="/print/kot/:id" element={<RequireRole roles={[...CAPTAIN_ROLES, 'kitchen']}><PrintKotPage /></RequireRole>} />
         <Route path="/print/day" element={<RequireRole roles={MENU_ROLES}><PrintDayPage /></RequireRole>} />
         <Route path="/print/credit-note/:id" element={<RequireRole roles={POS_ROLES}><PrintCreditNotePage /></RequireRole>} />
         <Route path="*" element={<Navigate to="/" replace />} />

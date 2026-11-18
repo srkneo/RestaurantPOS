@@ -37,6 +37,9 @@ const POSMenu = () => {
   const [loadState, setLoadState] = useState('loading');
   const [offlineSince, setOfflineSince] = useState(null); // set when the menu comes from this till's saved copy
   const auth = useAuth();
+  // Captain mode: a waiter (and no till role) takes orders but does not bill.
+  const userRoles = auth?.user?.roles ?? [];
+  const isWaiter = userRoles.includes('waiter') && !['cashier', 'manager', 'admin'].some((r) => userRoles.includes(r));
   const cacheKey = `pos-menu:${auth?.user?.email ?? 'anon'}`;
   const [cart, setCart] = useState([]);
   const [category, setCategory] = useState(ALL);
@@ -498,7 +501,9 @@ const POSMenu = () => {
           <div className="pos-last-order" role="status">
             <span className="fw-semibold">{t('bill.lastOrder', { token: lastPlaced.tokenNumber })}</span>
             <div className="d-flex gap-2">
-              <button type="button" className="btn btn-outline-primary btn-sm px-3" onClick={() => setBillOrderId(lastPlaced.id)}>{t('bill.billAndPay')}</button>
+              {!isWaiter && (
+                <button type="button" className="btn btn-outline-primary btn-sm px-3" onClick={() => setBillOrderId(lastPlaced.id)}>{t('bill.billAndPay')}</button>
+              )}
               <button type="button" className="btn btn-outline-secondary btn-sm px-3"
                 onClick={() => window.open(`/print/kot/${lastPlaced.id}?auto=1${lastPlaced.round > 1 ? `&round=${lastPlaced.round}` : ''}`, '_blank', 'noopener')}>
                 {t('bill.printKot')}

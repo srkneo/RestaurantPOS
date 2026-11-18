@@ -703,5 +703,6 @@
   "orders.splitChoose": "Choose at least one item to split off.",
   "orders.splitConfirm": "Split",
   "orders.splitDone": "Split off as token {token}. Bill it from this list.",
-  "orders.billedFirst": "This order has a bill. Void the bill first."
+  "orders.billedFirst": "This order has a bill. Void the bill first.",
+  "role.waiter": "Captain (waiter)"
 }
