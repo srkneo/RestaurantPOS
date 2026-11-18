@@ -725,5 +725,9 @@
   "tokens.ready": "લઈ જવા તૈયાર",
   "tokens.empty": "હમણાં કોઈ ઓર્ડર નથી.",
   "tokens.live": "લાઇવ",
-  "tokens.offline": "ફરી જોડાઈ રહ્યું છે…"
+  "tokens.offline": "ફરી જોડાઈ રહ્યું છે…",
+  "menu.servedFrom": "આ સમયથી",
+  "menu.servedTo": "આ સમય સુધી",
+  "menu.hoursHint": "આખો દિવસ માટે બંને ખાલી રાખો. આ સમય સિવાય POS આ શ્રેણી છુપાવશે.",
+  "menu.categoryHours": "{name} · {from}–{to}"
 }

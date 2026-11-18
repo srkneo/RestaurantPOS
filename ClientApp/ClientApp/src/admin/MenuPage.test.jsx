@@ -103,6 +103,22 @@ describe('Menu page', () => {
     expect(JSON.parse(put.options.body).stationId).toBe(3);
   });
 
+  it('serves a category only at set hours', async () => {
+    const calls = mockApi({ ok: true, status: 201, json: async () => ({}) });
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Add category' }));
+    const dialog = screen.getByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Category name'), { target: { value: 'Breakfast' } });
+    fireEvent.change(within(dialog).getByLabelText('Served from'), { target: { value: '07:00' } });
+    fireEvent.change(within(dialog).getByLabelText('Served until'), { target: { value: '11:00' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    expect(await screen.findByText('Saved.')).toBeInTheDocument();
+    const post = calls.find((c) => c.options?.method === 'POST');
+    expect(post.url).toBe('/api/admin/menu/categories');
+    expect(JSON.parse(post.options.body)).toEqual({ name: 'Breakfast', sortOrder: 2, isActive: true, availableFrom: '07:00', availableTo: '11:00' });
+  });
+
   it('asks before deleting an item', async () => {
     const calls = mockApi({ ok: true, status: 204, json: async () => ({}) });
     renderPage();

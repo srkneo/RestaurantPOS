@@ -93,7 +93,10 @@ export default function MenuPage() {
   const openCategory = (category) => {
     setCurrent(category);
     setErrors({});
-    setForm({ name: category?.name ?? '', sortOrder: String(category?.sortOrder ?? categories.length + 1) });
+    setForm({
+      name: category?.name ?? '', sortOrder: String(category?.sortOrder ?? categories.length + 1),
+      availableFrom: category?.availableFrom ?? '', availableTo: category?.availableTo ?? '',
+    });
     setDialog('category');
   };
 
@@ -131,7 +134,10 @@ export default function MenuPage() {
         const body = { name: form.name.trim(), sortOrder: Number(form.sortOrder) || 0, isActive: !!form.isActive };
         res = current ? await send(`${API}/stations/${current.id}`, 'PUT', body) : await send(`${API}/stations`, 'POST', body);
       } else {
-        const body = { name: form.name.trim(), sortOrder: Number(form.sortOrder) || 0, isActive: true };
+        const body = {
+          name: form.name.trim(), sortOrder: Number(form.sortOrder) || 0, isActive: true,
+          availableFrom: form.availableFrom || null, availableTo: form.availableTo || null,
+        };
         res = current ? await send(`${API}/categories/${current.id}`, 'PUT', body) : await send(`${API}/categories`, 'POST', body);
       }
       if (!res.ok) {
@@ -200,7 +206,7 @@ export default function MenuPage() {
               <div className="pos-menu-cat-list">
                 {categories.map((c) => (
                   <button key={c.id} type="button" className="pos-chip" onClick={() => openCategory(c)} aria-label={t('menu.editItem', { name: c.name })}>
-                    {c.name}
+                    {c.availableFrom && c.availableTo ? t('menu.categoryHours', { name: c.name, from: c.availableFrom, to: c.availableTo }) : c.name}
                   </button>
                 ))}
               </div>
@@ -329,6 +335,20 @@ export default function MenuPage() {
         <Field id="category-sort" label={t('menu.sortOrder')}>
           <input id="category-sort" type="number" className="form-control" value={form.sortOrder ?? '0'} onChange={set('sortOrder')} />
         </Field>
+        <div className="d-flex gap-3">
+          <div className="flex-grow-1">
+            <Field id="category-from" label={t('menu.servedFrom')} error={errors.availablefrom}>
+              <input id="category-from" type="time" className={`form-control${errors.availablefrom ? ' is-invalid' : ''}`}
+                value={form.availableFrom ?? ''} onChange={set('availableFrom')} />
+            </Field>
+          </div>
+          <div className="flex-grow-1">
+            <Field id="category-to" label={t('menu.servedTo')}>
+              <input id="category-to" type="time" className="form-control" value={form.availableTo ?? ''} onChange={set('availableTo')} />
+            </Field>
+          </div>
+        </div>
+        <p className="pos-hint mb-0">{t('menu.hoursHint')}</p>
       </FormDialog>
 
       <FormDialog open={dialog === 'station'} title={current ? t('menu.editItem', { name: current.name }) : t('menu.addStation')} submitLabel={t('staff.save')}
