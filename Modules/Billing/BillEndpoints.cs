@@ -88,7 +88,7 @@ namespace POSSystem.Billing
 
             app.MapGet("/api/print-settings", async (AppDbContext db) =>
                 await LoadOutlet(db) is { } outlet ? Results.Ok(BillService.PrintSettingsOf(outlet)) : Results.NotFound())
-                .RequireAuthorization(p => p.RequireRole("cashier", "manager", "admin", "kitchen"))
+                .RequireAuthorization(p => p.RequireRole("cashier", "manager", "admin", "waiter", "kitchen"))
                 .WithName("GetPrintSettings").WithSummary("Paper width and language for bills and KOTs");
 
             var settings = app.MapGroup("/api/admin/billing-settings").RequireAuthorization(p => p.RequireRole("admin")).WithTags("Settings");

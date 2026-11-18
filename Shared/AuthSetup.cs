@@ -37,7 +37,8 @@ namespace POSSystem.Data
     public static class AuthSetup
     {
         // Roles a restaurant owner can give to staff. The platform role is never one of them.
-        public static readonly string[] Roles = { "admin", "manager", "cashier", "kitchen" };
+        // waiter = captain mode: takes orders at the table, never bills.
+        public static readonly string[] Roles = { "admin", "manager", "cashier", "waiter", "kitchen" };
         public const string PlatformRole = "platform";
         public const int DeviceLoginDays = 30;
 
@@ -97,7 +98,13 @@ namespace POSSystem.Data
                     bool InAny(params string[] roles) => roles.Any(ctx.User.IsInRole);
                     if (ctx.Request.Path.StartsWithSegments("/api/orders"))
                     {
-                        if (HttpMethods.IsPost(ctx.Request.Method) && !InAny("cashier", "manager", "admin")) { ctx.Response.StatusCode = 403; return; }
+                        // A waiter may place orders, add rounds, change items before cooking and move tables; nothing else.
+                        var path = (ctx.Request.Path.Value ?? string.Empty).TrimEnd('/');
+                        var waiterMay = InAny("waiter") && (path.Equals("/api/orders", StringComparison.OrdinalIgnoreCase)
+                            || path.EndsWith("/add-items", StringComparison.OrdinalIgnoreCase)
+                            || path.EndsWith("/items", StringComparison.OrdinalIgnoreCase)
+                            || path.EndsWith("/move", StringComparison.OrdinalIgnoreCase));
+                        if (HttpMethods.IsPost(ctx.Request.Method) && !InAny("cashier", "manager", "admin") && !waiterMay) { ctx.Response.StatusCode = 403; return; }
                         if (HttpMethods.IsPut(ctx.Request.Method) && !InAny("kitchen", "manager", "admin")) { ctx.Response.StatusCode = 403; return; }
                     }
                 }
