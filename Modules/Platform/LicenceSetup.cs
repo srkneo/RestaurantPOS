@@ -16,6 +16,7 @@ namespace POSSystem.Platform
             services.TryAddSingleton(TimeProvider.System);
             services.AddHttpClient<ILicenceCloud, HttpLicenceCloud>(c => c.Timeout = TimeSpan.FromSeconds(15));
             services.AddSingleton<LicenceService>();
+            services.AddSingleton<ShopUpdates>();
             services.AddHostedService<LicenceRenewalWorker>();
             return services;
         }

@@ -16,6 +16,9 @@ namespace POSSystem.Models
         public string? DeviceId { get; set; }
         public DateTime? LastSeenAt { get; set; }
         public string? LastVersion { get; set; }
+        // Automatic updates for this shop: auto (empty means auto), paused, or pinned to PinnedVersion.
+        public string UpdateMode { get; set; } = "auto";
+        public string? PinnedVersion { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

@@ -102,6 +102,33 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task Updates_CanBePausedOrPinned_AndTheShopIsTold()
+        {
+            var f = Build();
+            var licence = await Create(f);
+            var id = licence.GetProperty("id").GetInt32();
+            Assert.Equal("auto", licence.GetProperty("updateMode").GetString());
+
+            var noVersion = await As(f, "platform").PostAsync($"/api/platform/licences/{id}/updates", Json(new { mode = "pinned" }));
+            Assert.Equal(HttpStatusCode.BadRequest, noVersion.StatusCode);
+            var badMode = await As(f, "platform").PostAsync($"/api/platform/licences/{id}/updates", Json(new { mode = "sometimes" }));
+            Assert.Equal(HttpStatusCode.BadRequest, badMode.StatusCode);
+            var owner = await As(f, "admin").PostAsync($"/api/platform/licences/{id}/updates", Json(new { mode = "paused" }));
+            Assert.Equal(HttpStatusCode.Forbidden, owner.StatusCode);
+
+            var pinned = await As(f, "platform").PostAsync($"/api/platform/licences/{id}/updates", Json(new { mode = "pinned", version = "v1.7.3" }));
+            Assert.Equal(HttpStatusCode.OK, pinned.StatusCode);
+            Assert.Equal("1.7.3", (await Read(pinned)).GetProperty("pinnedVersion").GetString());
+
+            var renewed = await Read(await Renew(f, licence.GetProperty("key").GetString()!));
+            Assert.Equal("pinned", renewed.GetProperty("updates").GetProperty("mode").GetString());
+            Assert.Equal("1.7.3", renewed.GetProperty("updates").GetProperty("version").GetString());
+
+            var auto = await Read(await As(f, "platform").PostAsync($"/api/platform/licences/{id}/updates", Json(new { mode = "auto", version = "1.7.3" })));
+            Assert.Equal(JsonValueKind.Null, auto.GetProperty("pinnedVersion").ValueKind);
+        }
+
+        [Fact]
         public async Task Create_ChecksTheForm()
         {
             var f = Build();

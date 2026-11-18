@@ -27,6 +27,14 @@ namespace POSSystem.Platform
                 .RequireAuthorization(p => p.RequireRole("admin"))
                 .WithName("RefreshLicence").WithSummary("Fetch a fresh licence now with the key already entered");
 
+            group.MapGet("/updates", (ShopUpdates updates) => Results.Ok(updates.Describe()))
+                .RequireAuthorization(p => p.RequireRole("admin"))
+                .WithName("GetShopUpdates").WithSummary("Automatic updates on this shop PC: support's setting, the last result, and whether an update was asked for");
+
+            group.MapPost("/updates/run", (ShopUpdates updates) => Run(() => Task.FromResult(Results.Ok(updates.RequestNow()))))
+                .RequireAuthorization(p => p.RequireRole("admin"))
+                .WithName("RunShopUpdate").WithSummary("Update now: the PC starts the update within 2 minutes");
+
             return app;
         }
 
