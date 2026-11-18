@@ -309,6 +309,44 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task Backups_WarnWhenTheLastCopyIsOld()
+        {
+            var f = Build(new FakeCloud());
+            var fresh = DateTime.UtcNow.AddHours(-3).ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
+            var old = DateTime.UtcNow.AddDays(-3).ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
+            void Write(string copiedAt, string result) => File.WriteAllText(Path.Combine(_updates, "backup-status.json"),
+                $"{{\"checkedAt\":\"{fresh}\",\"backupAt\":\"{fresh}\",\"lastCopiedAt\":\"{copiedAt}\",\"target\":\"USB disk\",\"result\":\"{result}\",\"message\":\"x\"}}\n");
+
+            // The copy script has not run yet: nothing to warn about.
+            var none = await Read(await As(f, "admin").GetAsync("/api/licence/backups"));
+            Assert.True(none.GetProperty("available").GetBoolean());
+            Assert.False(none.GetProperty("warning").GetBoolean());
+
+            Write(fresh, "copied");
+            Assert.False((await Read(await As(f, "admin").GetAsync("/api/licence/backups"))).GetProperty("warning").GetBoolean());
+
+            Write(old, "no-disk");
+            var stale = await Read(await As(f, "admin").GetAsync("/api/licence/backups"));
+            Assert.True(stale.GetProperty("warning").GetBoolean());
+            Assert.Equal("no-disk", stale.GetProperty("result").GetString());
+
+            // Never copied at all.
+            Write("", "no-disk");
+            Assert.True((await Read(await As(f, "admin").GetAsync("/api/licence/backups"))).GetProperty("warning").GetBoolean());
+        }
+
+        [Fact]
+        public async Task BackUpNow_LeavesARequest_ForTheOwnerOnly()
+        {
+            var f = Build(new FakeCloud());
+            Assert.Equal(HttpStatusCode.Forbidden, (await As(f, "cashier").PostAsync("/api/licence/backups/run", null)).StatusCode);
+            var run = await As(f, "admin").PostAsync("/api/licence/backups/run", null);
+            Assert.Equal(HttpStatusCode.OK, run.StatusCode);
+            Assert.True((await Read(run)).GetProperty("requested").GetBoolean());
+            Assert.True(File.Exists(Path.Combine(_updates, "backup-request")));
+        }
+
+        [Fact]
         public async Task ClockSetBack_LocksAtOnce_EvenRightAfterACheck()
         {
             var clock = new MovableClock();
