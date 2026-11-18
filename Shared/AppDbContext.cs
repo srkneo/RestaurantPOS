@@ -148,6 +148,7 @@ namespace POSSystem.Data
             ConfigureStations(modelBuilder);
             ConfigureTips(modelBuilder);
             ConfigureCombos(modelBuilder);
+            ConfigureExpenses(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
 
