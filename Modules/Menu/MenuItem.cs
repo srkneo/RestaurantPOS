@@ -16,6 +16,9 @@ namespace POSSystem.Models
         public string Category { get; set; } = string.Empty;
         public int? CategoryId { get; set; }
 
+        // Kitchen station that cooks this item; empty = the main kitchen.
+        public int? StationId { get; set; }
+
         [MaxLength(500)]
         public string? Description { get; set; }
 

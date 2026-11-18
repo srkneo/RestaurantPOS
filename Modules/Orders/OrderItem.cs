@@ -21,5 +21,9 @@ namespace POSSystem.Models
         public int? VariantId { get; set; }
         public string? AddOnIds { get; set; }
         public string? Options { get; set; }
+
+        // Kitchen station of the item when it was ordered (copied, so renaming a station never changes old KOTs).
+        public int? StationId { get; set; }
+        public string? StationName { get; set; }
     }
 }

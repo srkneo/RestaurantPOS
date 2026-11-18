@@ -14,8 +14,9 @@ namespace POSSystem.Menu
     public record CategoryDto(int Id, string Name, int SortOrder, bool IsActive);
     public record CategoryRequest(string? Name, int SortOrder, bool IsActive = true);
     public record MenuItemAdminDto(int Id, string Name, decimal Price, int? CategoryId, string Category, string? Description,
-        bool IsVeg, bool IsAvailable, decimal TaxRate, int SortOrder);
-    public record MenuItemRequest(string? Name, decimal Price, int? CategoryId, string? Description, bool IsVeg, bool IsAvailable, decimal TaxRate, int SortOrder);
+        bool IsVeg, bool IsAvailable, decimal TaxRate, int SortOrder, int? StationId = null);
+    public record MenuItemRequest(string? Name, decimal Price, int? CategoryId, string? Description, bool IsVeg, bool IsAvailable, decimal TaxRate, int SortOrder,
+        int? StationId = null);
     public record AvailabilityRequest(bool IsAvailable);
 
     public static class MenuEndpoints
@@ -120,11 +121,12 @@ namespace POSSystem.Menu
             }).WithName("DeleteMenuItem").WithSummary("Remove an item from the menu");
 
             app.MapMenuOptionsEndpoints();
+            app.MapStationEndpoints();
             return app;
         }
 
         private static MenuItemAdminDto ToDto(MenuItem m) =>
-            new(m.Id, m.Name, m.Price, m.CategoryId, m.Category, m.Description, m.IsVeg, m.IsAvailable, m.TaxRate, m.SortOrder);
+            new(m.Id, m.Name, m.Price, m.CategoryId, m.Category, m.Description, m.IsVeg, m.IsAvailable, m.TaxRate, m.SortOrder, m.StationId);
 
         private static void Apply(MenuItem item, MenuItemRequest req, MenuCategory category)
         {
@@ -137,6 +139,7 @@ namespace POSSystem.Menu
             item.IsAvailable = req.IsAvailable;
             item.TaxRate = req.TaxRate;
             item.SortOrder = req.SortOrder;
+            item.StationId = req.StationId is > 0 ? req.StationId : null;
         }
 
         private static async Task<Dictionary<string, string[]>> ValidateCategory(AppDbContext db, CategoryRequest req, int? id)
@@ -165,6 +168,8 @@ namespace POSSystem.Menu
             MenuCategory? category = null;
             if (req.CategoryId is not > 0 || (category = await db.MenuCategories.FirstOrDefaultAsync(c => c.Id == req.CategoryId)) == null)
                 errors["categoryid"] = new[] { "Choose a category." };
+            if (req.StationId is > 0 && !await db.KitchenStations.AnyAsync(s => s.Id == req.StationId && s.OutletId == db.CurrentOutletId))
+                errors["stationid"] = new[] { "Choose a kitchen station from the list." };
             return (errors, category);
         }
     }
