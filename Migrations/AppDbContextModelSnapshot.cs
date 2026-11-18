@@ -1072,6 +1072,54 @@ namespace RestaurantPOS.Migrations
                     b.ToTable("KitchenOrders");
                 });
 
+            modelBuilder.Entity("POSSystem.Models.KitchenStation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<int>("OutletId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "OutletId", "SortOrder");
+
+                    b.ToTable("KitchenStations");
+                });
+
             modelBuilder.Entity("POSSystem.Models.LicenceRecord", b =>
                 {
                     b.Property<int>("Id")
@@ -1227,6 +1275,9 @@ namespace RestaurantPOS.Migrations
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("StationId")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("TaxRate")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(5, 2)
@@ -1306,6 +1357,13 @@ namespace RestaurantPOS.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
+
+                    b.Property<int?>("StationId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StationName")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
 
                     b.Property<int>("TenantId")
                         .ValueGeneratedOnAdd()

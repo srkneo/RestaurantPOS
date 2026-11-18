@@ -145,7 +145,20 @@ namespace POSSystem.Services
             // Sizes and extras of these items: the price comes from them when the item has any.
             var variants = await _context.ItemVariants.Where(v => ids.Contains(v.MenuItemId)).ToListAsync();
             var addOns = await _context.ItemAddOns.Where(a => ids.Contains(a.MenuItemId)).ToListAsync();
-            return requested.Select(i => POSSystem.Menu.MenuOptions.PriceLine(i, menu[i.MenuItemId], variants, addOns)).ToList();
+            // Kitchen stations of these items, copied onto each line.
+            var stationIds = menu.Values.Where(m => m.StationId != null).Select(m => m.StationId!.Value).Distinct().ToList();
+            var stations = await _context.KitchenStations.Where(s => stationIds.Contains(s.Id)).ToDictionaryAsync(s => s.Id, s => s.Name);
+            return requested.Select(i =>
+            {
+                var line = POSSystem.Menu.MenuOptions.PriceLine(i, menu[i.MenuItemId], variants, addOns);
+                var stationId = menu[i.MenuItemId].StationId;
+                if (stationId != null && stations.TryGetValue(stationId.Value, out var stationName))
+                {
+                    line.StationId = stationId;
+                    line.StationName = stationName;
+                }
+                return line;
+            }).ToList();
         }
 
         // Next token for this outlet and business day. On Postgres one statement adds 1, so two tills
