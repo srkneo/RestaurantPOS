@@ -3,6 +3,7 @@ import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
 import ReviewLinkCard from './ReviewLinkCard';
+import FeedbackSettingCard from './FeedbackSettingCard';
 import { readErrors, send, Field } from '../ui/forms';
 import '../components/OrderHistory.css';
 import './StaffPage.css';
@@ -183,6 +184,7 @@ export default function StorePage() {
                         {errors.logo && <div className="invalid-feedback d-block">{errors.logo}</div>}
                     </section>
                     <ReviewLinkCard />
+                    <FeedbackSettingCard />
                 </>
             )}
         </main>

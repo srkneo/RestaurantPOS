@@ -71,6 +71,8 @@ export function PrintBillPage() {
     return {
       bill, settings, duplicate: bill.printCount > 0, qrUrl: showQr ? `/api/bills/${id}/upi-qr.svg?due=${bill.amountDue}` : null,
       reviewQrUrl: settings.reviewReady && bill.status !== 'Void' ? '/api/review-qr.svg' : null,
+      feedbackQrUrl: settings.feedbackReady && bill.status !== 'Void'
+        ? `/api/bills/${id}/feedback-qr.svg?origin=${encodeURIComponent(window.location.origin)}` : null,
     };
   }, [id]);
 
@@ -91,7 +93,7 @@ export function PrintBillPage() {
     <>
       <Toolbar onPrint={doPrint} />
       <BillReceipt bill={state.bill} lang={state.settings.printLanguage} width={state.settings.paperWidth}
-        duplicate={state.duplicate} qrUrl={state.qrUrl} reviewQrUrl={state.reviewQrUrl} />
+        duplicate={state.duplicate} qrUrl={state.qrUrl} reviewQrUrl={state.reviewQrUrl} feedbackQrUrl={state.feedbackQrUrl} />
     </>
   );
 }
