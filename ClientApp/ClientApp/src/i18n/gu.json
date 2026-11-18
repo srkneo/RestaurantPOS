@@ -704,5 +704,19 @@
   "orders.splitConfirm": "વહેંચો",
   "orders.splitDone": "ટોકન {token} તરીકે અલગ થયું. આ યાદીમાંથી તેનું બિલ બનાવો.",
   "orders.billedFirst": "આ ઓર્ડરનું બિલ બની ગયું છે. પહેલાં બિલ રદ કરો.",
-  "role.waiter": "કેપ્ટન (વેઇટર)"
+  "role.waiter": "કેપ્ટન (વેઇટર)",
+  "tips.add": "ટિપ ઉમેરો",
+  "tips.amount": "ટિપની રકમ",
+  "tips.method": "ટિપ કેવી રીતે આપી",
+  "tips.waiter": "વેઇટર",
+  "tips.waiterHint": "ખાલી રાખો તો ઓર્ડર લેનારને જશે",
+  "tips.save": "ટિપ સાચવો",
+  "tips.badAmount": "0 થી વધુ ટિપ લખો.",
+  "tips.saved": "{name} માટે {amount} ની ટિપ સચવાઈ.",
+  "tips.shared": "સહિયારો ભાગ",
+  "tips.title": "વેઇટર મુજબ ટિપ",
+  "tips.count": "ટિપ",
+  "tips.cash": "રોકડમાં",
+  "tips.total": "કુલ",
+  "tips.hint": "ટિપ વેચાણ કે GST માં નથી. રોકડ ટિપ શિફ્ટમાં રોકડ આવક તરીકે ગણાય છે."
 }
