@@ -5,6 +5,7 @@ import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import BillDialog from './BillDialog';
+import ItemOptionsDialog from './ItemOptionsDialog';
 import StateMessage from '../ui/StateMessage';
 import { formatMoney, newClientId } from '../ui/format';
 import './POSMenu.css';
@@ -13,6 +14,9 @@ import { saveOffline, isUnreachable } from '../offline/orderQueue';
 import { readMenuCache, writeMenuCache } from '../offline/menuCache';
 
 const MAX_QTY = 99;
+
+// One order line per item, size and set of extras.
+const lineKey = (id, variantId, addOnIds) => `${id}|${variantId ?? ''}|${[...(addOnIds ?? [])].sort((a, b) => a - b).join(',')}`;
 const ALL = '__all__';
 
 export function VegMark({ isVeg }) {
@@ -42,6 +46,8 @@ const POSMenu = () => {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [noteOpen, setNoteOpen] = useState(null);
+  // The item whose size and extras are being chosen.
+  const [choosing, setChoosing] = useState(null);
   const [placing, setPlacing] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [editing, setEditing] = useState(null); // { id, tokenNumber, version }
@@ -140,7 +146,10 @@ const POSMenu = () => {
         setSelectedTable(order.tableId ? String(order.tableId) : '');
         setCustomerName(order.customerName || '');
         setCustomerPhone(order.customerPhone || '');
-        setCart(order.items.map((i) => ({ id: i.menuItemId, name: i.itemName, price: Number(i.unitPrice), quantity: i.quantity, note: i.note || '' })));
+        setCart(order.items.map((i) => ({
+          key: lineKey(i.menuItemId, i.variantId, i.addOnIds), id: i.menuItemId, name: i.itemName, price: Number(i.unitPrice),
+          quantity: i.quantity, note: i.note || '', variantId: i.variantId ?? null, addOnIds: i.addOnIds ?? [], options: i.options ?? null,
+        })));
       } catch {
         if (active) showToast(tRef.current('common.error'), 'error');
       }
@@ -162,22 +171,42 @@ const POSMenu = () => {
     };
   }, [showToast]);
 
-  const changeQty = (item, delta) => {
+  // Adds one of a line (item, size and extras). The same item with another size or other extras is its own line.
+  const addLine = (line) => {
+    const key = lineKey(line.id, line.variantId, line.addOnIds);
     setCart((prev) => {
-      const line = prev.find((l) => l.id === item.id);
-      if (!line) {
-        return delta > 0 ? [...prev, { id: item.id, name: item.name, price: Number(item.price), quantity: 1, note: '' }] : prev;
-      }
-      const quantity = line.quantity + delta;
-      if (quantity <= 0) return prev.filter((l) => l.id !== item.id);
-      if (quantity > MAX_QTY) return prev;
-      return prev.map((l) => (l.id === item.id ? { ...l, quantity } : l));
+      const found = prev.find((l) => l.key === key);
+      if (!found) return [...prev, { variantId: null, addOnIds: [], options: null, ...line, key, quantity: 1, note: '' }];
+      if (found.quantity >= MAX_QTY) return prev;
+      return prev.map((l) => (l.key === key ? { ...l, quantity: l.quantity + 1 } : l));
     });
   };
 
-  const setNote = (id, note) => setCart((prev) => prev.map((l) => (l.id === id ? { ...l, note } : l)));
+  // Tapping an item: straight into the order, or first the size and extras when it has any.
+  const tapItem = (item) => {
+    if ((item.variants?.length ?? 0) > 0 || (item.addOns?.length ?? 0) > 0) {
+      setChoosing(item);
+      return;
+    }
+    addLine({ id: item.id, name: item.name, price: Number(item.price) });
+  };
 
-  const lines = () => cart.map((l) => ({ menuItemId: l.id, quantity: l.quantity, note: l.note?.trim() || null }));
+  const changeQty = (line, delta) => {
+    setCart((prev) => {
+      const quantity = line.quantity + delta;
+      if (quantity <= 0) return prev.filter((l) => l.key !== line.key);
+      if (quantity > MAX_QTY) return prev;
+      return prev.map((l) => (l.key === line.key ? { ...l, quantity } : l));
+    });
+  };
+
+  const setNote = (key, note) => setCart((prev) => prev.map((l) => (l.key === key ? { ...l, note } : l)));
+
+  const lines = () => cart.map((l) => ({
+    menuItemId: l.id, quantity: l.quantity, note: l.note?.trim() || null,
+    ...(l.variantId ? { variantId: l.variantId } : {}),
+    ...(l.addOnIds?.length ? { addOnIds: l.addOnIds } : {}),
+  }));
 
   const placeOrder = async () => {
     if (!editing && orderType === 'DineIn' && !selectedTable) {
@@ -263,7 +292,7 @@ const POSMenu = () => {
     return menuItems.filter((i) => (category === ALL || i.category === category) && (!q || i.name.toLowerCase().includes(q)));
   }, [menuItems, category, search]);
 
-  const qtyOf = (id) => cart.find((l) => l.id === id)?.quantity ?? 0;
+  const qtyOf = (id) => cart.filter((l) => l.id === id).reduce((sum, l) => sum + l.quantity, 0);
   const itemCount = cart.reduce((sum, l) => sum + l.quantity, 0);
   const orderPanel = useRef(null);
   const total = cart.reduce((sum, l) => sum + l.price * l.quantity, 0);
@@ -347,11 +376,13 @@ const POSMenu = () => {
                   const qty = qtyOf(item.id);
                   return (
                     <button key={item.id} type="button" className={`pos-item${qty ? ' in-cart' : ''}`}
-                      aria-label={t('pos.addItem', { name: item.name })} onClick={() => changeQty(item, 1)}>
+                      aria-label={t('pos.addItem', { name: item.name })} onClick={() => tapItem(item)}>
                       <span className="pos-item-cat"><VegMark isVeg={item.isVeg} />{item.category}</span>
                       <span className="pos-item-name">{item.name}</span>
                       <span className="pos-item-foot">
-                        {formatMoney(item.price)}
+                        {item.variants?.length
+                          ? t('pos.fromPrice', { price: formatMoney(Math.min(...item.variants.map((v) => Number(v.price)))) })
+                          : formatMoney(item.price)}
                         {qty > 0 && <span className="pos-badge">{t('pos.inCart', { count: qty })}</span>}
                       </span>
                     </button>
@@ -373,22 +404,23 @@ const POSMenu = () => {
             <p className="pos-empty-cart">{t('pos.emptyCart')}</p>
           ) : (
             cart.map((l) => (
-              <div key={l.id} className="pos-line-wrap">
+              <div key={l.key} className="pos-line-wrap">
                 <div className="pos-line">
                   <div className="pos-line-info">
                     <div className="pos-line-name">{l.name}</div>
+                    {l.options && <div className="pos-line-options">{l.options}</div>}
                     <div className="pos-line-price">{formatMoney(l.price * l.quantity)}</div>
                   </div>
                   <button type="button" className="pos-qty-btn" aria-label={t('pos.oneLess', { name: l.name })} onClick={() => changeQty(l, -1)}>−</button>
                   <span className="pos-qty">{l.quantity}</span>
                   <button type="button" className="pos-qty-btn" aria-label={t('pos.oneMore', { name: l.name })} onClick={() => changeQty(l, 1)}>+</button>
                 </div>
-                {noteOpen === l.id || l.note ? (
+                {noteOpen === l.key || l.note ? (
                   <input className="form-control form-control-sm pos-note" maxLength={200} aria-label={t('pos.addNote', { name: l.name })}
-                    placeholder={t('pos.notePlaceholder')} value={l.note} autoFocus={noteOpen === l.id && !l.note}
-                    onChange={(e) => setNote(l.id, e.target.value)} />
+                    placeholder={t('pos.notePlaceholder')} value={l.note} autoFocus={noteOpen === l.key && !l.note}
+                    onChange={(e) => setNote(l.key, e.target.value)} />
                 ) : (
-                  <button type="button" className="pos-note-btn" aria-label={t('pos.addNote', { name: l.name })} onClick={() => setNoteOpen(l.id)}>
+                  <button type="button" className="pos-note-btn" aria-label={t('pos.addNote', { name: l.name })} onClick={() => setNoteOpen(l.key)}>
                     + {t('pos.note')}
                   </button>
                 )}
@@ -431,6 +463,8 @@ const POSMenu = () => {
       <ConfirmDialog open={confirmClear} title={t('pos.clearTitle')} confirmLabel={t('pos.clearConfirm')} danger
         onCancel={() => setConfirmClear(false)}
         onConfirm={() => { setCart([]); setConfirmClear(false); }} />
+      <ItemOptionsDialog item={choosing} onCancel={() => setChoosing(null)}
+        onAdd={(line) => { addLine(line); setChoosing(null); }} />
       <BillDialog orderId={billOrderId} onClose={() => setBillOrderId(null)} />
     </div>
   );

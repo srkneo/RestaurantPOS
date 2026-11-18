@@ -1,0 +1,90 @@
+{
+  "pos.fromPrice": [
+    "from {price}",
+    "{price} થી"
+  ],
+  "options.add": [
+    "Add · {price}",
+    "ઉમેરો · {price}"
+  ],
+  "options.chooseSize": [
+    "Size",
+    "સાઇઝ"
+  ],
+  "options.chooseExtras": [
+    "Extras",
+    "વધારાનું"
+  ],
+  "options.soldOut": [
+    "sold out",
+    "ખલાસ"
+  ],
+  "options.allSoldOut": [
+    "All sizes of this item are sold out.",
+    "આ વસ્તુની બધી સાઇઝ ખલાસ છે."
+  ],
+  "options.button": [
+    "Sizes & extras",
+    "સાઇઝ અને વધારાનું"
+  ],
+  "options.title": [
+    "Sizes and extras: {name}",
+    "સાઇઝ અને વધારાનું: {name}"
+  ],
+  "options.sizes": [
+    "Sizes",
+    "સાઇઝ"
+  ],
+  "options.sizesHint": [
+    "For example Half and Full, or Regular and Large. The size's price replaces the item's price, and the cashier must pick one.",
+    "દા.ત. હાફ અને ફુલ, અથવા રેગ્યુલર અને લાર્જ. સાઇઝની કિંમત વસ્તુની કિંમતની જગ્યાએ લાગે છે, અને કેશિયરે એક પસંદ કરવી પડે છે."
+  ],
+  "options.extras": [
+    "Extras",
+    "વધારાનું"
+  ],
+  "options.extrasHint": [
+    "For example Extra cheese +30. The price is added to the item; the cashier may pick any.",
+    "દા.ત. એક્સ્ટ્રા ચીઝ +30. કિંમત વસ્તુમાં ઉમેરાય છે; કેશિયર કોઈ પણ પસંદ કરી શકે."
+  ],
+  "options.variantExample": [
+    "e.g. Large",
+    "દા.ત. લાર્જ"
+  ],
+  "options.addOnExample": [
+    "e.g. Extra cheese",
+    "દા.ત. એક્સ્ટ્રા ચીઝ"
+  ],
+  "options.rowName": [
+    "{kind} {n}: name",
+    "{kind} {n}: નામ"
+  ],
+  "options.rowPrice": [
+    "{kind} {n}: price",
+    "{kind} {n}: કિંમત"
+  ],
+  "options.removeRow": [
+    "Remove {kind} {n}",
+    "{kind} {n} કાઢો"
+  ],
+  "options.addSize": [
+    "+ Add size",
+    "+ સાઇઝ ઉમેરો"
+  ],
+  "options.addExtra": [
+    "+ Add extra",
+    "+ વધારાનું ઉમેરો"
+  ],
+  "options.needName": [
+    "Every size and extra needs a name.",
+    "દરેક સાઇઝ અને વધારાનાને નામ જોઈએ."
+  ],
+  "options.needPrice": [
+    "Enter each price as a number, like 30 or 12.50.",
+    "દરેક કિંમત આંકડામાં લખો, જેમ કે 30 અથવા 12.50."
+  ],
+  "options.saved": [
+    "Sizes and extras of {name} saved.",
+    "{name} ની સાઇઝ અને વધારાનું સચવાયું."
+  ]
+}
