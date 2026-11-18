@@ -17,7 +17,9 @@ namespace POSSystem.Platform
     public record RenewRequest(string Key, string DeviceId, string Version);
     // Support carries the support details from the cloud, so a shop PC shows the same footer and About page.
     // Updates carries support's update setting for this shop (auto, paused or pinned).
-    public record RenewResponse(LicenceFile Licence, DateTime ServerTimeUtc, SupportInfoDto? Support = null, UpdatePolicyDto? Updates = null);
+    // OwnerReset carries the hash of a password reset code support made for this shop's owner.
+    public record RenewResponse(LicenceFile Licence, DateTime ServerTimeUtc, SupportInfoDto? Support = null, UpdatePolicyDto? Updates = null,
+        OwnerResetInfoDto? OwnerReset = null);
     public record ActivateRequest(string? Key);
     public record LicenceStatusDto(string State, bool Locked, string? Customer, string? Plan, DateTime? LeaseUntil, DateTime? PaidUntil, string Message, bool Required);
 
@@ -123,6 +125,21 @@ namespace POSSystem.Platform
         public Task<string> DeviceCode(CancellationToken ct) =>
             InRecord((_, record, _) => Task.FromResult(record.DeviceId.Length > 8 ? record.DeviceId[..8].ToUpperInvariant() : record.DeviceId.ToUpperInvariant()), ct);
 
+        // Checks the owner's reset code against the one support made. With use = true a right code is used up.
+        public Task<bool> CheckOwnerReset(string? code, bool use, CancellationToken ct) =>
+            InRecord(async (db, record, now) =>
+            {
+                if (record.OwnerResetExpires is null || now > record.OwnerResetExpires || !OwnerReset.Matches(code, record.OwnerResetHash)) return false;
+                if (use)
+                {
+                    record.OwnerResetUsedHash = record.OwnerResetHash;
+                    record.OwnerResetHash = null;
+                    record.OwnerResetExpires = null;
+                    await db.SaveChangesAsync(ct);
+                }
+                return true;
+            }, ct);
+
         public Task<LicenceStatus> Activate(string? key, CancellationToken ct)
         {
             key = key?.Trim();
@@ -167,6 +184,12 @@ namespace POSSystem.Platform
                     SupportService.Apply(db, SupportService.Clean(response.Support), now);
                 // Support's update setting, for deploy/auto-update.sh on this PC.
                 if (response.Updates is not null) ShopUpdates.WritePolicy(_config, response.Updates);
+                // A password reset code support made for the owner. A code already used here is not taken again.
+                if (response.OwnerReset is not null && response.OwnerReset.Hash != record.OwnerResetUsedHash)
+                {
+                    record.OwnerResetHash = response.OwnerReset.Hash;
+                    record.OwnerResetExpires = response.OwnerReset.ExpiresAt.ToUniversalTime();
+                }
                 // The cloud's clock is the truth. When this PC agrees with it, forget an older "last seen" time
                 // that came from a clock that was wrong once; otherwise the PC could never unlock itself.
                 if ((response.ServerTimeUtc.ToUniversalTime() - now).Duration() <= Licence.ClockSlack) record.LastSeenUtc = now;

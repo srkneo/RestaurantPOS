@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -345,6 +346,66 @@ namespace RestaurantPOS.Tests
             Assert.True((await Read(run)).GetProperty("requested").GetBoolean());
             Assert.True(File.Exists(Path.Combine(_updates, "backup-request")));
         }
+
+        [Fact]
+        public async Task OwnerReset_WithTheCodeFromSupport_ChangesThePasswordOnce()
+        {
+            var f = Build(new FakeCloud { Handler = _ => SignedWithReset("ABCD-EFGH") });
+            await AddUser(f, "owner@shop.test", "admin");
+            Assert.Equal(HttpStatusCode.OK, (await As(f, "admin").PostAsync("/api/licence/activate", Json(new { key = "KEY-1" }))).StatusCode);
+
+            Assert.Equal(HttpStatusCode.BadRequest, (await ResetOwner(f, "owner@shop.test", "ZZZZ-ZZZZ", "New#Pass2026")).StatusCode);
+            // A weak password is refused without using up the code.
+            Assert.Equal(HttpStatusCode.BadRequest, (await ResetOwner(f, "owner@shop.test", "ABCD-EFGH", "short")).StatusCode);
+
+            var ok = await ResetOwner(f, "owner@shop.test", "abcd efgh", "New#Pass2026");
+            Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
+            Assert.True(await PasswordIs(f, "owner@shop.test", "New#Pass2026"));
+
+            // Used once; the next renewal brings the same code again, but it is not taken.
+            Assert.Equal(HttpStatusCode.BadRequest, (await ResetOwner(f, "owner@shop.test", "ABCD-EFGH", "Other#Pass2026")).StatusCode);
+            Assert.True(await PasswordIs(f, "owner@shop.test", "New#Pass2026"));
+        }
+
+        [Fact]
+        public async Task OwnerReset_IsOnlyForTheOwner()
+        {
+            var f = Build(new FakeCloud { Handler = _ => SignedWithReset("ABCD-EFGH") });
+            await AddUser(f, "cashier@shop.test", "cashier");
+            await As(f, "admin").PostAsync("/api/licence/activate", Json(new { key = "KEY-1" }));
+            Assert.Equal(HttpStatusCode.BadRequest, (await ResetOwner(f, "cashier@shop.test", "ABCD-EFGH", "New#Pass2026")).StatusCode);
+            Assert.True(await PasswordIs(f, "cashier@shop.test", "Old#Pass2026"));
+        }
+
+        [Fact]
+        public async Task OwnerReset_IsNotOnTheCloud()
+        {
+            var f = Build(new FakeCloud(), required: false);
+            Assert.Equal(HttpStatusCode.NotFound, (await ResetOwner(f, "owner@shop.test", "ABCD-EFGH", "New#Pass2026")).StatusCode);
+        }
+
+        private static async Task<AppUser> AddUser(WebApplicationFactory<Program> f, string email, string role)
+        {
+            using var scope = f.Services.CreateScope();
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+            var user = new AppUser { UserName = email, Email = email, EmailConfirmed = true, DisplayName = "Test", TenantId = 1, OutletId = 1 };
+            Assert.True((await users.CreateAsync(user, "Old#Pass2026")).Succeeded);
+            Assert.True((await users.AddToRoleAsync(user, role)).Succeeded);
+            return user;
+        }
+
+        private static async Task<bool> PasswordIs(WebApplicationFactory<Program> f, string email, string password)
+        {
+            using var scope = f.Services.CreateScope();
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+            return await users.CheckPasswordAsync((await users.FindByEmailAsync(email))!, password);
+        }
+
+        private static Task<HttpResponseMessage> ResetOwner(WebApplicationFactory<Program> f, string email, string code, string password) =>
+            As(f, "cashier").PostAsync("/api/auth/owner-reset", Json(new { email, code, newPassword = password }));
+
+        private (RenewResponse?, string?) SignedWithReset(string code) =>
+            (Signed().Item1! with { OwnerReset = new OwnerResetInfoDto(OwnerReset.Hash(code), DateTime.UtcNow.AddHours(24)) }, null);
 
         [Fact]
         public async Task ClockSetBack_LocksAtOnce_EvenRightAfterACheck()

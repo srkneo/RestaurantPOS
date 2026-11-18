@@ -17,6 +17,8 @@ namespace POSSystem.Data
                 b.Property(x => x.DeviceId).HasMaxLength(64);
                 b.Property(x => x.LicenceKey).HasMaxLength(100);
                 b.Property(x => x.LastRenewError).HasMaxLength(300);
+                b.Property(x => x.OwnerResetHash).HasMaxLength(64);
+                b.Property(x => x.OwnerResetUsedHash).HasMaxLength(64);
             });
         }
     }

@@ -129,6 +129,25 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task OwnerResetCode_IsMadeBySupport_AndOnlyItsHashGoesToTheShop()
+        {
+            var f = Build();
+            var licence = await Create(f);
+            var id = licence.GetProperty("id").GetInt32();
+            Assert.Equal(HttpStatusCode.Forbidden, (await As(f, "admin").PostAsync($"/api/platform/licences/{id}/owner-reset", null)).StatusCode);
+
+            var made = await As(f, "platform").PostAsync($"/api/platform/licences/{id}/owner-reset", null);
+            Assert.Equal(HttpStatusCode.OK, made.StatusCode);
+            var code = (await Read(made)).GetProperty("code").GetString()!;
+            Assert.Matches(new Regex("^[A-HJKMNP-TV-Z2-9]{4}-[A-HJKMNP-TV-Z2-9]{4}$"), code);
+
+            var renewed = await Read(await Renew(f, licence.GetProperty("key").GetString()!));
+            var reset = renewed.GetProperty("ownerReset");
+            Assert.Equal(POSSystem.Platform.OwnerReset.Hash(code), reset.GetProperty("hash").GetString());
+            Assert.DoesNotContain(code, renewed.GetRawText());
+        }
+
+        [Fact]
         public async Task Create_ChecksTheForm()
         {
             var f = Build();

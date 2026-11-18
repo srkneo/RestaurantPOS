@@ -14,5 +14,9 @@ namespace POSSystem.Models
         public DateTime LastSeenUtc { get; set; }
         public DateTime? LastRenewedUtc { get; set; }
         public string? LastRenewError { get; set; }
+        // The owner password reset code support made (hash from the licence server), and the last one used up.
+        public string? OwnerResetHash { get; set; }
+        public DateTime? OwnerResetExpires { get; set; }
+        public string? OwnerResetUsedHash { get; set; }
     }
 }

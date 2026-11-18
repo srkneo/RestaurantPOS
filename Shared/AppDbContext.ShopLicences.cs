@@ -19,6 +19,7 @@ namespace POSSystem.Data
                 b.Property(x => x.LastVersion).HasMaxLength(40);
                 b.Property(x => x.UpdateMode).HasMaxLength(10);
                 b.Property(x => x.PinnedVersion).HasMaxLength(20);
+                b.Property(x => x.OwnerResetHash).HasMaxLength(64);
                 b.HasIndex(x => x.Key).IsUnique();
             });
         }
