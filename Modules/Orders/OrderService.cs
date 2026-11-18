@@ -143,6 +143,22 @@ namespace POSSystem.Services
                 if (!item.IsAvailable) throw new ArgumentException($"{item.Name} is sold out.");
             }
 
+            // Time-based menu: a category served only at certain hours cannot be ordered outside them.
+            var categoryIds = menu.Values.Where(m => m.CategoryId != null).Select(m => m.CategoryId!.Value).Distinct().ToList();
+            var timed = await _context.MenuCategories
+                .Where(c => categoryIds.Contains(c.Id) && c.AvailableFrom != null && c.AvailableTo != null).ToListAsync();
+            if (timed.Count > 0)
+            {
+                var now = POSSystem.Menu.MenuHours.LocalNow((await CurrentOutlet())?.TimeZone);
+                foreach (var item in menu.Values)
+                {
+                    var hours = timed.FirstOrDefault(c => c.Id == item.CategoryId);
+                    if (hours != null && !POSSystem.Menu.MenuHours.IsOpen(hours.AvailableFrom, hours.AvailableTo, now))
+                        throw new ArgumentException(
+                            $"{item.Name} is served only {POSSystem.Menu.MenuHours.Text(hours.AvailableFrom)}-{POSSystem.Menu.MenuHours.Text(hours.AvailableTo)}.");
+                }
+            }
+
             // Sizes and extras of these items: the price comes from them when the item has any.
             var variants = await _context.ItemVariants.Where(v => ids.Contains(v.MenuItemId)).ToListAsync();
             var addOns = await _context.ItemAddOns.Where(a => ids.Contains(a.MenuItemId)).ToListAsync();

@@ -1242,6 +1242,12 @@ namespace RestaurantPOS.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<TimeOnly?>("AvailableFrom")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<TimeOnly?>("AvailableTo")
+                        .HasColumnType("time without time zone");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")

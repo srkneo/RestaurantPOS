@@ -11,8 +11,8 @@ using POSSystem.Models;
 
 namespace POSSystem.Menu
 {
-    public record CategoryDto(int Id, string Name, int SortOrder, bool IsActive);
-    public record CategoryRequest(string? Name, int SortOrder, bool IsActive = true);
+    public record CategoryDto(int Id, string Name, int SortOrder, bool IsActive, string? AvailableFrom = null, string? AvailableTo = null);
+    public record CategoryRequest(string? Name, int SortOrder, bool IsActive = true, string? AvailableFrom = null, string? AvailableTo = null);
     public record MenuItemAdminDto(int Id, string Name, decimal Price, int? CategoryId, string Category, string? Description,
         bool IsVeg, bool IsAvailable, decimal TaxRate, int SortOrder, int? StationId = null);
     public record MenuItemRequest(string? Name, decimal Price, int? CategoryId, string? Description, bool IsVeg, bool IsAvailable, decimal TaxRate, int SortOrder,
@@ -28,7 +28,9 @@ namespace POSSystem.Menu
             // POS: items that can be sold right now.
             app.MapGet("/api/menuitems", async (IMenuItemService menuItemService, AppDbContext db) =>
             {
-                var items = await menuItemService.GetMenuItems();
+                // Time-based menu: items of a category outside its serving hours are not offered right now.
+                var closed = await MenuHours.ClosedCategoryIds(db);
+                var items = (await menuItemService.GetMenuItems()).Where(i => i.CategoryId == null || !closed.Contains(i.CategoryId.Value)).ToList();
                 var options = await MenuOptions.ForItems(db, items.Select(i => i.Id).ToList());
                 return Results.Ok(items.Select(i => MenuOptions.ToPosDto(i, options)).ToList());
             })
@@ -40,17 +42,21 @@ namespace POSSystem.Menu
             admin.MapGet("/categories", async (AppDbContext db) =>
                 Results.Ok(await db.MenuCategories.Where(c => c.OutletId == db.CurrentOutletId)
                     .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
-                    .Select(c => new CategoryDto(c.Id, c.Name, c.SortOrder, c.IsActive)).ToListAsync()))
+                    .Select(c => new CategoryDto(c.Id, c.Name, c.SortOrder, c.IsActive, MenuHours.Text(c.AvailableFrom), MenuHours.Text(c.AvailableTo))).ToListAsync()))
                 .WithName("GetMenuCategories").WithSummary("List menu categories");
 
             admin.MapPost("/categories", async (CategoryRequest req, AppDbContext db) =>
             {
                 var errors = await ValidateCategory(db, req, null);
                 if (errors.Count > 0) return Results.ValidationProblem(errors);
-                var category = new MenuCategory { Name = req.Name!.Trim(), SortOrder = req.SortOrder, IsActive = req.IsActive };
+                var category = new MenuCategory
+                {
+                    Name = req.Name!.Trim(), SortOrder = req.SortOrder, IsActive = req.IsActive,
+                    AvailableFrom = MenuHours.Parse(req.AvailableFrom), AvailableTo = MenuHours.Parse(req.AvailableTo)
+                };
                 db.MenuCategories.Add(category);
                 await db.SaveChangesAsync();
-                return Results.Created($"/api/admin/menu/categories/{category.Id}", new CategoryDto(category.Id, category.Name, category.SortOrder, category.IsActive));
+                return Results.Created($"/api/admin/menu/categories/{category.Id}", CategoryToDto(category));
             }).WithName("CreateMenuCategory").WithSummary("Add a menu category");
 
             admin.MapPut("/categories/{id:int}", async (int id, CategoryRequest req, AppDbContext db) =>
@@ -62,11 +68,13 @@ namespace POSSystem.Menu
                 category.Name = req.Name!.Trim();
                 category.SortOrder = req.SortOrder;
                 category.IsActive = req.IsActive;
+                category.AvailableFrom = MenuHours.Parse(req.AvailableFrom);
+                category.AvailableTo = MenuHours.Parse(req.AvailableTo);
                 // Keep the category name copied on items in step.
                 foreach (var item in await db.MenuItems.Where(m => m.CategoryId == id).ToListAsync()) item.Category = category.Name;
                 await db.SaveChangesAsync();
-                return Results.Ok(new CategoryDto(category.Id, category.Name, category.SortOrder, category.IsActive));
-            }).WithName("UpdateMenuCategory").WithSummary("Rename or reorder a menu category");
+                return Results.Ok(CategoryToDto(category));
+            }).WithName("UpdateMenuCategory").WithSummary("Rename or reorder a menu category, or set its serving hours");
 
             admin.MapGet("/items", async (AppDbContext db) =>
             {
@@ -142,9 +150,16 @@ namespace POSSystem.Menu
             item.StationId = req.StationId is > 0 ? req.StationId : null;
         }
 
+        private static CategoryDto CategoryToDto(MenuCategory c) =>
+            new(c.Id, c.Name, c.SortOrder, c.IsActive, MenuHours.Text(c.AvailableFrom), MenuHours.Text(c.AvailableTo));
+
         private static async Task<Dictionary<string, string[]>> ValidateCategory(AppDbContext db, CategoryRequest req, int? id)
         {
             var errors = new Dictionary<string, string[]>();
+            if (!MenuHours.TryParse(req.AvailableFrom, out _) || !MenuHours.TryParse(req.AvailableTo, out _))
+                errors["availablefrom"] = new[] { "Enter times like 07:00 or 22:30." };
+            else if (string.IsNullOrWhiteSpace(req.AvailableFrom) != string.IsNullOrWhiteSpace(req.AvailableTo))
+                errors["availablefrom"] = new[] { "Enter both times, or leave both empty to serve all day." };
             var name = req.Name?.Trim();
             if (string.IsNullOrEmpty(name) || name.Length > 100)
                 errors["name"] = new[] { "Enter a name of up to 100 characters." };
