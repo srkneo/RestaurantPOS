@@ -61,6 +61,7 @@ try
     builder.Services.AddScoped<ApprovalService>();
     builder.Services.AddScoped<CreditNoteService>();
     builder.Services.AddScoped<LicenceIssuer>();
+    builder.Services.AddScoped<SupportService>();
     builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
     builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 
@@ -83,6 +84,7 @@ try
     app.MapApprovalEndpoints();
     app.MapLicenceEndpoints();
     app.MapLicenceServerEndpoints();
+    app.MapAboutEndpoints();
 
     // Requests slower than 1 second go to the log with their path, so load tests show where time is spent.
     app.Use(async (context, next) =>

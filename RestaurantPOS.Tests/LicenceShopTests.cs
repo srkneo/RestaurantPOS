@@ -236,6 +236,21 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task Renewal_CopiesTheSupportDetails_ForTheAboutPage()
+        {
+            var support = new SupportInfoDto("Vyom Solutions", "RestaurantPOS", "9429549007", null, "help@vyom.test", "8 AM - 10 AM", null);
+            var f = Build(new FakeCloud { Handler = _ => (Signed().Item1! with { Support = support }, null) });
+            Assert.Equal(HttpStatusCode.OK, (await As(f, "admin").PostAsync("/api/licence/activate", Json(new { key = "KEY-1" }))).StatusCode);
+
+            var about = await Read(await As(f, "admin").GetAsync("/api/about"));
+            Assert.Equal("9429549007", about.GetProperty("phone").GetString());
+            Assert.Equal("help@vyom.test", about.GetProperty("email").GetString());
+            Assert.True(about.GetProperty("shopPc").GetBoolean());
+            Assert.Equal("Anand Restaurant", about.GetProperty("licenceCustomer").GetString());
+            Assert.Equal(8, about.GetProperty("deviceCode").GetString()!.Length);
+        }
+
+        [Fact]
         public async Task ClockSetBack_LocksAtOnce_EvenRightAfterACheck()
         {
             var clock = new MovableClock();

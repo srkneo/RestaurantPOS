@@ -24,6 +24,9 @@ import OfflineBanner from './offline/OfflineBanner';
 import LicenceBanner from './licence/LicenceBanner';
 import LicencePage from './admin/LicencePage';
 import ShopLicencesPage from './admin/ShopLicencesPage';
+import PlatformSupportPage from './admin/PlatformSupportPage';
+import AboutPage from './about/AboutPage';
+import AppFooter from './about/AppFooter';
 
 const POS_ROLES = ['cashier', 'manager', 'admin'];
 const KITCHEN_ROLES = ['kitchen', 'manager', 'admin'];
@@ -65,6 +68,7 @@ function AppHeader() {
         {can(ADMIN_ROLES) && <NavLink to="/admin/licence">{t('nav.licence')}</NavLink>}
         {can(PLATFORM_ROLES) && <NavLink to="/platform" end>{t('nav.platform')}</NavLink>}
         {can(PLATFORM_ROLES) && <NavLink to="/platform/licences">{t('nav.licences')}</NavLink>}
+        {can(PLATFORM_ROLES) && <NavLink to="/platform/support">{t('nav.support')}</NavLink>}
       </nav>
       <div className="pos-user">
         {mainRole && <span className="pos-role" title={user.email}>{t(`role.${mainRole}`)}</span>}
@@ -81,6 +85,8 @@ function AppHeader() {
 function Layout() {
   const { pathname } = useLocation();
   const hideHeader = pathname.startsWith('/kitchen') || pathname.startsWith('/login') || pathname.startsWith('/print');
+  // The kitchen screen and printouts stay clean; every other screen shows the support line at the bottom.
+  const hideFooter = pathname.startsWith('/kitchen') || pathname.startsWith('/print');
   return (
     <>
       {!hideHeader && <AppHeader />}
@@ -102,12 +108,15 @@ function Layout() {
         <Route path="/admin/licence" element={<RequireRole roles={ADMIN_ROLES}><LicencePage /></RequireRole>} />
         <Route path="/platform" element={<RequireRole roles={PLATFORM_ROLES}><PlatformPage /></RequireRole>} />
         <Route path="/platform/licences" element={<RequireRole roles={PLATFORM_ROLES}><ShopLicencesPage /></RequireRole>} />
+        <Route path="/platform/support" element={<RequireRole roles={PLATFORM_ROLES}><PlatformSupportPage /></RequireRole>} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/print/bill/:id" element={<RequireRole roles={POS_ROLES}><PrintBillPage /></RequireRole>} />
         <Route path="/print/kot/:id" element={<RequireRole roles={[...POS_ROLES, 'kitchen']}><PrintKotPage /></RequireRole>} />
         <Route path="/print/day" element={<RequireRole roles={MENU_ROLES}><PrintDayPage /></RequireRole>} />
         <Route path="/print/credit-note/:id" element={<RequireRole roles={POS_ROLES}><PrintCreditNotePage /></RequireRole>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      {!hideFooter && <AppFooter />}
     </>
   );
 }

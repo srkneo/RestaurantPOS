@@ -15,7 +15,8 @@ using POSSystem.Models;
 namespace POSSystem.Platform
 {
     public record RenewRequest(string Key, string DeviceId, string Version);
-    public record RenewResponse(LicenceFile Licence, DateTime ServerTimeUtc);
+    // Support carries the support details from the cloud, so a shop PC shows the same footer and About page.
+    public record RenewResponse(LicenceFile Licence, DateTime ServerTimeUtc, SupportInfoDto? Support = null);
     public record ActivateRequest(string? Key);
     public record LicenceStatusDto(string State, bool Locked, string? Customer, string? Plan, DateTime? LeaseUntil, DateTime? PaidUntil, string Message, bool Required);
 
@@ -115,6 +116,10 @@ namespace POSSystem.Platform
             }, ct);
         }
 
+        // A short code for this PC, so support can tell shop PCs apart on the phone.
+        public Task<string> DeviceCode(CancellationToken ct) =>
+            InRecord((_, record, _) => Task.FromResult(record.DeviceId.Length > 8 ? record.DeviceId[..8].ToUpperInvariant() : record.DeviceId.ToUpperInvariant()), ct);
+
         public Task<LicenceStatus> Activate(string? key, CancellationToken ct)
         {
             key = key?.Trim();
@@ -154,6 +159,9 @@ namespace POSSystem.Platform
                 record.Signature = response.Licence.Signature;
                 record.LastRenewedUtc = now;
                 record.LastRenewError = null;
+                // The support details from the cloud, for the footer and the About page on this PC.
+                if (response.Support is not null && SupportService.Validate(response.Support).Count == 0)
+                    SupportService.Apply(db, SupportService.Clean(response.Support), now);
                 // The cloud's clock is the truth. When this PC agrees with it, forget an older "last seen" time
                 // that came from a clock that was wrong once; otherwise the PC could never unlock itself.
                 if ((response.ServerTimeUtc.ToUniversalTime() - now).Duration() <= Licence.ClockSlack) record.LastSeenUtc = now;
