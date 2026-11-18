@@ -19,10 +19,8 @@ namespace POSSystem.Orders
     {
         public static WebApplication MapOrderEndpoints(this WebApplication app)
         {
-            app.MapGet("/api/tables", async (AppDbContext db) =>
-                Results.Ok(await db.RestaurantTables.Where(t => t.IsActive && t.OutletId == db.CurrentOutletId)
-                    .OrderBy(t => t.SortOrder).ThenBy(t => t.Id).Select(t => new { t.Id, t.TableNumber }).ToListAsync()))
-                .WithName("GetTables").WithSummary("List restaurant tables");
+            app.MapGet("/api/tables", async (AppDbContext db) => Results.Ok(await TableBoard.Load(db)))
+                .WithName("GetTables").WithSummary("List restaurant tables with free, occupied or billed");
 
             app.MapGet("/api/orders", async (string? date, IOrderService orderService) =>
             {
@@ -86,6 +84,14 @@ namespace POSSystem.Orders
             app.MapPost("/api/orders/{id:int}/items", async (int id, UpdateOrderItemsRequest request, IOrderService orderService) =>
                 await Change(() => orderService.UpdateOrderItems(id, request.Items, request.Version), order => Results.Ok(order.ToDto())))
                 .WithName("UpdateOrderItems").WithSummary("Change the items of an order before cooking starts");
+
+            app.MapPost("/api/orders/{id:int}/add-items", async (int id, UpdateOrderItemsRequest request, IOrderService orderService) =>
+                await Change(() => orderService.AddItems(id, request.Items, request.Version), order => Results.Ok(order.ToDto())))
+                .WithName("AddOrderRound").WithSummary("Add a new round of items to a table's open order");
+
+            app.MapPost("/api/orders/{id:int}/move", async (int id, MoveTableRequest request, IOrderService orderService) =>
+                await Change(() => orderService.MoveTable(id, request.TableId, request.Version), order => Results.Ok(order.ToDto())))
+                .WithName("MoveOrderTable").WithSummary("Move an open dine-in order to a free table");
 
             return app;
         }

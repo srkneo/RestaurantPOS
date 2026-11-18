@@ -25,5 +25,9 @@ namespace POSSystem.Models
         // Kitchen station of the item when it was ordered (copied, so renaming a station never changes old KOTs).
         public int? StationId { get; set; }
         public string? StationName { get; set; }
+
+        // Running tab: 1 for the first order, 2 for the next items added to the same table, and so on.
+        // The kitchen screen and the KOT of a new round show only that round.
+        public int Round { get; set; } = 1;
     }
 }

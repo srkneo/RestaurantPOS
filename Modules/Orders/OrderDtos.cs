@@ -7,7 +7,7 @@ namespace POSSystem.Dtos
 {
     public record TableDto(int Id, string TableNumber);
     public record OrderItemDto(int Id, int MenuItemId, string ItemName, decimal UnitPrice, int Quantity, string? Note,
-        int? VariantId = null, List<int>? AddOnIds = null, string? Options = null, int? StationId = null, string? StationName = null);
+        int? VariantId = null, List<int>? AddOnIds = null, string? Options = null, int? StationId = null, string? StationName = null, int Round = 1);
     public record OrderDto(
         int Id,
         int TokenNumber,
@@ -33,7 +33,7 @@ namespace POSSystem.Dtos
             o.Status.ToString(),
             o.CreatedAt,
             o.Items.Select(i => new OrderItemDto(i.Id, i.MenuItemId, i.ItemName, i.UnitPrice, i.Quantity, i.Note,
-                i.VariantId, POSSystem.Menu.MenuOptions.AddOnIdList(i.AddOnIds), i.Options, i.StationId, i.StationName)).ToList(),
+                i.VariantId, POSSystem.Menu.MenuOptions.AddOnIdList(i.AddOnIds), i.Options, i.StationId, i.StationName, i.Round)).ToList(),
             o.OrderType.ToString(),
             o.CustomerName,
             o.CustomerPhone,
