@@ -9,6 +9,7 @@ import { formatMoney, parseServerDate } from '../ui/format';
 import './OrderHistory.css';
 
 const REASONS = ['reasonCustomerLeft', 'reasonWrongOrder', 'reasonOutOfStock', 'reasonOther'];
+const OPEN = ['Received', 'Preparing', 'Ready'];
 
 // Works with both item shapes: items (itemName, unitPrice) and menuItems (name, price)
 const getItems = (order) =>
@@ -35,6 +36,11 @@ const OrderHistory = () => {
   const [moveTables, setMoveTables] = useState([]);
   const [moveTo, setMoveTo] = useState('');
   const [moveError, setMoveError] = useState(null);
+  const [merging, setMerging] = useState(null);
+  const [mergeFrom, setMergeFrom] = useState('');
+  const [splitting, setSplitting] = useState(null);
+  const [splitQty, setSplitQty] = useState({});
+  const [actionError, setActionError] = useState(null);
 
   const load = useCallback(async () => {
     setLoadState('loading');
@@ -140,6 +146,60 @@ const OrderHistory = () => {
     }
   };
 
+  // Merge and split: same error handling as the other order changes.
+  const postChange = async (url, body, done) => {
+    setBusy(true);
+    try {
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 409) {
+        setActionError(data.code === 'billed' ? t('orders.billedFirst') : t('pos.conflict'));
+        load();
+        return;
+      }
+      if (!res.ok) {
+        setActionError(data.message || t('common.error'));
+        return;
+      }
+      done(data);
+      load();
+    } catch {
+      setActionError(t('pos.networkError'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const mergeChoices = merging
+    ? orders.filter((o) => o.id !== merging.id && o.orderType !== 'Takeaway' && OPEN.includes(o.status))
+    : [];
+
+  const confirmMerge = () => {
+    const from = orders.find((o) => String(o.id) === mergeFrom);
+    if (!from) {
+      setActionError(t('orders.mergeChoose'));
+      return;
+    }
+    postChange(`/api/orders/${merging.id}/merge`, { fromOrderId: from.id, version: merging.version, fromVersion: from.version }, () => {
+      showToast(t('orders.merged', { from: from.tokenNumber, token: merging.tokenNumber }));
+      setMerging(null);
+    });
+  };
+
+  const confirmSplit = () => {
+    const lines = Object.entries(splitQty)
+      .map(([id, q]) => ({ orderItemId: Number(id), quantity: Number(q) || 0 }))
+      .filter((l) => l.quantity > 0);
+    if (lines.length === 0) {
+      setActionError(t('orders.splitChoose'));
+      return;
+    }
+    postChange(`/api/orders/${splitting.id}/split`, { lines, version: splitting.version }, (data) => {
+      showToast(t('orders.splitDone', { token: data.tokenNumber }));
+      setSplitting(null);
+    });
+  };
+
   const sorted = [...orders].sort(
     (a, b) => (parseServerDate(b.createdAt)?.getTime() ?? 0) - (parseServerDate(a.createdAt)?.getTime() ?? 0),
   );
@@ -209,6 +269,10 @@ const OrderHistory = () => {
                       {order.orderType !== 'Takeaway' && ['Received', 'Preparing', 'Ready'].includes(order.status) && (
                         <div className="pos-row-actions mt-1">
                           <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openMove(order)}>{t('orders.move')}</button>
+                          <button type="button" className="btn btn-outline-secondary btn-sm px-3"
+                            onClick={() => { setMerging(order); setMergeFrom(''); setActionError(null); }}>{t('orders.merge')}</button>
+                          <button type="button" className="btn btn-outline-secondary btn-sm px-3"
+                            onClick={() => { setSplitting(order); setSplitQty({}); setActionError(null); }}>{t('orders.split')}</button>
                         </div>
                       )}
                     </td>
@@ -246,6 +310,30 @@ const OrderHistory = () => {
             {moveTables.map((tb) => <option key={tb.id} value={tb.id}>{t('pos.tableName', { number: tb.tableNumber })}</option>)}
           </select>
         </div>
+      </FormDialog>
+      <FormDialog open={!!merging} title={t('orders.mergeTitle', { token: merging?.tokenNumber ?? '' })} submitLabel={t('orders.mergeConfirm')}
+        busy={busy} error={actionError} onCancel={() => setMerging(null)} onSubmit={confirmMerge}>
+        <div>
+          <label htmlFor="merge-from" className="form-label">{t('orders.mergeFrom')}</label>
+          <select id="merge-from" className="form-select" value={mergeFrom} onChange={(e) => setMergeFrom(e.target.value)}>
+            <option value="">{t('orders.mergeChoose')}</option>
+            {mergeChoices.map((o) => (
+              <option key={o.id} value={o.id}>{t('orders.mergeOption', { token: o.tokenNumber, number: o.table?.tableNumber ?? o.tableId })}</option>
+            ))}
+          </select>
+        </div>
+        <p className="pos-hint mb-0">{t('orders.mergeHint')}</p>
+      </FormDialog>
+      <FormDialog open={!!splitting} title={t('orders.splitTitle', { token: splitting?.tokenNumber ?? '' })} submitLabel={t('orders.splitConfirm')}
+        busy={busy} error={actionError} onCancel={() => setSplitting(null)} onSubmit={confirmSplit}>
+        <p className="pos-hint mb-0">{t('orders.splitHint')}</p>
+        {(splitting?.items ?? []).map((i) => (
+          <div key={i.id} className="d-flex align-items-center justify-content-between gap-3">
+            <label htmlFor={`split-${i.id}`} className="mb-0">{`${i.quantity} x ${i.itemName}`}</label>
+            <input id={`split-${i.id}`} type="number" min="0" max={i.quantity} inputMode="numeric" className="form-control" style={{ maxWidth: 90 }}
+              value={splitQty[i.id] ?? '0'} onChange={(e) => setSplitQty((q) => ({ ...q, [i.id]: e.target.value }))} />
+          </div>
+        ))}
       </FormDialog>
     </main>
   );

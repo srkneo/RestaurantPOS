@@ -688,5 +688,20 @@
   "orders.moveTo": "Move to",
   "orders.moveChoose": "Choose a free table",
   "orders.moveConfirm": "Move",
-  "orders.moved": "Token {token} moved to Table {number}."
+  "orders.moved": "Token {token} moved to Table {number}.",
+  "orders.merge": "Merge table",
+  "orders.split": "Split bill",
+  "orders.mergeTitle": "Merge into token {token}",
+  "orders.mergeFrom": "Merge in",
+  "orders.mergeChoose": "Choose an open order",
+  "orders.mergeOption": "Token {token} · Table {number}",
+  "orders.mergeHint": "Its items join this order and its token closes. One bill for both tables.",
+  "orders.mergeConfirm": "Merge",
+  "orders.merged": "Token {from} merged into token {token}.",
+  "orders.splitTitle": "Split token {token}",
+  "orders.splitHint": "Choose how many of each item go to a new order with its own bill.",
+  "orders.splitChoose": "Choose at least one item to split off.",
+  "orders.splitConfirm": "Split",
+  "orders.splitDone": "Split off as token {token}. Bill it from this list.",
+  "orders.billedFirst": "This order has a bill. Void the bill first."
 }
