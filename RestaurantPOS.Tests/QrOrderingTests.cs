@@ -113,6 +113,19 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task TableQrImage_IsAnSvgOfTheGuestLink()
+        {
+            var s = Build(qrOn: true);
+            using var f = s.Factory;
+            var image = await As(f, "manager").GetAsync($"/api/admin/tables/{s.TableId}/qr.svg?origin=https%3A%2F%2Fpos.example.com");
+            Assert.Equal(HttpStatusCode.OK, image.StatusCode);
+            Assert.Equal("image/svg+xml", image.Content.Headers.ContentType?.MediaType);
+            Assert.Contains("<svg", await image.Content.ReadAsStringAsync());
+            Assert.Equal(HttpStatusCode.BadRequest, (await As(f, "manager").GetAsync($"/api/admin/tables/{s.TableId}/qr.svg?origin=javascript:alert(1)")).StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, (await As(f, "cashier").GetAsync($"/api/admin/tables/{s.TableId}/qr.svg?origin=https%3A%2F%2Fpos.example.com")).StatusCode);
+        }
+
+        [Fact]
         public async Task QrOrdering_IsOffUntilTheOwnerTurnsItOn()
         {
             var s = Build(qrOn: false);
