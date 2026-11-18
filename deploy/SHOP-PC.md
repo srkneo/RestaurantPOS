@@ -31,6 +31,7 @@ In the router, give the mini PC a fixed address (DHCP reservation), so the link 
 sudo bash shop-install.sh 1.7.1
 ```
 The database is backed up first (`/root/pos/backups`), settings are kept.
+If the new version does not start within 3 minutes, the old version is put back by itself, with the database as it was just before the update.
 
 ## Backups
 - Every night at 03:00 a backup is written to `/root/pos/backups/nightly` (7 days are kept).
