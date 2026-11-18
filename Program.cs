@@ -91,6 +91,7 @@ try
     app.MapReviewLinkEndpoints();
     app.MapGuestFeedbackEndpoints();
     app.MapDiscountLimitEndpoints();
+    app.MapApprovalRulesEndpoints();
     app.MapApprovalEndpoints();
     app.MapLicenceEndpoints();
     app.MapLicenceServerEndpoints();

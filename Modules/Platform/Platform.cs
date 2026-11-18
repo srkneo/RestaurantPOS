@@ -93,6 +93,9 @@ namespace POSSystem.Models
         // Bills print a QR code where the guest rates the visit (1-5 stars and a comment).
         public bool FeedbackOnBill { get; set; }
 
+        // A cashier needs a manager PIN to print a bill a second time (owner can turn it off).
+        public bool ReprintNeedsPin { get; set; } = true;
+
         // Receipt printer: 58 or 80 mm paper; bills and KOTs in English (en) or Gujarati (gu).
         public int PaperWidth { get; set; } = 80;
         public string PrintLanguage { get; set; } = "en";
