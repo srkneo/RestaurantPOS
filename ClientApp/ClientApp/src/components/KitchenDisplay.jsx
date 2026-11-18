@@ -221,6 +221,7 @@ const KitchenDisplay = () => {
                     {shown === 'all' && item.stationName && <span className="kds-station">{item.stationName}</span>}
                     {lastRound > 1 && (item.round ?? 1) === lastRound && <span className="kds-new-round">{t('kitchen.newRound', { round: lastRound })}</span>}
                     {item.options && <span className="kds-note">+ {item.options}</span>}
+                    {item.includes && <span className="kds-note">= {item.includes}</span>}
                     {item.note && <span className="kds-note">{item.note}</span>}
                   </li>
                 ))}

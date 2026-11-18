@@ -128,6 +128,13 @@ describe('Kitchen ticket', () => {
     expect(tickets[2]).toHaveTextContent('Lassi');
   });
 
+  it('lists what a combo includes', () => {
+    const order = { id: 7, tokenNumber: 16, orderType: 'Takeaway', customerName: 'Asha', table: null, createdAt: '2026-11-15T06:30:00Z',
+      items: [{ id: 1, itemName: 'Burger Meal', quantity: 1, includes: '1 x Burger, 1 x Fries, 1 x Cola' }] };
+    render(<KotTicket order={order} />);
+    expect(screen.getByText('= 1 x Burger, 1 x Fries, 1 x Cola')).toBeInTheDocument();
+  });
+
   it('shows the customer for takeaway', () => {
     render(<KotTicket order={{ id: 4, tokenNumber: 13, orderType: 'Takeaway', customerName: 'Ravi', table: null, createdAt: '2026-11-15T06:30:00Z', items: [] }} lang="gu" />);
     expect(screen.getByText('ટેકઅવે')).toBeInTheDocument();
