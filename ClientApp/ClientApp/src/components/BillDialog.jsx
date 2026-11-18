@@ -6,6 +6,7 @@ import StateMessage from '../ui/StateMessage';
 import { formatMoney } from '../ui/format';
 import './BillDialog.css';
 import CreditNoteForm from './CreditNoteForm';
+import { billWhatsAppUrl } from './billShare';
 
 export const METHODS = ['Cash', 'Upi', 'Card'];
 const VOID_ROLES = ['manager', 'admin'];
@@ -392,6 +393,9 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
             <button type="button" className="btn btn-outline-danger" onClick={() => { setVoiding(true); setError(''); }}>{t('bill.void')}</button>
           )}
           {stage === 'pay' && bill && <button type="button" className="btn btn-outline-primary" onClick={printBill}>{t('bill.print')}</button>}
+          {stage === 'pay' && bill && bill.status !== 'Void' && (
+            <button type="button" className="btn btn-outline-success" onClick={() => window.open(billWhatsAppUrl(bill, t), '_blank', 'noopener')}>{t('bill.whatsapp')}</button>
+          )}
           {stage === 'pay' && bill && !bill.creditedAt && !crediting && (
             <button type="button" className="btn btn-outline-secondary" onClick={() => { setCrediting(true); setError(''); }}>{t('credit.button')}</button>
           )}
