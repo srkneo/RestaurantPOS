@@ -14,6 +14,9 @@ namespace POSSystem.Data
         public const string Login = "login";
         public const int DefaultLoginPerMinute = 10;
         public const int DefaultRequestsPerMinute = 600;
+        // Guests ordering by table QR code (no sign-in): 30 requests a minute per network address.
+        public const string Qr = "qr";
+        public const int DefaultQrPerMinute = 30;
 
         // Limits can be raised by configuration (RateLimits__LoginPerMinute), e.g. for the E2E test setup only.
         public static IServiceCollection AddPosRateLimits(this IServiceCollection services, IConfiguration config)
@@ -26,6 +29,11 @@ namespace POSSystem.Data
                 o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
                 // Sign-in: 10 tries a minute per network address (default).
+                var qrPerMinute = int.TryParse(config["RateLimits:QrPerMinute"], out var q) && q > 0 ? q : DefaultQrPerMinute;
+                o.AddPolicy(Qr, ctx => RateLimitPartition.GetFixedWindowLimiter(
+                    "qr:" + (ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown"),
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = qrPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+
                 o.AddPolicy(Login, ctx => RateLimitPartition.GetFixedWindowLimiter(
                     "ip:" + (ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown"),
                     _ => new FixedWindowRateLimiterOptions { PermitLimit = loginPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));

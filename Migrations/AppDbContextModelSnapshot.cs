@@ -1696,6 +1696,10 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
+                    b.Property<string>("OrderToken")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
                     b.Property<int>("OutletId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -1725,6 +1729,9 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OrderToken")
+                        .IsUnique();
 
                     b.HasIndex("OutletId");
 
