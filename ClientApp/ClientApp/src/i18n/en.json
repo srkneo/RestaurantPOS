@@ -848,5 +848,9 @@
   "qr.renewed": "New QR code for table {number}. Print it again.",
   "help.title": "Help",
   "help.contents": "Contents",
-  "help.link": "Help"
+  "help.link": "Help",
+  "platform.demo": "Demo data",
+  "platform.demoTitle": "Fill {name} with demo data?",
+  "platform.demoHint": "Adds a sample Gujarati menu and three orders of today (two paid, one billed). Only for a restaurant with no menu and no orders.",
+  "platform.demoDone": "Demo data added to {name}."
 }

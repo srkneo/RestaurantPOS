@@ -102,6 +102,19 @@ describe('Platform page', () => {
     expect(await within(dialog).findByText('This email is already used by another account.')).toBeInTheDocument();
   });
 
+  it('fills an empty restaurant with demo data after asking', async () => {
+    const calls = mockApi();
+    renderPage();
+    const row = (await screen.findByText('Anand Thali House')).closest('tr');
+    expect(within((await screen.findByText('My Restaurant')).closest('tr')).queryByRole('button', { name: 'Demo data' })).not.toBeInTheDocument();
+    fireEvent.click(within(row).getByRole('button', { name: 'Demo data' }));
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Demo data' }));
+
+    expect(await screen.findByText('Demo data added to Anand Thali House.')).toBeInTheDocument();
+    expect(calls.find((c) => c.options?.method === 'POST').url).toBe('/api/platform/tenants/2/demo');
+  });
+
   it('asks before disabling a restaurant', async () => {
     const calls = mockApi();
     renderPage();

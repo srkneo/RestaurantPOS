@@ -22,6 +22,7 @@ export default function PlatformPage() {
     const [errors, setErrors] = useState({});
     const [busy, setBusy] = useState(false);
     const [confirm, setConfirm] = useState(null);
+    const [demoFor, setDemoFor] = useState(null);
 
     const load = useCallback(async () => {
         try {
@@ -83,6 +84,20 @@ export default function PlatformPage() {
         }
     };
 
+    // A sample menu and three orders of today in an empty restaurant, for demos.
+    const fillDemo = async () => {
+        const tenant = demoFor;
+        setDemoFor(null);
+        const res = await send(`/api/platform/tenants/${tenant.id}/demo`, 'POST', {});
+        if (res.ok) {
+            showToast(t('platform.demoDone', { name: tenant.name }));
+            load();
+        } else {
+            const errors = await readErrors(res);
+            showToast(errors.general || t('common.error'), 'error');
+        }
+    };
+
     const changeStatus = async (tenant, active) => {
         const res = await send(`/api/platform/tenants/${tenant.id}/${active ? 'enable' : 'disable'}`, 'POST');
         setConfirm(null);
@@ -134,6 +149,9 @@ export default function PlatformPage() {
                                         {tenant.isActive
                                             ? <button type="button" className="btn btn-outline-danger btn-sm px-3" onClick={() => setConfirm(tenant)}>{t('platform.disable')}</button>
                                             : <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => changeStatus(tenant, true)}>{t('platform.enable')}</button>}
+                                        {!tenant.lastOrderAt && (
+                                            <button type="button" className="btn btn-outline-primary btn-sm px-3 ms-2" onClick={() => setDemoFor(tenant)}>{t('platform.demo')}</button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -162,6 +180,8 @@ export default function PlatformPage() {
             </FormDialog>
             <ConfirmDialog open={confirm !== null} title={t('platform.disableTitle', { name: confirm?.name ?? '' })} message={t('platform.disableHint')}
                 confirmLabel={t('platform.disable')} danger onConfirm={() => changeStatus(confirm, false)} onCancel={() => setConfirm(null)} />
+            <ConfirmDialog open={demoFor !== null} title={t('platform.demoTitle', { name: demoFor?.name ?? '' })} message={t('platform.demoHint')}
+                confirmLabel={t('platform.demo')} onConfirm={fillDemo} onCancel={() => setDemoFor(null)} />
         </main>
     );
 }

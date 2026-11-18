@@ -848,5 +848,9 @@
   "qr.renewed": "ટેબલ {number} માટે નવો QR કોડ. ફરી છાપો.",
   "help.title": "મદદ",
   "help.contents": "વિષયો",
-  "help.link": "મદદ"
+  "help.link": "મદદ",
+  "platform.demo": "ડેમો ડેટા",
+  "platform.demoTitle": "{name} માં ડેમો ડેટા ઉમેરવો?",
+  "platform.demoHint": "નમૂનાનું ગુજરાતી મેનૂ અને આજના ત્રણ ઓર્ડર (બે ચૂકવેલા, એક બિલ થયેલું) ઉમેરે છે. ફક્ત મેનૂ અને ઓર્ડર વગરના રેસ્ટોરન્ટ માટે.",
+  "platform.demoDone": "{name} માં ડેમો ડેટા ઉમેરાયો."
 }
