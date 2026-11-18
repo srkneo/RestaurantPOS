@@ -1,0 +1,9 @@
+.qr-sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.qr-card { border: 1px dashed #9AA8A1; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; gap: 8px; align-items: center; break-inside: avoid; }
+.qr-card img { width: 180px; height: 180px; }
+.qr-card-title { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; }
+.qr-card-hint { font-size: 14px; }
+@media print {
+  .qr-noprint, .pos-header, .app-footer { display: none !important; }
+  .qr-sheet { grid-template-columns: repeat(3, 1fr); }
+}

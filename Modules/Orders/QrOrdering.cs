@@ -151,6 +151,24 @@ namespace POSSystem.Orders
                 return Results.Ok(new QrTableDto(table.Id, table.TableNumber, table.OrderToken));
             }).WithName("RenewTableQr").WithSummary("New QR code for a table; the old printed code stops working");
 
+            // The QR image of the guest link. The address comes from the owner's screen (the POS address guests can reach).
+            admin.MapGet("/{id:int}/qr.svg", async (int id, string? origin, AppDbContext db) =>
+            {
+                if (!Uri.TryCreate(origin, UriKind.Absolute, out var site) || (site.Scheme != Uri.UriSchemeHttp && site.Scheme != Uri.UriSchemeHttps))
+                    return Results.BadRequest(new { message = "Give the address of this POS, like https://pos.example.com." });
+                var table = await db.RestaurantTables.FirstOrDefaultAsync(t => t.Id == id && t.OutletId == db.CurrentOutletId);
+                if (table == null) return Results.NotFound();
+                if (string.IsNullOrEmpty(table.OrderToken))
+                {
+                    table.OrderToken = NewToken();
+                    await db.SaveChangesAsync();
+                }
+                var link = $"{site.GetLeftPart(UriPartial.Authority)}/t/{table.OrderToken}";
+                using var generator = new QRCoder.QRCodeGenerator();
+                using var data = generator.CreateQrCode(link, QRCoder.QRCodeGenerator.ECCLevel.M);
+                return Results.Content(new QRCoder.SvgQRCode(data).GetGraphic(8), "image/svg+xml");
+            }).WithName("GetTableQrImage").WithSummary("QR code (SVG) a guest scans at the table");
+
             admin.MapGet("/qr-setting", async (AppDbContext db) =>
             {
                 var outlet = await db.Outlets.FirstOrDefaultAsync(o => o.Id == db.CurrentOutletId && o.TenantId == db.CurrentTenantId);

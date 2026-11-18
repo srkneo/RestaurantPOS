@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
@@ -83,6 +84,7 @@ export default function TablesPage() {
         <main className="pos-page">
             <div className="pos-page-head">
                 <h1>{t('tables.title')}</h1>
+                <Link className="btn btn-outline-primary px-3 ms-auto me-2" to="/admin/tables/qr">{t('qr.link')}</Link>
                 <button className="btn btn-primary px-3" onClick={() => {
                     setMode('add');
                     setCurrent(null);
