@@ -3,6 +3,7 @@ import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
 import DiscountLimitCard from './DiscountLimitCard';
+import ApprovalRulesCard from './ApprovalRulesCard';
 import { readErrors, send, Field } from '../ui/forms';
 import '../components/OrderHistory.css';
 import './StaffPage.css';
@@ -201,6 +202,7 @@ export default function BillingSettingsPage() {
                 </form>
             )}
             {loadState === 'ready' && <DiscountLimitCard />}
+            {loadState === 'ready' && <ApprovalRulesCard />}
         </main>
     );
 }

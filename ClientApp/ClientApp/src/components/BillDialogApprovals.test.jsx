@@ -13,13 +13,13 @@ const BILL = {
   version: 2, printCount: 1, payments: [],
 };
 
-function mockApi(routes, roles) {
+function mockApi(routes, roles, settings = { paperWidth: 80, printLanguage: 'en', upiReady: false }) {
   const calls = [];
   vi.stubGlobal('fetch', vi.fn(async (url, options) => {
     const key = `${options?.method ?? 'GET'} ${url}`;
     calls.push({ key, body: options?.body ? JSON.parse(options.body) : undefined });
     if (url === '/api/auth/me') return { ok: true, status: 200, json: async () => ({ email: 'x@test.local', roles }) };
-    if (url === '/api/print-settings') return { ok: true, status: 200, json: async () => ({ paperWidth: 80, printLanguage: 'en', upiReady: false }) };
+    if (url === '/api/print-settings') return { ok: true, status: 200, json: async () => settings };
     const r = routes[key];
     if (!r) return { ok: false, status: 404, json: async () => ({}) };
     return { ok: r.status >= 200 && r.status < 300, status: r.status, json: async () => r.body };
@@ -68,6 +68,19 @@ describe('Bill dialog approvals', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Approve and print' }));
     await waitFor(() => expect(open).toHaveBeenCalledWith('/print/bill/7?auto=1', '_blank', 'noopener'));
     expect(posted(calls, 'POST /api/approvals')).toEqual([{ pin: '4321', action: 'reprint', billId: 7 }]);
+  });
+
+  it('lets a cashier print again without a PIN when the owner allows it', async () => {
+    const calls = mockApi({ 'GET /api/orders/3/bill': { status: 200, body: BILL } }, ['cashier'],
+      { paperWidth: 80, printLanguage: 'en', upiReady: false, reprintNeedsPin: false });
+    const open = vi.fn();
+    vi.stubGlobal('open', open);
+    renderDialog();
+    const print = await screen.findByRole('button', { name: 'Print bill' });
+    await waitFor(() => expect(calls.some((c) => c.key === 'GET /api/print-settings')).toBe(true));
+    fireEvent.click(print);
+    expect(open).toHaveBeenCalledWith('/print/bill/7?auto=1', '_blank', 'noopener');
+    expect(screen.queryByLabelText('Manager PIN to print again')).not.toBeInTheDocument();
   });
 
   it('lets a manager print again without a PIN and opens the credit note form', async () => {

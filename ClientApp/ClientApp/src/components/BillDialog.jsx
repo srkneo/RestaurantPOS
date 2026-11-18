@@ -37,6 +37,7 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
   const [bill, setBill] = useState(null);
   const [upiReady, setUpiReady] = useState(false);
   const [feedbackReady, setFeedbackReady] = useState(false);
+  const [reprintNeedsPin, setReprintNeedsPin] = useState(true);
   const [feedbackLink, setFeedbackLink] = useState(null);
   const [discountMode, setDiscountMode] = useState('none'); // none | percent | amount
   const [discountValue, setDiscountValue] = useState('');
@@ -75,6 +76,7 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
       const settings = settingsRes.ok ? await settingsRes.json() : {};
       setUpiReady(!!settings.upiReady);
       setFeedbackReady(!!settings.feedbackReady);
+      setReprintNeedsPin(settings.reprintNeedsPin !== false);
       if (billRes.status === 404) {
         setBill(null);
         setStage('create');
@@ -240,7 +242,7 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
 
   // Printing a bill again needs a manager PIN when a cashier does it.
   const printBill = () => {
-    if (Number(bill.printCount ?? 0) > 0 && !isApprover) { setAskReprint(true); setError(''); return; }
+    if (Number(bill.printCount ?? 0) > 0 && !isApprover && reprintNeedsPin) { setAskReprint(true); setError(''); return; }
     openPrint();
   };
 
