@@ -44,6 +44,8 @@ wait_ready() {
 
 previous=""
 if [ -f version.env ]; then previous="$(sed -n 's/^POS_VERSION=//p' version.env | head -n 1)"; fi
+# A first install has no version.env yet, and docker compose needs the file to exist.
+if [ ! -f version.env ]; then echo "POS_VERSION=$VERSION" > version.env; fi
 
 mkdir -p backups
 backup=""
