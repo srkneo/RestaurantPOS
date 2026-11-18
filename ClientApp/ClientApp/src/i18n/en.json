@@ -809,5 +809,12 @@
   "print.tips": "Tips (not in sales)",
   "print.expenses": "Expenses",
   "print.expensesFromTill": "Expenses from till",
-  "reports.salesCsv": "Download sales (CSV)"
+  "reports.salesCsv": "Download sales (CSV)",
+  "share.button": "Share on WhatsApp",
+  "share.title": "{restaurant} – {outlet} · {date}",
+  "share.sales": "Bills: {count} · Sales {total}",
+  "share.payments": "Cash {cash} · UPI {upi} · Card {card}",
+  "share.unpaid": "Unpaid: {count} ({amount})",
+  "share.extra": "Expenses {expenses} · Tips {tips}",
+  "share.net": "Net sales {net}"
 }

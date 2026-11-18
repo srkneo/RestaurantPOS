@@ -809,5 +809,12 @@
   "print.tips": "ટિપ (વેચાણમાં નહીં)",
   "print.expenses": "ખર્ચ",
   "print.expensesFromTill": "ગલ્લામાંથી ખર્ચ",
-  "reports.salesCsv": "વેચાણ ડાઉનલોડ (CSV)"
+  "reports.salesCsv": "વેચાણ ડાઉનલોડ (CSV)",
+  "share.button": "WhatsApp પર મોકલો",
+  "share.title": "{restaurant} – {outlet} · {date}",
+  "share.sales": "બિલ: {count} · વેચાણ {total}",
+  "share.payments": "રોકડ {cash} · UPI {upi} · કાર્ડ {card}",
+  "share.unpaid": "બાકી: {count} ({amount})",
+  "share.extra": "ખર્ચ {expenses} · ટિપ {tips}",
+  "share.net": "ચોખ્ખું વેચાણ {net}"
 }

@@ -36,6 +36,20 @@ afterEach(() => {
 });
 
 describe('Day report page', () => {
+  it("shares the day's summary on WhatsApp", async () => {
+    mockApi();
+    const open = vi.fn();
+    vi.stubGlobal('open', open);
+    render(<I18nProvider><DayReportPage /></I18nProvider>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Share on WhatsApp' }));
+    const url = open.mock.calls[0][0];
+    expect(url.startsWith('https://wa.me/?text=')).toBe(true);
+    const text = decodeURIComponent(url.slice('https://wa.me/?text='.length));
+    expect(text).toContain('Anand Thali – Main · 2026-11-15');
+    expect(text).toContain('Bills: 3 · Sales ₹1599.00');
+    expect(text).toContain('Unpaid: 1');
+  });
+
   it('shows tips and expenses on the Z report', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url) => {
       if (url === '/api/print-settings') return { ok: true, status: 200, json: async () => ({ paperWidth: 80, printLanguage: 'en', upiReady: false }) };
