@@ -86,7 +86,8 @@ function Layout() {
   const { pathname } = useLocation();
   const hideHeader = pathname.startsWith('/kitchen') || pathname.startsWith('/login') || pathname.startsWith('/print');
   // The kitchen screen and printouts stay clean; every other screen shows the support line at the bottom.
-  const hideFooter = pathname.startsWith('/kitchen') || pathname.startsWith('/print');
+  // The POS screen fills the window (menu and order side by side), so the footer would push the order buttons off screen.
+  const hideFooter = pathname.startsWith('/kitchen') || pathname.startsWith('/print') || pathname.startsWith('/pos');
   return (
     <>
       {!hideHeader && <AppHeader />}

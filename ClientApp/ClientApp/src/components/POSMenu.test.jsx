@@ -58,6 +58,23 @@ afterEach(() => {
 });
 
 describe('POS screen', () => {
+  it('shows a bar with the total that jumps to the order on small screens', async () => {
+    mockApi();
+    renderPos();
+    const scrollIntoView = vi.fn();
+    window.HTMLElement.prototype.scrollIntoView = scrollIntoView;
+
+    const burger = await screen.findByRole('button', { name: 'Add Classic Burger' });
+    expect(screen.queryByRole('button', { name: 'Review order' })).not.toBeInTheDocument();
+    fireEvent.click(burger);
+    fireEvent.click(screen.getByRole('button', { name: 'Add Fries' }));
+
+    const bar = screen.getByRole('region', { name: 'Order so far' });
+    expect(bar).toHaveTextContent('2 items · ₹9.00');
+    fireEvent.click(screen.getByRole('button', { name: 'Review order' }));
+    expect(scrollIntoView).toHaveBeenCalled();
+  });
+
   it('builds a dine-in order with a note and places it', async () => {
     const calls = mockApi();
     renderPos();

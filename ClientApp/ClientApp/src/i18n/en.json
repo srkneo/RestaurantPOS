@@ -574,5 +574,8 @@
   "support.websiteHint": "Optional. The full address, starting with https://",
   "support.required": "This is needed.",
   "support.save": "Save",
-  "support.saved": "Support details saved. Shop PCs get them with their next licence renewal."
+  "support.saved": "Support details saved. Shop PCs get them with their next licence renewal.",
+  "pos.reviewOrder": "Review order",
+  "pos.orderBar": "Order so far",
+  "pos.barSummary": "{count} items · {total}"
 }
