@@ -25,9 +25,13 @@ namespace POSSystem.Menu
         public static WebApplication MapMenuEndpoints(this WebApplication app)
         {
             // POS: items that can be sold right now.
-            app.MapGet("/api/menuitems", async (IMenuItemService menuItemService) =>
-                Results.Ok(await menuItemService.GetMenuItems()))
-                .WithName("GetMenuItems").WithSummary("List menu items");
+            app.MapGet("/api/menuitems", async (IMenuItemService menuItemService, AppDbContext db) =>
+            {
+                var items = await menuItemService.GetMenuItems();
+                var options = await MenuOptions.ForItems(db, items.Select(i => i.Id).ToList());
+                return Results.Ok(items.Select(i => MenuOptions.ToPosDto(i, options)).ToList());
+            })
+                .WithName("GetMenuItems").WithSummary("List menu items with their sizes and extras");
 
             // Owner and manager: full menu, including sold-out items.
             var admin = app.MapGroup("/api/admin/menu").RequireAuthorization(p => p.RequireRole("admin", "manager")).WithTags("Menu admin");
@@ -115,6 +119,7 @@ namespace POSSystem.Menu
                 return Results.NoContent();
             }).WithName("DeleteMenuItem").WithSummary("Remove an item from the menu");
 
+            app.MapMenuOptionsEndpoints();
             return app;
         }
 

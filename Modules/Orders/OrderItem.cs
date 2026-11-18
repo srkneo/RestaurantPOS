@@ -15,5 +15,11 @@ namespace POSSystem.Models
         // Kitchen instruction for this line, e.g. "Jain" or "less spicy".
         [MaxLength(200)]
         public string? Note { get; set; }
+
+        // The size chosen (ItemName then reads "Pizza (Large)") and the extras, as ids for editing the order and as
+        // names for the kitchen and the bill. UnitPrice already includes them.
+        public int? VariantId { get; set; }
+        public string? AddOnIds { get; set; }
+        public string? Options { get; set; }
     }
 }

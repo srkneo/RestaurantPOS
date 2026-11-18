@@ -80,7 +80,7 @@ namespace POSSystem.Billing
             var menuIds = order.Items.Select(i => i.MenuItemId).Distinct().ToList();
             var rates = await _db.MenuItems.Where(m => menuIds.Contains(m.Id)).ToDictionaryAsync(m => m.Id, m => m.TaxRate);
             var inputs = order.Items.OrderBy(i => i.Id)
-                .Select(i => new BillLineInput(i.ItemName, i.Quantity, i.UnitPrice,
+                .Select(i => new BillLineInput(POSSystem.Menu.MenuOptions.BillName(i), i.Quantity, i.UnitPrice,
                     settings.TaxMode == TaxMode.Regular ? rates.GetValueOrDefault(i.MenuItemId, 5m) : 0m))
                 .ToList();
             var itemsTotal = inputs.Sum(i => BillCalculator.Paise(i.Quantity * i.UnitPrice));

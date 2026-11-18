@@ -142,14 +142,10 @@ namespace POSSystem.Services
                 if (!item.IsAvailable) throw new ArgumentException($"{item.Name} is sold out.");
             }
 
-            return requested.Select(i => new OrderItem
-            {
-                MenuItemId = i.MenuItemId,
-                ItemName = menu[i.MenuItemId].Name,
-                UnitPrice = menu[i.MenuItemId].Price,
-                Quantity = i.Quantity,
-                Note = string.IsNullOrWhiteSpace(i.Note) ? null : i.Note.Trim()
-            }).ToList();
+            // Sizes and extras of these items: the price comes from them when the item has any.
+            var variants = await _context.ItemVariants.Where(v => ids.Contains(v.MenuItemId)).ToListAsync();
+            var addOns = await _context.ItemAddOns.Where(a => ids.Contains(a.MenuItemId)).ToListAsync();
+            return requested.Select(i => POSSystem.Menu.MenuOptions.PriceLine(i, menu[i.MenuItemId], variants, addOns)).ToList();
         }
 
         // Next token for this outlet and business day. On Postgres one statement adds 1, so two tills
