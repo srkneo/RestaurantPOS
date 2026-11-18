@@ -165,9 +165,12 @@ namespace POSSystem.Services
             // Kitchen stations of these items, copied onto each line.
             var stationIds = menu.Values.Where(m => m.StationId != null).Select(m => m.StationId!.Value).Distinct().ToList();
             var stations = await _context.KitchenStations.Where(s => stationIds.Contains(s.Id)).ToDictionaryAsync(s => s.Id, s => s.Name);
+            // Combos list their parts for the kitchen.
+            var includes = await POSSystem.Menu.Combos.IncludesFor(_context, ids);
             return requested.Select(i =>
             {
                 var line = POSSystem.Menu.MenuOptions.PriceLine(i, menu[i.MenuItemId], variants, addOns);
+                if (includes.TryGetValue(i.MenuItemId, out var parts)) line.Includes = parts;
                 var stationId = menu[i.MenuItemId].StationId;
                 if (stationId != null && stations.TryGetValue(stationId.Value, out var stationName))
                 {
@@ -338,7 +341,7 @@ namespace POSSystem.Services
         {
             TenantId = item.TenantId, MenuItemId = item.MenuItemId, ItemName = item.ItemName, UnitPrice = item.UnitPrice,
             Quantity = quantity, Note = item.Note, VariantId = item.VariantId, AddOnIds = item.AddOnIds, Options = item.Options,
-            StationId = item.StationId, StationName = item.StationName, Round = round,
+            StationId = item.StationId, StationName = item.StationName, Round = round, Includes = item.Includes,
         };
 
         private static int Stage(OrderStatus status) => status switch
