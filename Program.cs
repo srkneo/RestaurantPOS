@@ -83,6 +83,7 @@ try
     app.MapBillEndpoints();
     app.MapDayCloseEndpoints();
     app.MapTipEndpoints();
+    app.MapReportEndpoints();
     app.MapApprovalEndpoints();
     app.MapLicenceEndpoints();
     app.MapLicenceServerEndpoints();
