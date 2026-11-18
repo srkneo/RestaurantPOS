@@ -36,6 +36,23 @@ afterEach(() => {
 });
 
 describe('Day report page', () => {
+  it('shows tips per waiter under the report', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url) => {
+      if (url === '/api/print-settings') return { ok: true, status: 200, json: async () => ({ paperWidth: 80, printLanguage: 'en', upiReady: false }) };
+      if (url.startsWith('/api/reports/day')) return { ok: true, status: 200, json: async () => REPORT };
+      if (url.startsWith('/api/tips')) {
+        return { ok: true, status: 200, json: async () => ({ businessDate: '2026-11-15', total: 80, tips: [],
+          waiters: [{ waiterName: 'Ravi', count: 2, amount: 70, cash: 50 }, { waiterName: 'Shared', count: 1, amount: 10, cash: 0 }] }) };
+      }
+      return { ok: false, status: 404, json: async () => ({}) };
+    }));
+    render(<I18nProvider><DayReportPage /></I18nProvider>);
+    expect(await screen.findByText('Tips per waiter')).toBeInTheDocument();
+    expect(screen.getByText('Ravi')).toBeInTheDocument();
+    expect(screen.getByText('Shared pool')).toBeInTheDocument();
+    expect(screen.getByText('₹70.00')).toBeInTheDocument();
+  });
+
   it('shows the Z report of today and prints it', async () => {
     const urls = mockApi();
     const open = vi.fn();

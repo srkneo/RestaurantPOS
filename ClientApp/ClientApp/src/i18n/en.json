@@ -704,5 +704,19 @@
   "orders.splitConfirm": "Split",
   "orders.splitDone": "Split off as token {token}. Bill it from this list.",
   "orders.billedFirst": "This order has a bill. Void the bill first.",
-  "role.waiter": "Captain (waiter)"
+  "role.waiter": "Captain (waiter)",
+  "tips.add": "Add tip",
+  "tips.amount": "Tip amount",
+  "tips.method": "Tip paid by",
+  "tips.waiter": "Waiter",
+  "tips.waiterHint": "Leave empty for the person who took the order",
+  "tips.save": "Save tip",
+  "tips.badAmount": "Enter a tip above 0.",
+  "tips.saved": "Tip of {amount} saved for {name}.",
+  "tips.shared": "Shared pool",
+  "tips.title": "Tips per waiter",
+  "tips.count": "Tips",
+  "tips.cash": "In cash",
+  "tips.total": "Total",
+  "tips.hint": "Tips are not part of sales or GST. Cash tips are counted in the till shift as cash in."
 }

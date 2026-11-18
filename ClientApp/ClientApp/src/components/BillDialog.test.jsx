@@ -120,6 +120,22 @@ describe('Bill dialog', () => {
     expect(posted(calls, 'POST /api/bills/7/payments')).toEqual([]);
   });
 
+  it('records a tip for the waiter, apart from the bill', async () => {
+    const calls = mockApi({
+      'GET /api/orders/3/bill': { status: 200, body: { ...BILL, status: 'Paid', amountPaid: 500, amountDue: 0 } },
+      'POST /api/bills/7/tips': { status: 201, body: { id: 1, amount: 50, waiterName: 'Ravi' } },
+    });
+    renderDialog();
+    fireEvent.click(await screen.findByRole('button', { name: 'Add tip' }));
+    fireEvent.change(screen.getByLabelText('Tip amount'), { target: { value: '50' } });
+    fireEvent.change(screen.getByLabelText('Tip paid by'), { target: { value: 'Upi' } });
+    fireEvent.change(screen.getByLabelText('Waiter'), { target: { value: 'Ravi' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save tip' }));
+
+    expect(await screen.findByText('Tip of ₹50.00 saved for Ravi.')).toBeInTheDocument();
+    expect(posted(calls, 'POST /api/bills/7/tips')).toEqual([{ method: 'Upi', amount: 50, waiterName: 'Ravi' }]);
+  });
+
   it('opens the bill print page', async () => {
     mockApi({ 'GET /api/orders/3/bill': { status: 200, body: BILL } });
     const open = vi.fn();

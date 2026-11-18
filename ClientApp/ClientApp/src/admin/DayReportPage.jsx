@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useT } from '../i18n/I18nContext';
 import StateMessage from '../ui/StateMessage';
 import DayReport from '../print/DayReport';
+import { formatMoney } from '../ui/format';
 import '../components/OrderHistory.css';
 import '../components/DayClosePage.css';
 
@@ -15,14 +16,17 @@ export default function DayReportPage() {
     setState({ status: 'loading' });
     try {
       const query = day ? `?date=${encodeURIComponent(day)}` : '';
-      const [reportRes, settingsRes] = await Promise.all([fetch(`/api/reports/day${query}`), fetch('/api/print-settings')]);
+      const [reportRes, settingsRes, tipsRes] = await Promise.all([
+        fetch(`/api/reports/day${query}`), fetch('/api/print-settings'), fetch(`/api/tips${query}`).catch(() => null)]);
       if (!reportRes.ok) {
         setState({ status: 'error' });
         return;
       }
       const report = await reportRes.json();
       const settings = settingsRes.ok ? await settingsRes.json() : { printLanguage: 'en', paperWidth: 80 };
-      setState({ status: 'ready', report, settings });
+      // Tips are kept apart from sales; the report still shows when they cannot be loaded.
+      const tips = tipsRes?.ok ? await tipsRes.json() : null;
+      setState({ status: 'ready', report, settings, tips });
       setDate(report.businessDate);
     } catch {
       setState({ status: 'error' });
@@ -48,6 +52,34 @@ export default function DayReportPage() {
         <div className="day-report-sheet">
           <DayReport report={state.report} lang={state.settings.printLanguage} width={state.settings.paperWidth} />
         </div>
+      )}
+      {state.status === 'ready' && (state.tips?.waiters?.length ?? 0) > 0 && (
+        <section className="pos-card p-3 mt-3" aria-labelledby="tips-title">
+          <h2 id="tips-title" className="h5">{t('tips.title')}</h2>
+          <div className="table-responsive">
+            <table className="table align-middle mb-2">
+              <thead>
+                <tr>
+                  <th scope="col">{t('tips.waiter')}</th>
+                  <th scope="col" className="text-end">{t('tips.count')}</th>
+                  <th scope="col" className="text-end">{t('tips.cash')}</th>
+                  <th scope="col" className="text-end">{t('tips.total')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.tips.waiters.map((w) => (
+                  <tr key={w.waiterName}>
+                    <td>{w.waiterName === 'Shared' ? t('tips.shared') : w.waiterName}</td>
+                    <td className="text-end">{w.count}</td>
+                    <td className="text-end">{formatMoney(w.cash)}</td>
+                    <td className="text-end fw-semibold">{formatMoney(w.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="pos-hint mb-0">{t('tips.hint')}</p>
+        </section>
       )}
     </main>
   );

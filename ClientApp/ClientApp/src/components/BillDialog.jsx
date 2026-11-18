@@ -48,6 +48,10 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
   const [crediting, setCrediting] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [tipOpen, setTipOpen] = useState(false);
+  const [tipAmount, setTipAmount] = useState('');
+  const [tipMethod, setTipMethod] = useState('Cash');
+  const [tipWaiter, setTipWaiter] = useState('');
 
   const showBill = useCallback((b) => {
     setBill(b);
@@ -106,6 +110,28 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
     } finally {
       setBusy(false);
     }
+  };
+
+  // A tip for the waiter: saved apart from the bill, so the bill total and GST stay the same.
+  const saveTip = () => {
+    const value = parseAmount(tipAmount);
+    if (Number.isNaN(value) || value <= 0) {
+      setError(t('tips.badAmount'));
+      return;
+    }
+    run(async () => {
+      const { res, data } = await postJson(`/api/bills/${bill.id}/tips`, { method: tipMethod, amount: value, waiterName: tipWaiter.trim() || null });
+      if (res.ok) {
+        const name = data.waiterName === 'Shared' ? t('tips.shared') : data.waiterName;
+        showToast(t('tips.saved', { amount: formatMoney(data.amount), name }));
+        setTipOpen(false);
+        setTipAmount('');
+        setTipWaiter('');
+        onChanged?.();
+      } else {
+        setError(data.message || t('common.error'));
+      }
+    });
   };
 
   const createBill = () => {
@@ -262,6 +288,31 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
             )}
 
             {bill.status === 'Paid' && <p className="pos-bill-paid" role="status">{t('bill.paid')}</p>}
+
+            {bill.status !== 'Void' && (tipOpen ? (
+              <div className="pos-bill-tip d-flex flex-column gap-2">
+                <div className="d-flex gap-2 flex-wrap">
+                  <div className="flex-grow-1">
+                    <label htmlFor="tip-amount" className="form-label">{t('tips.amount')}</label>
+                    <input id="tip-amount" className="form-control" inputMode="decimal" autoComplete="off" value={tipAmount} onChange={(e) => setTipAmount(e.target.value)} />
+                  </div>
+                  <div className="flex-grow-1">
+                    <label htmlFor="tip-method" className="form-label">{t('tips.method')}</label>
+                    <select id="tip-method" className="form-select" value={tipMethod} onChange={(e) => setTipMethod(e.target.value)}>
+                      {METHODS.map((m) => <option key={m} value={m}>{t(`bill.method.${m}`)}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="tip-waiter" className="form-label">{t('tips.waiter')}</label>
+                  <input id="tip-waiter" className="form-control" maxLength={100} autoComplete="off" placeholder={t('tips.waiterHint')}
+                    value={tipWaiter} onChange={(e) => setTipWaiter(e.target.value)} />
+                </div>
+                <button type="button" className="btn btn-outline-primary" disabled={busy} onClick={saveTip}>{t('tips.save')}</button>
+              </div>
+            ) : (
+              <button type="button" className="btn btn-link px-0 align-self-start" onClick={() => setTipOpen(true)}>{t('tips.add')}</button>
+            ))}
 
             {bill.status === 'Unpaid' && due > 0 && (
               <>
