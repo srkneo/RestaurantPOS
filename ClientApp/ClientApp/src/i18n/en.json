@@ -858,6 +858,7 @@
   "share.unpaid": "Unpaid: {count} ({amount})",
   "share.extra": "Expenses {expenses} · Tips {tips}",
   "share.net": "Net sales {net}",
+  "share.feedback": "Guest rating {average} of 5 ({count} guests)",
   "qr.table": "Table {number}",
   "qr.menu": "Menu",
   "qr.add": "Add {name}",
