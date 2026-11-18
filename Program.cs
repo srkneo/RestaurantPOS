@@ -87,6 +87,7 @@ try
     app.MapReportEndpoints();
     app.MapExpenseEndpoints();
     app.MapQrOrderingEndpoints();
+    app.MapDemoDataEndpoints();
     app.MapApprovalEndpoints();
     app.MapLicenceEndpoints();
     app.MapLicenceServerEndpoints();
