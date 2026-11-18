@@ -18,6 +18,8 @@ namespace POSSystem.Data
                 b.HasQueryFilter(x => x.TenantId == CurrentTenantId);
             });
             modelBuilder.Entity<OrderItem>().Property(x => x.StationName).HasMaxLength(40);
+            // Lines saved before rounds existed are the first round.
+            modelBuilder.Entity<OrderItem>().Property(x => x.Round).HasDefaultValue(1);
         }
     }
 }

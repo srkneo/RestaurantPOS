@@ -1358,6 +1358,11 @@ namespace RestaurantPOS.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Round")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.Property<int?>("StationId")
                         .HasColumnType("integer");
 

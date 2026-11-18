@@ -248,6 +248,62 @@ namespace POSSystem.Services
             return order;
         }
 
+        // Running tab: a new round of items on a table's open order, also after cooking started.
+        // A Ready order goes back to the kitchen (Received) so the new round shows up there.
+        public async Task<KitchenOrder> AddItems(int id, List<OrderItemRequest> items, int version)
+        {
+            var order = await _context.KitchenOrders.Include(o => o.Items).Include(o => o.Table).FirstOrDefaultAsync(o => o.Id == id)
+                ?? throw new KeyNotFoundException("Order not found.");
+            if (order.Version != version) throw new OrderConflictException("This order was changed on another screen.");
+            if (order.Status is OrderStatus.Completed or OrderStatus.Cancelled)
+                throw new OrderStateException("This order is closed. Place a new order instead.");
+            if (await _context.Bills.AnyAsync(b => b.KitchenOrderId == id && b.Status != BillStatus.Void))
+                throw new POSSystem.Billing.BilledOrderException();
+
+            var outlet = await CurrentOutlet();
+            var newItems = await BuildItems(items, outlet?.GetSettings() ?? new OutletSettings());
+            var round = order.Items.Count == 0 ? 1 : order.Items.Max(i => i.Round) + 1;
+            foreach (var item in newItems)
+            {
+                item.Round = round;
+                order.Items.Add(item);
+            }
+            if (order.Status == OrderStatus.Ready)
+            {
+                order.Status = OrderStatus.Received;
+                order.ReadyAt = null;
+            }
+            order.Version++;
+            await SaveChecked();
+
+            await _hubContext.Clients.Group($"tenant-{order.TenantId}").SendAsync("OrderUpdated", order.ToDto());
+            return order;
+        }
+
+        // Guests changed tables: the open order (and its printed bill, if any) moves to a free table.
+        public async Task<KitchenOrder> MoveTable(int id, int tableId, int version)
+        {
+            var order = await _context.KitchenOrders.Include(o => o.Items).Include(o => o.Table).FirstOrDefaultAsync(o => o.Id == id)
+                ?? throw new KeyNotFoundException("Order not found.");
+            if (order.Version != version) throw new OrderConflictException("This order was changed on another screen.");
+            if (order.OrderType != OrderType.DineIn) throw new ArgumentException("Only dine-in orders have a table.");
+            if (order.Status is OrderStatus.Completed or OrderStatus.Cancelled) throw new OrderStateException("This order is closed.");
+            if (order.TableId == tableId) throw new ArgumentException("The order is already on this table.");
+            var table = await _context.RestaurantTables.FirstOrDefaultAsync(t => t.Id == tableId && t.IsActive && t.OutletId == _context.CurrentOutletId)
+                ?? throw new ArgumentException("Choose a table that is in use.");
+            var open = POSSystem.Orders.TableBoard.Open;
+            if (await _context.KitchenOrders.AnyAsync(o => o.TableId == tableId && o.Id != id && open.Contains(o.Status)))
+                throw new ArgumentException($"Table {table.TableNumber} already has an open order.");
+
+            order.TableId = table.Id;
+            order.Table = table;
+            order.Version++;
+            await SaveChecked();
+
+            await _hubContext.Clients.Group($"tenant-{order.TenantId}").SendAsync("OrderUpdated", order.ToDto());
+            return order;
+        }
+
         private async Task<KitchenOrder> LoadForChange(int id, int version)
         {
             var order = await _context.KitchenOrders.Include(o => o.Items).Include(o => o.Table).FirstOrDefaultAsync(o => o.Id == id)

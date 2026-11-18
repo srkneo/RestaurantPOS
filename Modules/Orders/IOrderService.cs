@@ -15,6 +15,8 @@ namespace POSSystem.Interfaces
         Task UpdateOrderStatus(int id, OrderStatus status, int? version);
         Task<KitchenOrder> CancelOrder(int id, string? reason, int version);
         Task<KitchenOrder> UpdateOrderItems(int id, List<OrderItemRequest> items, int version);
+        Task<KitchenOrder> AddItems(int id, List<OrderItemRequest> items, int version);
+        Task<KitchenOrder> MoveTable(int id, int tableId, int version);
     }
 
     // The order was changed on another screen since this screen loaded it.
