@@ -764,6 +764,8 @@
   "reports.week": "Last 7 days",
   "reports.month": "This month",
   "reports.csv": "Download GST bills (CSV)",
+  "reports.tally": "Download for Tally (XML)",
+  "reports.tallyHint": "One sales voucher per day. In Tally: Import Data > Vouchers. Ledgers used: Cash, UPI Collections, Card Collections, POS Unpaid Bills, Sales, Output CGST, Output SGST, Round Off.",
   "reports.summary": "Summary",
   "reports.bills": "Bills",
   "reports.total": "Total",

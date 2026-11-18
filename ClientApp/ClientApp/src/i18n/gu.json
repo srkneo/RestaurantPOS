@@ -764,6 +764,8 @@
   "reports.week": "છેલ્લા 7 દિવસ",
   "reports.month": "આ મહિનો",
   "reports.csv": "GST બિલ ડાઉનલોડ (CSV)",
+  "reports.tally": "Tally માટે ડાઉનલોડ (XML)",
+  "reports.tallyHint": "દરરોજનું એક વેચાણ વાઉચર. Tally માં: Import Data > Vouchers. વપરાતા લેજર: Cash, UPI Collections, Card Collections, POS Unpaid Bills, Sales, Output CGST, Output SGST, Round Off.",
   "reports.summary": "સારાંશ",
   "reports.bills": "બિલ",
   "reports.total": "કુલ",
