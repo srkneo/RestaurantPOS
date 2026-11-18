@@ -72,6 +72,7 @@ function AppHeader() {
       </nav>
       <div className="pos-user">
         {mainRole && <span className="pos-role" title={user.email}>{t(`role.${mainRole}`)}</span>}
+        <NavLink to="/about" className="btn btn-outline-secondary btn-sm px-2" title={t('about.title')} aria-label={t('about.title')}>?</NavLink>
         <LanguageSwitch />
         <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={logout}>{t('nav.signOut')}</button>
       </div>

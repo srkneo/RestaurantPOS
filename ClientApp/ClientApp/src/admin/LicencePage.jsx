@@ -4,6 +4,7 @@ import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
 import { readErrors, send, Field } from '../ui/forms';
 import { parseServerDate } from '../ui/format';
+import ConfirmDialog from '../ui/ConfirmDialog';
 import '../components/OrderHistory.css';
 
 const dateText = (value) => {
@@ -37,9 +38,43 @@ export default function LicencePage() {
     }
   }, []);
 
+  // Automatic updates (shop PC only): support's setting, the last result, and "Update now".
+  const [updates, setUpdates] = useState(null);
+  const [confirmUpdate, setConfirmUpdate] = useState(false);
+
+  const loadUpdates = useCallback(async () => {
+    try {
+      const res = await fetch('/api/licence/updates');
+      if (res.ok) setUpdates(await res.json());
+    } catch {
+      // Not shown when it cannot be read.
+    }
+  }, []);
+
   useEffect(() => {
     load();
-  }, [load]);
+    loadUpdates();
+  }, [load, loadUpdates]);
+
+  const updateNow = async () => {
+    setConfirmUpdate(false);
+    try {
+      const res = await send('/api/licence/updates/run', 'POST');
+      if (res.ok) {
+        setUpdates(await res.json());
+        showToast(t('licence.update.requested'));
+      } else {
+        const errors = await readErrors(res);
+        showToast(errors.general || t('common.error'), 'error');
+      }
+    } catch {
+      showToast(t('common.error'), 'error');
+    }
+  };
+
+  const updateMode = (u) => (u.mode === 'pinned'
+    ? t('licences.updates.pinned', { version: u.pinnedVersion || '' })
+    : t(`licences.updates.${u.mode === 'paused' ? 'paused' : 'auto'}`));
 
   const call = async (url, body, doneKey) => {
     setBusy(true);
@@ -128,6 +163,35 @@ export default function LicencePage() {
               </button>
             </div>
           </form>
+          {updates?.available === true && (
+            <div className="pos-card d-flex flex-column gap-2">
+              <h2 className="h5 mb-1">{t('licence.update.title')}</h2>
+              <dl className="row mb-0">
+                <dt className="col-sm-5">{t('licence.update.mode')}</dt>
+                <dd className="col-sm-7">{updateMode(updates)}</dd>
+                <dt className="col-sm-5">{t('licence.update.lastCheck')}</dt>
+                <dd className="col-sm-7">
+                  {updates.status ? (
+                    <>
+                      <span className="fw-semibold">{t(`licence.update.result.${updates.status.result}`)}</span>
+                      {updates.status.checkedAt && <span className="text-body-secondary"> · {parseServerDate(updates.status.checkedAt)?.toLocaleString()}</span>}
+                      {updates.status.message && <div className="small text-body-secondary">{updates.status.message}</div>}
+                    </>
+                  ) : t('licence.update.never')}
+                </dd>
+              </dl>
+              {updates.mode === 'paused' && <p className="text-body-secondary mb-0">{t('licence.update.pausedHint')}</p>}
+              {updates.requested && <p className="mb-0" role="status">{t('licence.update.requested')}</p>}
+              <div>
+                <button type="button" className="btn btn-outline-primary px-4" disabled={updates.mode === 'paused' || updates.requested}
+                  onClick={() => setConfirmUpdate(true)}>
+                  {t('licence.update.now')}
+                </button>
+              </div>
+            </div>
+          )}
+          <ConfirmDialog open={confirmUpdate} title={t('licence.update.confirmTitle')} message={t('licence.update.confirmText')}
+            confirmLabel={t('licence.update.confirm')} onConfirm={updateNow} onCancel={() => setConfirmUpdate(false)} />
         </div>
       )}
     </main>

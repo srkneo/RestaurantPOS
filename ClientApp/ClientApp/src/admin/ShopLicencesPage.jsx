@@ -26,6 +26,8 @@ export default function ShopLicencesPage() {
   const [busy, setBusy] = useState(false);
   const [confirmStop, setConfirmStop] = useState(null);
   const [confirmReset, setConfirmReset] = useState(null);
+  const [updating, setUpdating] = useState(null);
+  const [updateForm, setUpdateForm] = useState({ mode: 'auto', version: '' });
 
   const load = useCallback(async () => {
     try {
@@ -100,6 +102,40 @@ export default function ShopLicencesPage() {
     }
   };
 
+  const updatesText = (licence) => {
+    if (licence.updateMode === 'paused') return t('licences.updates.paused');
+    if (licence.updateMode === 'pinned') return t('licences.updates.pinned', { version: licence.pinnedVersion || '' });
+    return t('licences.updates.auto');
+  };
+
+  const openUpdates = (licence) => {
+    setErrors({});
+    setUpdateForm({ mode: licence.updateMode || 'auto', version: licence.pinnedVersion || '' });
+    setUpdating(licence);
+  };
+
+  const submitUpdates = async () => {
+    const version = updateForm.version.trim().replace(/^v/i, '');
+    if (updateForm.mode === 'pinned' && !/^\d+\.\d+\.\d+$/.test(version)) {
+      setErrors({ version: t('licences.updatesVersionInvalid') });
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await send(`/api/platform/licences/${updating.id}/updates`, 'POST',
+        { mode: updateForm.mode, version: updateForm.mode === 'pinned' ? version : null });
+      if (!res.ok) {
+        setErrors(await readErrors(res));
+      } else {
+        showToast(t('licences.updatesSaved', { name: updating.customer }));
+        setUpdating(null);
+        load();
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const act = async (licence, action, toastKey) => {
     const res = await send(`/api/platform/licences/${licence.id}/${action}`, 'POST');
     setConfirmStop(null);
@@ -154,6 +190,7 @@ export default function ShopLicencesPage() {
                 <th>{t('licences.paidUntil')}</th>
                 <th>{t('licences.lastSeen')}</th>
                 <th>{t('licences.version')}</th>
+                <th>{t('licences.updates')}</th>
                 <th></th>
               </tr>
             </thead>
@@ -174,8 +211,10 @@ export default function ShopLicencesPage() {
                   <td>{dateText(licence.paidUntil, 'licences.never')}</td>
                   <td>{dateText(licence.lastSeenAt, 'licences.never')}</td>
                   <td>{licence.lastVersion || '–'}</td>
+                  <td>{updatesText(licence)}</td>
                   <td className="d-flex flex-wrap gap-2">
                     <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openExtend(licence)}>{t('licences.extend')}</button>
+                    <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openUpdates(licence)}>{t('licences.updates')}</button>
                     {licence.revoked
                       ? <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => act(licence, 'restore', 'licences.restored')}>{t('licences.restore')}</button>
                       : <button type="button" className="btn btn-outline-danger btn-sm px-3" onClick={() => setConfirmStop(licence)}>{t('licences.stop')}</button>}
@@ -217,6 +256,24 @@ export default function ShopLicencesPage() {
             <option value="yearly">{t('licence.plan.yearly')}</option>
           </select>
         </Field>
+      </FormDialog>
+      <FormDialog open={updating !== null} title={t('licences.updatesTitle', { name: updating?.customer ?? '' })} submitLabel={t('licences.updatesSave')} busy={busy}
+        error={errors.general !== undefined ? (errors.general || t('common.error')) : null}
+        onCancel={() => setUpdating(null)} onSubmit={submitUpdates}>
+        <Field id="licences-updates-mode" label={t('licences.updatesMode')} hint={t('licences.updatesModeHint')} error={errors.mode}>
+          <select className="form-select" id="licences-updates-mode" value={updateForm.mode}
+            onChange={(e) => setUpdateForm({ ...updateForm, mode: e.target.value })}>
+            <option value="auto">{t('licences.updates.auto')}</option>
+            <option value="paused">{t('licences.updates.paused')}</option>
+            <option value="pinned">{t('licences.updates.pinned', { version: '…' })}</option>
+          </select>
+        </Field>
+        {updateForm.mode === 'pinned' && (
+          <Field id="licences-updates-version" label={t('licences.updatesVersion')} error={errors.version}>
+            <input className="form-control" id="licences-updates-version" value={updateForm.version} placeholder="1.7.3" maxLength={20}
+              onChange={(e) => setUpdateForm({ ...updateForm, version: e.target.value })} />
+          </Field>
+        )}
       </FormDialog>
       <ConfirmDialog open={confirmStop !== null} title={t('licences.stopTitle', { name: confirmStop?.customer ?? '' })} message={t('licences.stopHint')}
         confirmLabel={t('licences.stopConfirm')} danger onConfirm={() => act(confirmStop, 'revoke', 'licences.stopped')} onCancel={() => setConfirmStop(null)} />

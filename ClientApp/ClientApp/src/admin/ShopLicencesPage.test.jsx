@@ -32,6 +32,23 @@ afterEach(() => {
 });
 
 describe('Shop licences page', () => {
+  it('pauses or pins the updates of one shop', async () => {
+    const calls = mockApi([licence({ updateMode: 'auto' })]);
+    renderPage();
+    expect(await screen.findByText('Automatic')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Updates' }));
+    fireEvent.change(screen.getByLabelText('Updates'), { target: { value: 'pinned' } });
+    fireEvent.change(screen.getByLabelText('Version to keep'), { target: { value: 'one' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText('Enter a version like 1.7.3.')).toBeInTheDocument();
+    expect(posts(calls)).toEqual([]);
+
+    fireEvent.change(screen.getByLabelText('Version to keep'), { target: { value: 'v1.7.3' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText('Updates for Anand Restaurant saved. The shop PC gets it with its next licence renewal.')).toBeInTheDocument();
+    expect(posts(calls)).toEqual([{ url: '/api/platform/licences/3/updates', method: 'POST', body: { mode: 'pinned', version: '1.7.3' } }]);
+  });
+
   it('lists the licences with key, version and status', async () => {
     mockApi([licence()]);
     renderPage();
