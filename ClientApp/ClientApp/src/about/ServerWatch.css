@@ -1,0 +1,12 @@
+/* Full-screen notice while the shop PC's POS server restarts (an update or a power cut). */
+.pos-server-down {
+  position: fixed; inset: 0; z-index: 2000;
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+  background: rgba(16, 24, 20, 0.72);
+}
+.pos-server-down-card {
+  max-width: 440px; padding: 32px; border-radius: 16px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  background: var(--pos-surface, #FFFFFF); color: var(--pos-text, #111);
+}
+.pos-server-down-card h2 { margin: 0; font-size: 22px; }

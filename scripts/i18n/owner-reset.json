@@ -1,0 +1,90 @@
+{
+  "watch.downTitle": [
+    "The POS is restarting",
+    "POS ફરી શરૂ થાય છે"
+  ],
+  "watch.downText": [
+    "An update or a restart is running on the shop PC. This usually takes about a minute; this screen comes back by itself.",
+    "દુકાનના PC પર અપડેટ અથવા રીસ્ટાર્ટ ચાલે છે. સામાન્ય રીતે લગભગ એક મિનિટ લાગે છે; આ સ્ક્રીન આપમેળે પાછી આવશે."
+  ],
+  "watch.newVersion": [
+    "Version {version} is ready. Reload the page when the current order is done.",
+    "વર્ઝન {version} તૈયાર છે. ચાલુ ઓર્ડર પૂરો થાય પછી પેજ ફરી લોડ કરો."
+  ],
+  "watch.reload": [
+    "Reload",
+    "ફરી લોડ કરો"
+  ],
+  "login.forgot": [
+    "Forgot password?",
+    "પાસવર્ડ ભૂલી ગયા?"
+  ],
+  "reset.title": [
+    "Reset password",
+    "પાસવર્ડ ફરી સેટ કરો"
+  ],
+  "reset.intro": [
+    "For the owner of a shop PC. Call support for a reset code; it works once, for 24 hours. The PC needs internet for a moment.",
+    "દુકાનના PC ના માલિક માટે. રીસેટ કોડ માટે સપોર્ટને ફોન કરો; તે 24 કલાક માટે એક જ વાર ચાલે છે. PC ને થોડી વાર ઇન્ટરનેટ જોઈએ."
+  ],
+  "reset.code": [
+    "Reset code",
+    "રીસેટ કોડ"
+  ],
+  "reset.codeHint": [
+    "Like ABCD-EFGH, from support.",
+    "ABCD-EFGH જેવો, સપોર્ટ પાસેથી."
+  ],
+  "reset.newPassword": [
+    "New password",
+    "નવો પાસવર્ડ"
+  ],
+  "reset.passwordHint": [
+    "At least 8 characters with a capital letter, a small letter, a digit and a symbol.",
+    "ઓછામાં ઓછા 8 અક્ષર, જેમાં મોટો અક્ષર, નાનો અક્ષર, અંક અને ચિહ્ન હોય."
+  ],
+  "reset.repeat": [
+    "New password again",
+    "નવો પાસવર્ડ ફરીથી"
+  ],
+  "reset.required": [
+    "This is needed.",
+    "આ જરૂરી છે."
+  ],
+  "reset.passwordShort": [
+    "Use at least 8 characters.",
+    "ઓછામાં ઓછા 8 અક્ષર વાપરો."
+  ],
+  "reset.passwordsDiffer": [
+    "The two passwords are not the same.",
+    "બંને પાસવર્ડ સરખા નથી."
+  ],
+  "reset.submit": [
+    "Change password",
+    "પાસવર્ડ બદલો"
+  ],
+  "reset.back": [
+    "Back to sign in",
+    "સાઇન ઇન પર પાછા"
+  ],
+  "reset.done": [
+    "Password changed. Sign in with the new password.",
+    "પાસવર્ડ બદલાયો. નવા પાસવર્ડથી સાઇન ઇન કરો."
+  ],
+  "licences.ownerReset": [
+    "Owner password",
+    "માલિકનો પાસવર્ડ"
+  ],
+  "licences.ownerResetTitle": [
+    "Reset code for {name}",
+    "{name} માટે રીસેટ કોડ"
+  ],
+  "licences.ownerResetText": [
+    "Read this code to the owner: {code}. On the shop PC they open Sign in, Forgot password, and enter it with a new password. It works once, until {time}.",
+    "માલિકને આ કોડ વાંચી સંભળાવો: {code}. દુકાનના PC પર સાઇન ઇન, પાસવર્ડ ભૂલી ગયા ખોલીને નવા પાસવર્ડ સાથે લખે. તે {time} સુધી એક જ વાર ચાલે છે."
+  ],
+  "licences.ownerResetDone": [
+    "Done",
+    "થઈ ગયું"
+  ]
+}

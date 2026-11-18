@@ -27,6 +27,7 @@ export default function ShopLicencesPage() {
   const [confirmStop, setConfirmStop] = useState(null);
   const [confirmReset, setConfirmReset] = useState(null);
   const [updating, setUpdating] = useState(null);
+  const [resetCode, setResetCode] = useState(null);
   const [updateForm, setUpdateForm] = useState({ mode: 'auto', version: '' });
 
   const load = useCallback(async () => {
@@ -106,6 +107,17 @@ export default function ShopLicencesPage() {
     if (licence.updateMode === 'paused') return t('licences.updates.paused');
     if (licence.updateMode === 'pinned') return t('licences.updates.pinned', { version: licence.pinnedVersion || '' });
     return t('licences.updates.auto');
+  };
+
+  // A one-time code for an owner who forgot the password on the shop PC; support reads it out on the phone.
+  const makeOwnerReset = async (licence) => {
+    try {
+      const res = await send(`/api/platform/licences/${licence.id}/owner-reset`, 'POST');
+      if (res.ok) setResetCode({ ...(await res.json()), customer: licence.customer });
+      else showToast(t('common.error'), 'error');
+    } catch {
+      showToast(t('common.error'), 'error');
+    }
   };
 
   const openUpdates = (licence) => {
@@ -215,6 +227,7 @@ export default function ShopLicencesPage() {
                   <td className="d-flex flex-wrap gap-2">
                     <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openExtend(licence)}>{t('licences.extend')}</button>
                     <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openUpdates(licence)}>{t('licences.updates')}</button>
+                    <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => makeOwnerReset(licence)}>{t('licences.ownerReset')}</button>
                     {licence.revoked
                       ? <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => act(licence, 'restore', 'licences.restored')}>{t('licences.restore')}</button>
                       : <button type="button" className="btn btn-outline-danger btn-sm px-3" onClick={() => setConfirmStop(licence)}>{t('licences.stop')}</button>}
@@ -257,6 +270,9 @@ export default function ShopLicencesPage() {
           </select>
         </Field>
       </FormDialog>
+      <ConfirmDialog open={resetCode !== null} title={t('licences.ownerResetTitle', { name: resetCode?.customer ?? '' })}
+        message={t('licences.ownerResetText', { code: resetCode?.code ?? '', time: parseServerDate(resetCode?.expiresAt)?.toLocaleString() ?? '' })}
+        confirmLabel={t('licences.ownerResetDone')} onConfirm={() => setResetCode(null)} onCancel={() => setResetCode(null)} />
       <FormDialog open={updating !== null} title={t('licences.updatesTitle', { name: updating?.customer ?? '' })} submitLabel={t('licences.updatesSave')} busy={busy}
         error={errors.general !== undefined ? (errors.general || t('common.error')) : null}
         onCancel={() => setUpdating(null)} onSubmit={submitUpdates}>

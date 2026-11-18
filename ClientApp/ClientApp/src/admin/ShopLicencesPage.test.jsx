@@ -32,6 +32,19 @@ afterEach(() => {
 });
 
 describe('Shop licences page', () => {
+  it('makes a one-time password reset code for the shop owner', async () => {
+    const calls = [];
+    vi.stubGlobal('fetch', vi.fn(async (url, options = {}) => {
+      calls.push({ url, method: options.method || 'GET' });
+      if (!options.method) return { ok: true, status: 200, json: async () => [licence()] };
+      return { ok: true, status: 200, json: async () => ({ code: 'ABCD-EFGH', expiresAt: '2026-11-19T08:00:00Z' }) };
+    }));
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Owner password' }));
+    expect(await screen.findByText(/ABCD-EFGH/)).toBeInTheDocument();
+    expect(calls.filter((c) => c.method === 'POST').map((c) => c.url)).toEqual(['/api/platform/licences/3/owner-reset']);
+  });
+
   it('pauses or pins the updates of one shop', async () => {
     const calls = mockApi([licence({ updateMode: 'auto' })]);
     renderPage();
