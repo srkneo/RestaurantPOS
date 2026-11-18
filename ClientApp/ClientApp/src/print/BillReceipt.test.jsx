@@ -25,6 +25,14 @@ const GST_BILL = {
 afterEach(cleanup);
 
 describe('Bill receipt', () => {
+  it('prints the Google review QR when the outlet has a review link', () => {
+    const { unmount } = render(<BillReceipt bill={GST_BILL} reviewQrUrl="/api/review-qr.svg" />);
+    expect(screen.getByAltText('Rate us on Google')).toHaveAttribute('src', '/api/review-qr.svg');
+    unmount();
+    render(<BillReceipt bill={GST_BILL} />);
+    expect(screen.queryByAltText('Rate us on Google')).not.toBeInTheDocument();
+  });
+
   it('shows the store, GST numbers, lines, tax per rate and the rounded total', () => {
     render(<BillReceipt bill={GST_BILL} />);
     expect(screen.getByText('Anand Thali House')).toBeInTheDocument();
