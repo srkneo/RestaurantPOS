@@ -130,6 +130,7 @@ namespace POSSystem.Menu
 
             app.MapMenuOptionsEndpoints();
             app.MapStationEndpoints();
+            app.MapComboEndpoints();
             return app;
         }
 

@@ -29,5 +29,8 @@ namespace POSSystem.Models
         // Running tab: 1 for the first order, 2 for the next items added to the same table, and so on.
         // The kitchen screen and the KOT of a new round show only that round.
         public int Round { get; set; } = 1;
+
+        // Combo: the items it includes, e.g. "1 x Burger, 1 x Fries, 1 x Cola", for the kitchen (not on the bill).
+        public string? Includes { get; set; }
     }
 }

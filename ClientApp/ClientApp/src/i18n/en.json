@@ -729,5 +729,16 @@
   "menu.servedFrom": "Served from",
   "menu.servedTo": "Served until",
   "menu.hoursHint": "Leave both empty to serve all day. Outside these hours the POS hides this category.",
-  "menu.categoryHours": "{name} · {from}–{to}"
+  "menu.categoryHours": "{name} · {from}–{to}",
+  "combo.button": "Combo",
+  "combo.title": "Combo: {name}",
+  "combo.hint": "Pick the items this combo includes. The bill shows one line at this item's price; the kitchen sees every part.",
+  "combo.part": "Item {n}",
+  "combo.quantity": "Quantity of item {n}",
+  "combo.remove": "Remove item {n}",
+  "combo.add": "Add item",
+  "combo.choose": "Choose an item",
+  "combo.saved": "Combo {name} saved.",
+  "combo.needItem": "Choose an item in every row.",
+  "combo.badQuantity": "Quantities are 1 to 20."
 }

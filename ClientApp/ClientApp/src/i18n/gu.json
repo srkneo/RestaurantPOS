@@ -729,5 +729,16 @@
   "menu.servedFrom": "આ સમયથી",
   "menu.servedTo": "આ સમય સુધી",
   "menu.hoursHint": "આખો દિવસ માટે બંને ખાલી રાખો. આ સમય સિવાય POS આ શ્રેણી છુપાવશે.",
-  "menu.categoryHours": "{name} · {from}–{to}"
+  "menu.categoryHours": "{name} · {from}–{to}",
+  "combo.button": "કોમ્બો",
+  "combo.title": "કોમ્બો: {name}",
+  "combo.hint": "આ કોમ્બોમાં કઈ વસ્તુઓ છે તે પસંદ કરો. બિલમાં આ વસ્તુની કિંમતે એક જ લાઇન આવશે; રસોડાને દરેક વસ્તુ દેખાશે.",
+  "combo.part": "વસ્તુ {n}",
+  "combo.quantity": "વસ્તુ {n} ની સંખ્યા",
+  "combo.remove": "વસ્તુ {n} કાઢો",
+  "combo.add": "વસ્તુ ઉમેરો",
+  "combo.choose": "વસ્તુ પસંદ કરો",
+  "combo.saved": "કોમ્બો {name} સચવાયો.",
+  "combo.needItem": "દરેક લાઇનમાં વસ્તુ પસંદ કરો.",
+  "combo.badQuantity": "સંખ્યા 1 થી 20 હોય."
 }
