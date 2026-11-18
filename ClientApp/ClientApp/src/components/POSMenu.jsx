@@ -181,6 +181,10 @@ const POSMenu = () => {
     });
     connection.on('ReceiveNewOrder', () => refreshTables());
     connection.on('OrderUpdated', () => refreshTables());
+    // A guest at a table pressed Call waiter or Ask for bill on the QR page.
+    connection.on('TableCall', (call) => {
+      showToast(tRef.current(call.kind === 'bill' ? 'qr.tableWantsBill' : 'qr.tableCalls', { number: call.tableNumber }));
+    });
     const started = connection.start().catch((err) => console.error(err));
     return () => {
       started.then(() => connection.stop());

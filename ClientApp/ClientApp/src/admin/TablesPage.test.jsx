@@ -6,6 +6,7 @@ import '@testing-library/jest-dom/vitest';
 import { I18nProvider } from '../i18n/I18nContext';
 import { ToastProvider } from '../ui/ToastContext';
 import TablesPage from './TablesPage';
+import { MemoryRouter } from 'react-router-dom';
 
 const TABLES = [
   { id: 1, tableNumber: '1', isActive: true, sortOrder: 1 },
@@ -22,7 +23,7 @@ function mockApi(write = { ok: true, status: 200, json: async () => ({}) }) {
   return calls;
 }
 
-const renderPage = () => render(<I18nProvider><ToastProvider><TablesPage /></ToastProvider></I18nProvider>);
+const renderPage = () => render(<MemoryRouter><I18nProvider><ToastProvider><TablesPage /></ToastProvider></I18nProvider></MemoryRouter>);
 
 afterEach(() => {
   cleanup();

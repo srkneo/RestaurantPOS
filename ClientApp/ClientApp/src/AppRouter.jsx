@@ -13,6 +13,8 @@ import StaffPage from './admin/StaffPage';
 import MenuPage from './admin/MenuPage';
 import MenuScanPage from './admin/MenuScanPage';
 import TablesPage from './admin/TablesPage';
+import QrSheetPage from './admin/QrSheetPage';
+import GuestOrderPage from './components/GuestOrderPage';
 import StorePage from './admin/StorePage';
 import SettingsPage from './admin/SettingsPage';
 import BillingSettingsPage from './admin/BillingSettingsPage';
@@ -97,13 +99,15 @@ function AppHeader() {
 
 function Layout() {
   const { pathname } = useLocation();
-  const hideHeader = pathname.startsWith('/kitchen') || pathname.startsWith('/tokens') || pathname.startsWith('/login') || pathname.startsWith('/print');
+  // /t/<token> is the guest page behind a table's QR code: no staff header, footer or server watch.
+  const guest = pathname.startsWith('/t/');
+  const hideHeader = guest || pathname.startsWith('/kitchen') || pathname.startsWith('/tokens') || pathname.startsWith('/login') || pathname.startsWith('/print');
   // The kitchen screen and printouts stay clean; every other screen shows the support line at the bottom.
   // The POS screen fills the window (menu and order side by side), so the footer would push the order buttons off screen.
-  const hideFooter = pathname.startsWith('/kitchen') || pathname.startsWith('/tokens') || pathname.startsWith('/print') || pathname.startsWith('/pos');
+  const hideFooter = guest || pathname.startsWith('/kitchen') || pathname.startsWith('/tokens') || pathname.startsWith('/print') || pathname.startsWith('/pos');
   return (
     <>
-      {!pathname.startsWith('/print') && <ServerWatch />}
+      {!pathname.startsWith('/print') && !guest && <ServerWatch />}
       {!hideHeader && <AppHeader />}
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -121,6 +125,8 @@ function Layout() {
         <Route path="/admin/menu/scan" element={<RequireRole roles={MENU_ROLES}><MenuScanPage /></RequireRole>} />
         <Route path="/admin/staff" element={<RequireRole roles={ADMIN_ROLES}><StaffPage /></RequireRole>} />
         <Route path="/admin/tables" element={<RequireRole roles={MENU_ROLES}><TablesPage /></RequireRole>} />
+        <Route path="/admin/tables/qr" element={<RequireRole roles={MENU_ROLES}><QrSheetPage /></RequireRole>} />
+        <Route path="/t/:token" element={<GuestOrderPage />} />
         <Route path="/admin/store" element={<RequireRole roles={ADMIN_ROLES}><StorePage /></RequireRole>} />
         <Route path="/admin/settings" element={<RequireRole roles={ADMIN_ROLES}><SettingsPage /></RequireRole>} />
         <Route path="/admin/billing" element={<RequireRole roles={ADMIN_ROLES}><BillingSettingsPage /></RequireRole>} />
