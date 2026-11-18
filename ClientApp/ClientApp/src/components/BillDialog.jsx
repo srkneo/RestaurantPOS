@@ -45,6 +45,7 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
   const [voidReason, setVoidReason] = useState('');
   const [pin, setPin] = useState('');
   const [askReprint, setAskReprint] = useState(false);
+  const [discountPin, setDiscountPin] = useState(false);
   const [crediting, setCrediting] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -141,6 +142,7 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
       if (Number.isNaN(value) || value < 0) { setError(t('bill.badDiscount')); return; }
       body = discountMode === 'percent' ? { discountPercent: value } : { discountAmount: value };
     }
+    if (discountPin && pin.trim()) body = { ...body, approverPin: pin.trim() };
     run(async () => {
       const { res, data } = await postJson(`/api/orders/${orderId}/bill`, body);
       if (res.ok) {
@@ -148,6 +150,10 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
         onChanged?.();
       } else if (res.status === 409 && data.code === 'already-billed') {
         await load();
+      } else if (res.status === 403 && (data.code === 'pin-required' || data.code === 'wrong-pin')) {
+        // The discount is above what a cashier may give alone.
+        setDiscountPin(true);
+        setError(data.code === 'pin-required' ? t('approval.pinDiscount') : (data.message || t('common.error')));
       } else {
         setError(data.message || t('common.error'));
       }
@@ -264,6 +270,13 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
               <div>
                 <label htmlFor="bill-discount" className="form-label">{t(`bill.discountValue.${discountMode}`)}</label>
                 <input id="bill-discount" className="form-control" inputMode="decimal" value={discountValue} onChange={(e) => setDiscountValue(e.target.value)} />
+              </div>
+            )}
+            {discountPin && (
+              <div>
+                <label htmlFor="bill-discount-pin" className="form-label">{t('approval.pin')}</label>
+                <input id="bill-discount-pin" type="text" inputMode="numeric" autoComplete="off" maxLength={6} className="form-control"
+                  style={{ WebkitTextSecurity: 'disc' }} data-lpignore="true" data-1p-ignore="true" value={pin} onChange={(e) => setPin(e.target.value)} />
               </div>
             )}
             <button type="button" className="btn btn-primary pos-bill-main" disabled={busy} onClick={createBill}>{t('bill.make')}</button>
