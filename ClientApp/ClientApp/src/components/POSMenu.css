@@ -11,6 +11,16 @@
 .pos-menu { min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
 .pos-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
 .pos-field-table { width: 180px; }
+.pos-table-grid-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35); display: flex; align-items: center; justify-content: center; z-index: 1050; padding: 16px; }
+.pos-table-grid { background: #FFFFFF; border-radius: 16px; padding: 16px; width: min(720px, 100%); max-height: 85vh; overflow-y: auto; }
+.pos-table-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+.pos-table-tile { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 88px; border-radius: 12px; border: 2px solid transparent; padding: 10px 6px; font-weight: 600; }
+.pos-table-tile[aria-pressed="true"] { border-color: #0F7B5A; }
+.pos-tile-number { font-family: 'Space Grotesk', sans-serif; font-size: 26px; line-height: 1; }
+.pos-tile-status { font-size: 13px; }
+.pos-tile-free { background: #E3F5EC; color: #0B5C43; }
+.pos-tile-occupied { background: #FFF1D6; color: #7A4B00; }
+.pos-tile-billed { background: #FDE8E4; color: #8A2A1A; }
 .pos-field-search { flex: 1 1 220px; }
 .pos-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
 .pos-chip {

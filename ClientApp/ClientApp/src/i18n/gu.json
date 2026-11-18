@@ -875,5 +875,9 @@
   "setup.printerHint": "તમારા થર્મલ પ્રિન્ટર (58 અથવા 80 mm) પર ટેસ્ટ બિલ અને KOT છાપો.",
   "setup.printerDone": "મેં ટેસ્ટ બિલ છાપ્યું",
   "setup.qr": "QR ઓર્ડર",
-  "setup.qrHint": "ટેબલ QR કોડ છાપો જેથી ગ્રાહક ફોનથી મેનૂ જોઈ અને ઓર્ડર કરી શકે."
+  "setup.qrHint": "ટેબલ QR કોડ છાપો જેથી ગ્રાહક ફોનથી મેનૂ જોઈ અને ઓર્ડર કરી શકે.",
+  "pos.tableGrid": "ટેબલ",
+  "pos.tileFree": "ખાલી",
+  "pos.tileBusy": "ટોકન {token} · {minutes} મિનિટ",
+  "pos.tileBilled": "બિલ છપાયું"
 }

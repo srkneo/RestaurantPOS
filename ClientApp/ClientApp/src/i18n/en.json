@@ -875,5 +875,9 @@
   "setup.printerHint": "Print a test bill and a KOT on your thermal printer (58 or 80 mm).",
   "setup.printerDone": "I printed a test bill",
   "setup.qr": "QR ordering",
-  "setup.qrHint": "Print table QR codes so guests can see the menu and order from their phones."
+  "setup.qrHint": "Print table QR codes so guests can see the menu and order from their phones.",
+  "pos.tableGrid": "Tables",
+  "pos.tileFree": "Free",
+  "pos.tileBusy": "Token {token} · {minutes} min",
+  "pos.tileBilled": "Bill printed"
 }

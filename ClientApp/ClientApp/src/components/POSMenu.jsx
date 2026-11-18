@@ -7,7 +7,7 @@ import ConfirmDialog from '../ui/ConfirmDialog';
 import BillDialog from './BillDialog';
 import ItemOptionsDialog from './ItemOptionsDialog';
 import StateMessage from '../ui/StateMessage';
-import { formatMoney, newClientId } from '../ui/format';
+import { formatMoney, minutesSince, newClientId } from '../ui/format';
 import './POSMenu.css';
 import { useAuth } from '../AuthContext';
 import { saveOffline, isUnreachable } from '../offline/orderQueue';
@@ -46,6 +46,7 @@ const POSMenu = () => {
   const [search, setSearch] = useState('');
   const [orderType, setOrderType] = useState('DineIn');
   const [selectedTable, setSelectedTable] = useState('');
+  const [tableGrid, setTableGrid] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [noteOpen, setNoteOpen] = useState(null);
@@ -395,6 +396,9 @@ const POSMenu = () => {
                   </option>
                 ))}
               </select>
+              {!editing && (
+                <button type="button" className="btn btn-outline-secondary btn-sm mt-1 w-100" onClick={() => setTableGrid(true)}>{t('pos.tableGrid')}</button>
+              )}
               {tab && <div className="pos-hint pos-tab-hint" role="status">{t('pos.tabOpen', { number: tab.tableNumber, token: tab.tokenNumber })}</div>}
               {!editing && tableInfo?.status === 'Billed' && (
                 <div className="pos-hint text-danger" role="status">{t('pos.tabBilled', { number: tableInfo.tableNumber })}</div>
@@ -540,6 +544,33 @@ const POSMenu = () => {
       <ItemOptionsDialog item={choosing} onCancel={() => setChoosing(null)}
         onAdd={(line) => { addLine(line); setChoosing(null); }} />
       <BillDialog orderId={billOrderId} onClose={() => setBillOrderId(null)} />
+      {tableGrid && (
+        <div className="pos-table-grid-backdrop" role="presentation" onClick={() => setTableGrid(false)}>
+          <div className="pos-table-grid" role="dialog" aria-modal="true" aria-label={t('pos.tableGrid')} onClick={(e) => e.stopPropagation()}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <h2 className="h5 mb-0">{t('pos.tableGrid')}</h2>
+              <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => setTableGrid(false)}>{t('common.close')}</button>
+            </div>
+            <div className="pos-table-tiles">
+              {tables.map((tb) => {
+                const status = tb.status ?? 'Free';
+                const minutes = tb.since ? minutesSince(tb.since) : null;
+                return (
+                  <button key={tb.id} type="button" className={`pos-table-tile pos-tile-${status.toLowerCase()}`}
+                    aria-pressed={String(tb.id) === selectedTable} aria-label={t('pos.tableName', { number: tb.tableNumber })}
+                    onClick={() => { setSelectedTable(String(tb.id)); setTableGrid(false); }}>
+                    <span className="pos-tile-number">{tb.tableNumber}</span>
+                    <span className="pos-tile-status">
+                      {status === 'Occupied' ? t('pos.tileBusy', { token: tb.tokenNumber, minutes: minutes ?? 0 })
+                        : status === 'Billed' ? t('pos.tileBilled') : t('pos.tileFree')}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
