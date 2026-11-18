@@ -29,7 +29,7 @@ namespace POSSystem.Billing
     public record VoidBillRequest(string? Reason, int Version, string? ApproverPin = null);
     public record BillingSettingsDto(string TaxMode, bool PricesIncludeTax, string BillPrefix, string? UpiId = null, string? UpiName = null,
         int PaperWidth = 80, string PrintLanguage = "en");
-    public record PrintSettingsDto(int PaperWidth, string PrintLanguage, bool UpiReady, bool ReviewReady = false);
+    public record PrintSettingsDto(int PaperWidth, string PrintLanguage, bool UpiReady, bool ReviewReady = false, bool FeedbackReady = false);
     public record AddPaymentRequest(string? Method, decimal Amount, decimal? Tendered, string? Reference, int Version);
     public record UpiLinkDto(string Link, decimal Amount, string UpiId);
 
@@ -318,7 +318,7 @@ namespace POSSystem.Billing
         public static PrintSettingsDto PrintSettingsOf(Outlet outlet)
         {
             var s = outlet.GetSettings();
-            return new PrintSettingsDto(s.PaperWidth, s.PrintLanguage, !string.IsNullOrWhiteSpace(s.UpiId), !string.IsNullOrWhiteSpace(s.GoogleReviewUrl));
+            return new PrintSettingsDto(s.PaperWidth, s.PrintLanguage, !string.IsNullOrWhiteSpace(s.UpiId), !string.IsNullOrWhiteSpace(s.GoogleReviewUrl), s.FeedbackOnBill);
         }
 
         // Counts prints; the second and later prints of a bill are marked DUPLICATE on paper.

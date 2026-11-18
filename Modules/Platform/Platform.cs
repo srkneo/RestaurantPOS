@@ -90,6 +90,9 @@ namespace POSSystem.Models
         // Google review page; when set, bills print a "Rate us on Google" QR code.
         public string? GoogleReviewUrl { get; set; }
 
+        // Bills print a QR code where the guest rates the visit (1-5 stars and a comment).
+        public bool FeedbackOnBill { get; set; }
+
         // Receipt printer: 58 or 80 mm paper; bills and KOTs in English (en) or Gujarati (gu).
         public int PaperWidth { get; set; } = 80;
         public string PrintLanguage { get; set; } = "en";
