@@ -7,7 +7,7 @@ import '../components/OrderHistory.css';
 import './StaffPage.css';
 import StaffPinDialog from './StaffPinDialog';
 
-const ROLES = ['admin', 'manager', 'cashier', 'kitchen'];
+const ROLES = ['admin', 'manager', 'cashier', 'waiter', 'kitchen'];
 const NEW_STAFF = { displayName: '', email: '', role: 'cashier', password: '', isDevice: false };
 
 // Turns a ValidationProblem response into { field: message }.

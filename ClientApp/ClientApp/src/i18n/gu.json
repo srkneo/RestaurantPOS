@@ -703,5 +703,6 @@
   "orders.splitChoose": "અલગ કરવા ઓછામાં ઓછી એક વસ્તુ પસંદ કરો.",
   "orders.splitConfirm": "વહેંચો",
   "orders.splitDone": "ટોકન {token} તરીકે અલગ થયું. આ યાદીમાંથી તેનું બિલ બનાવો.",
-  "orders.billedFirst": "આ ઓર્ડરનું બિલ બની ગયું છે. પહેલાં બિલ રદ કરો."
+  "orders.billedFirst": "આ ઓર્ડરનું બિલ બની ગયું છે. પહેલાં બિલ રદ કરો.",
+  "role.waiter": "કેપ્ટન (વેઇટર)"
 }
