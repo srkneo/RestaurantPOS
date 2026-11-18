@@ -50,6 +50,19 @@ describe('Day report page', () => {
     expect(text).toContain('Unpaid: 1');
   });
 
+  it('mentions the guest rating in the WhatsApp summary', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url) => {
+      if (url === '/api/print-settings') return { ok: true, status: 200, json: async () => ({ paperWidth: 80, printLanguage: 'en', upiReady: false }) };
+      if (url.startsWith('/api/reports/day')) return { ok: true, status: 200, json: async () => ({ ...REPORT, feedbackCount: 4, feedbackAverage: 4.3 }) };
+      return { ok: false, status: 404, json: async () => ({}) };
+    }));
+    const open = vi.fn();
+    vi.stubGlobal('open', open);
+    render(<I18nProvider><DayReportPage /></I18nProvider>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Share on WhatsApp' }));
+    expect(decodeURIComponent(open.mock.calls[0][0])).toContain('Guest rating 4.3 of 5 (4 guests)');
+  });
+
   it('shows tips and expenses on the Z report', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url) => {
       if (url === '/api/print-settings') return { ok: true, status: 200, json: async () => ({ paperWidth: 80, printLanguage: 'en', upiReady: false }) };

@@ -50,6 +50,9 @@ export default function DayReportPage() {
     if (Number(r.expenseTotal ?? 0) > 0 || Number(r.tipTotal ?? 0) > 0) {
       lines.push(t('share.extra', { expenses: formatMoney(r.expenseTotal ?? 0), tips: formatMoney(r.tipTotal ?? 0) }));
     }
+    if (Number(r.feedbackCount ?? 0) > 0) {
+      lines.push(t('share.feedback', { average: Number(r.feedbackAverage).toFixed(1), count: r.feedbackCount }));
+    }
     lines.push(t('share.net', { net: formatMoney(r.netSales) }));
     window.open(`https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`, '_blank', 'noopener');
   };
