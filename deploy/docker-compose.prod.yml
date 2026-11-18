@@ -44,6 +44,8 @@ services:
       Alerts__TelegramToken: ${TELEGRAM_TOKEN:-}
       Alerts__TelegramChatId: ${TELEGRAM_CHAT_ID:-}
       DataProtection__KeysPath: /app/keys
+      # Shown in the footer and on the About page.
+      App__Version: ${POS_VERSION:-}
       # Menu scan (photos of a paper menu). Without a key the scan button explains it is not set up.
       Gemini__ApiKey: ${GEMINI_API_KEY:-}
       Gemini__Model: ${GEMINI_MODEL:-}

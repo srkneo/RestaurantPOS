@@ -14,8 +14,12 @@ namespace POSSystem.Platform
         public static WebApplication MapLicenceServerEndpoints(this WebApplication app)
         {
             // Open to shop PCs (they have no sign-in), so it is rate limited like sign-in and needs the long random key.
-            app.MapPost("/api/licence/renew", (RenewRequest request, LicenceIssuer issuer, CancellationToken ct) =>
-                Run(async () => Results.Ok(await issuer.Renew(request, ct))))
+            app.MapPost("/api/licence/renew", (RenewRequest request, LicenceIssuer issuer, SupportService support, CancellationToken ct) =>
+                Run(async () =>
+                {
+                    var renewed = await issuer.Renew(request, ct);
+                    return Results.Ok(renewed with { Support = await support.Get(ct) });
+                }))
                 .AllowAnonymous().RequireRateLimiting(RateLimits.Login)
                 .WithTags("Licence")
                 .WithName("RenewLicence").WithSummary("A shop PC asks for a fresh licence lease with its key");

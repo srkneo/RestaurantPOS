@@ -88,6 +88,20 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task Renew_SendsTheSupportDetails()
+        {
+            var f = Build();
+            var saved = await As(f, "platform").PutAsync("/api/platform/support", Json(new { companyName = "Vyom Solutions", productName = "RestaurantPOS", phone = "9429549007" }));
+            Assert.Equal(HttpStatusCode.OK, saved.StatusCode);
+            var licence = await Create(f);
+            var res = await Renew(f, licence.GetProperty("key").GetString()!);
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            var support = (await Read(res)).GetProperty("support");
+            Assert.Equal("Vyom Solutions", support.GetProperty("companyName").GetString());
+            Assert.Equal("9429549007", support.GetProperty("phone").GetString());
+        }
+
+        [Fact]
         public async Task Create_ChecksTheForm()
         {
             var f = Build();
