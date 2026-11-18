@@ -19,10 +19,21 @@ namespace POSSystem.Billing
 
         public static WebApplication MapBillEndpoints(this WebApplication app)
         {
-            app.MapPost("/api/orders/{id:int}/bill", (int id, CreateBillRequest? request, BillService bills) =>
+            app.MapPost("/api/orders/{id:int}/bill", (int id, CreateBillRequest? request, ClaimsPrincipal caller, BillService bills, ApprovalService approvals, AppDbContext db) =>
                 Run(async () =>
                 {
-                    var bill = await bills.CreateBill(id, request ?? new CreateBillRequest(null, null));
+                    var req = request ?? new CreateBillRequest(null, null);
+                    // Above the owner's cashier limit, a manager allows the discount (their PIN, or they are signed in).
+                    var bill = await bills.CreateBill(id, req, async percent =>
+                    {
+                        var outlet = await db.Outlets.AsNoTracking().FirstAsync(o => o.Id == db.CurrentOutletId && o.TenantId == db.CurrentTenantId);
+                        if (outlet.GetSettings().CashierMaxDiscountPercent is { } max && percent > max && !ApprovalService.ApproverRoles.Any(caller.IsInRole))
+                        {
+                            var approvedBy = await approvals.Approver(caller, req.ApproverPin);
+                            approvals.Record("KitchenOrder", id.ToString(),
+                                $"Discount of {percent:0.##}% (cashier limit {max:0.##}%) allowed by {approvedBy}");
+                        }
+                    });
                     return Results.Created($"/api/bills/{bill.Id}", BillService.ToDto(bill));
                 }))
                 .RequireAuthorization(p => p.RequireRole(Till))

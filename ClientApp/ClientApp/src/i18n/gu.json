@@ -879,5 +879,13 @@
   "pos.tableGrid": "ટેબલ",
   "pos.tileFree": "ખાલી",
   "pos.tileBusy": "ટોકન {token} · {minutes} મિનિટ",
-  "pos.tileBilled": "બિલ છપાયું"
+  "pos.tileBilled": "બિલ છપાયું",
+  "approval.pinDiscount": "આ ડિસ્કાઉન્ટ કેશિયરની મર્યાદાથી વધુ છે. મેનેજર PIN જરૂરી છે.",
+  "discountLimit.title": "કેશિયર ડિસ્કાઉન્ટ મર્યાદા",
+  "discountLimit.label": "મેનેજર PIN વગર કેશિયર આપી શકે તે મહત્તમ ડિસ્કાઉન્ટ (%)",
+  "discountLimit.none": "કોઈ મર્યાદા નહીં",
+  "discountLimit.hint": "તેનાથી વધુ માટે મેનેજર બિલ પર PIN લખે છે; ઓડિટ લોગમાં નોંધ થાય છે. મર્યાદા ન જોઈએ તો ખાલી રાખો.",
+  "discountLimit.invalid": "0 થી 100 લખો, અથવા મર્યાદા ન જોઈએ તો ખાલી રાખો.",
+  "discountLimit.saved": "ડિસ્કાઉન્ટ મર્યાદા સચવાઈ.",
+  "discountLimit.save": "મર્યાદા સાચવો"
 }

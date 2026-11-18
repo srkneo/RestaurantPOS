@@ -879,5 +879,13 @@
   "pos.tableGrid": "Tables",
   "pos.tileFree": "Free",
   "pos.tileBusy": "Token {token} · {minutes} min",
-  "pos.tileBilled": "Bill printed"
+  "pos.tileBilled": "Bill printed",
+  "approval.pinDiscount": "This discount is above the cashier limit. A manager PIN is needed.",
+  "discountLimit.title": "Cashier discount limit",
+  "discountLimit.label": "Most discount a cashier gives without a manager PIN (%)",
+  "discountLimit.none": "No limit",
+  "discountLimit.hint": "Above this a manager types their PIN on the bill; it is noted in the audit log. Leave empty for no limit.",
+  "discountLimit.invalid": "Enter 0 to 100, or leave it empty for no limit.",
+  "discountLimit.saved": "Discount limit saved.",
+  "discountLimit.save": "Save limit"
 }

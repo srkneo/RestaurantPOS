@@ -25,7 +25,7 @@ namespace POSSystem.Billing
     public record BillSummaryDto(int Id, int OrderId, string InvoiceNumber, DateTime IssuedAt, string OrderLabel, int TokenNumber,
         decimal Total, string Status, int Version);
 
-    public record CreateBillRequest(decimal? DiscountPercent, decimal? DiscountAmount);
+    public record CreateBillRequest(decimal? DiscountPercent, decimal? DiscountAmount, string? ApproverPin = null);
     public record VoidBillRequest(string? Reason, int Version, string? ApproverPin = null);
     public record BillingSettingsDto(string TaxMode, bool PricesIncludeTax, string BillPrefix, string? UpiId = null, string? UpiName = null,
         int PaperWidth = 80, string PrintLanguage = "en");
@@ -62,7 +62,8 @@ namespace POSSystem.Billing
             _ => "Bill"
         };
 
-        public async Task<Bill> CreateBill(int orderId, CreateBillRequest request)
+        // checkDiscount gets the discount as a percent of the items before the bill is made, and can refuse it.
+        public async Task<Bill> CreateBill(int orderId, CreateBillRequest request, Func<decimal, Task>? checkDiscount = null)
         {
             var order = await _db.KitchenOrders.Include(o => o.Items).Include(o => o.Table).FirstOrDefaultAsync(o => o.Id == orderId)
                 ?? throw new KeyNotFoundException("Order not found.");
@@ -84,7 +85,9 @@ namespace POSSystem.Billing
                     settings.TaxMode == TaxMode.Regular ? rates.GetValueOrDefault(i.MenuItemId, 5m) : 0m))
                 .ToList();
             var itemsTotal = inputs.Sum(i => BillCalculator.Paise(i.Quantity * i.UnitPrice));
-            var totals = BillCalculator.Calculate(inputs, settings.TaxMode, settings.PricesIncludeTax, DiscountOf(request, itemsTotal));
+            var discount = DiscountOf(request, itemsTotal);
+            if (checkDiscount != null && discount > 0 && itemsTotal > 0) await checkDiscount(discount * 100m / itemsTotal);
+            var totals = BillCalculator.Calculate(inputs, settings.TaxMode, settings.PricesIncludeTax, discount);
 
             var now = DateTime.UtcNow;
             var businessDate = BusinessClock.BusinessDate(now, outlet.TimeZone, outlet.BusinessDayStartHour);

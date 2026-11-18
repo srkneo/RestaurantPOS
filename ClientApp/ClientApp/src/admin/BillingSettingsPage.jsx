@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
+import DiscountLimitCard from './DiscountLimitCard';
 import { readErrors, send, Field } from '../ui/forms';
 import '../components/OrderHistory.css';
 import './StaffPage.css';
@@ -199,6 +200,7 @@ export default function BillingSettingsPage() {
                     </div>
                 </form>
             )}
+            {loadState === 'ready' && <DiscountLimitCard />}
         </main>
     );
 }

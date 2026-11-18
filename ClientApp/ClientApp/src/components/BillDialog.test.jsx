@@ -63,6 +63,29 @@ describe('Bill dialog', () => {
     expect(onChanged).toHaveBeenCalled();
   });
 
+  it('asks for a manager PIN when the discount is above the cashier limit', async () => {
+    let tries = 0;
+    const calls = mockApi({
+      'POST /api/orders/3/bill': () => {
+        tries += 1;
+        return tries === 1
+          ? { status: 403, body: { code: 'pin-required', message: 'A manager PIN is needed for this.' } }
+          : { status: 201, body: { ...BILL, discount: 100, total: 400, amountDue: 400 } };
+      },
+    });
+    renderDialog();
+    fireEvent.click(await screen.findByLabelText('Percent off'));
+    fireEvent.change(screen.getByLabelText('Discount (%)'), { target: { value: '20' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Make bill' }));
+
+    expect(await screen.findByText('This discount is above the cashier limit. A manager PIN is needed.')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Manager PIN'), { target: { value: '4321' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Make bill' }));
+
+    expect(await screen.findByRole('heading', { name: 'Bill INV/26-27/000007' })).toBeInTheDocument();
+    expect(posted(calls, 'POST /api/orders/3/bill')).toEqual([{ discountPercent: 20 }, { discountPercent: 20, approverPin: '4321' }]);
+  });
+
   it('takes cash, shows the change, and marks the bill paid', async () => {
     const calls = mockApi({
       'GET /api/orders/3/bill': { status: 200, body: BILL },
