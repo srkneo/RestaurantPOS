@@ -8,6 +8,21 @@ Billing keeps working without internet, and the bills stay in the shop.
 - Internet for the setup and for updates only.
 - Tills, tablets and the kitchen screen on the same network or Wi-Fi.
 
+## Recommended hardware
+| Item | What to buy | Rough price (check before buying) |
+|---|---|---|
+| Mini PC | Intel N100 or N150, 8 GB RAM (16 GB better), 256 GB or bigger NVMe SSD, a wired network port, 2 or more USB ports. For example Beelink Mini S12 Pro, EQ12 or EQ14, GMKtec G3 or G5, ASUS NUC 14 Essential. Or a refurbished office mini PC (Lenovo ThinkCentre Tiny, HP EliteDesk Mini, Dell OptiPlex Micro with a 6th-gen Core i5 or newer, 8 GB, SSD). | New: about Rs 15,000-25,000. Refurbished: about Rs 10,000-15,000. Some imported listings cost far more; compare a few sellers. |
+| UPS | 600 VA line-interactive, for the mini PC and the router (e.g. APC BX600C-IN). Keeps billing going through short cuts and lets the PC run until power is back. | About Rs 3,300-4,000 |
+| Backup disk | Any USB pen drive of 32 GB or more, or a USB hard disk, formatted exFAT and named POSBACKUP. Two disks if the owner wants to take one home each week. | About Rs 500-1,500 each |
+| Network cable | From the router to the mini PC (Cat 6). | About Rs 200 |
+| Receipt printer | 80 mm or 58 mm thermal printer that works with the browser (USB or network). | About Rs 5,000-9,000 |
+
+Settings on the mini PC:
+- Firmware (Del or F2 at start): **Restore on AC power loss = Power On**, so the PC starts by itself after a power cut. The POS then starts by itself (all parts restart unless stopped).
+- One PC per restaurant, used for nothing else.
+
+For a setup visit, print `deploy/SHOP-VISIT.md`.
+
 ## Set up (about 10 minutes)
 On the mini PC, open a terminal:
 ```
