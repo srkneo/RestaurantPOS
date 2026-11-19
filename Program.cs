@@ -50,6 +50,7 @@ try
     builder.Services.AddPosRateLimits(builder.Configuration);
     builder.Services.AddPosLicence(builder.Configuration);
     builder.Services.AddTelegramErrorAlerts(builder.Configuration);
+    builder.Services.AddSubscriptionReminders();
     builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database", tags: new[] { "ready" });
     builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
