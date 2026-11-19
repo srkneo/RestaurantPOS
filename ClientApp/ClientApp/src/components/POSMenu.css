@@ -21,6 +21,8 @@
 .pos-tile-free { background: #E3F5EC; color: #0B5C43; }
 .pos-tile-occupied { background: #FFF1D6; color: #7A4B00; }
 .pos-tile-billed { background: #FDE8E4; color: #8A2A1A; }
+.pos-tile-paid { background: #E4EEFB; color: #1F4E8C; }
+.pos-table-cell { display: flex; flex-direction: column; }
 .pos-field-search { flex: 1 1 220px; }
 .pos-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
 .pos-chip {
