@@ -71,6 +71,7 @@ namespace POSSystem.Data
             services.AddHttpClient("telegram-otp");
             services.AddSingleton<IOtpSender, TelegramOtpSender>();
             services.AddSingleton<PlatformOtp>();
+            services.AddSingleton<SubscriptionGate>();
 
             services.AddAuthorizationBuilder()
                 .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
@@ -96,6 +97,17 @@ namespace POSSystem.Data
                         && await ctx.RequestServices.GetRequiredService<TenantStatus>().IsDisabledAsync(db, db.CurrentTenantId))
                     {
                         ctx.Response.StatusCode = 401;
+                        return;
+                    }
+
+                    // Cloud subscription ended (7 days after the paid-up date): no new orders, bills or payments;
+                    // everything stays viewable and exportable.
+                    if (!ctx.User.IsInRole(PlatformRole) && !HttpMethods.IsGet(ctx.Request.Method)
+                        && (ctx.Request.Path.StartsWithSegments("/api/orders") || ctx.Request.Path.StartsWithSegments("/api/bills"))
+                        && await ctx.RequestServices.GetRequiredService<SubscriptionGate>().IsSuspendedAsync(db, db.CurrentTenantId))
+                    {
+                        ctx.Response.StatusCode = 402;
+                        await ctx.Response.WriteAsJsonAsync(new { message = "The subscription has ended. Pay to continue taking orders; everything stays viewable.", code = "subscription-ended" });
                         return;
                     }
 
