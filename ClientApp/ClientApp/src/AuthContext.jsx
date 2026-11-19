@@ -43,11 +43,27 @@ export function AuthProvider({ children }) {
 
   useEffect(() => { refresh(); }, []);
 
+  // Returns true when signed in, false for a wrong password, { twoStep, challenge } when a code was sent
+  // to Telegram (platform owner), or { sendFailed: true } when that code could not be sent.
   const login = async (email, password) => {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
+    });
+    if (res.status === 503) return { sendFailed: true };
+    if (!res.ok) return false;
+    const data = await res.json().catch(() => null);
+    if (data?.twoStep) return { twoStep: true, challenge: data.challenge };
+    await refresh();
+    return true;
+  };
+
+  const loginCode = async (challenge, code) => {
+    const res = await fetch('/api/auth/login/code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ challenge, code }),
     });
     if (!res.ok) return false;
     await refresh();
@@ -61,7 +77,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, loginCode, logout }}>
       {children}
     </AuthContext.Provider>
   );
