@@ -604,6 +604,8 @@
   "about.copied": "Details copied. Paste them in your message to support.",
   "about.copyFailed": "Could not copy. Select the details and copy them by hand.",
   "about.noContact": "Support contact details are not set up yet.",
+  "about.openSource": "Open-source software",
+  "about.openSourceHint": "The POS is built with these free libraries. Each one is used under its own licence.",
   "support.title": "Support details",
   "support.intro": "Every restaurant sees these in the footer and on the About page. Shop PCs get them with their next licence renewal.",
   "support.companyName": "Company name",
