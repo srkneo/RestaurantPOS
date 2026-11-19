@@ -134,7 +134,7 @@ namespace RestaurantPOS.Tests
             Assert.Equal(HttpStatusCode.OK, (await cashier.PostAsync($"/api/bills/{bill.GetProperty("id").GetInt32()}/payments", Json(new { method = "cash", amount = 500, version = 1 }))).StatusCode);
             Assert.Equal("Completed", (await Read(await cashier.GetAsync($"/api/orders/{second}"))).GetProperty("status").GetString());
             var table = (await Read(await cashier.GetAsync("/api/tables"))).EnumerateArray().Single(t => t.GetProperty("id").GetInt32() == s.TableId);
-            Assert.Equal("Free", table.GetProperty("status").GetString());
+            Assert.Equal("Paid", table.GetProperty("status").GetString());
         }
 
         [Fact]
@@ -153,7 +153,8 @@ namespace RestaurantPOS.Tests
             Assert.Equal("Occupied", Table(await Read(await cashier.GetAsync("/api/tables"))).GetProperty("status").GetString());
             Assert.Equal(HttpStatusCode.OK, (await admin.PutAsync($"/api/orders/{first}/status", Json(new { status = "Served" }))).StatusCode);
             Assert.Equal("Completed", (await Read(await cashier.GetAsync($"/api/orders/{first}"))).GetProperty("status").GetString());
-            Assert.Equal("Free", Table(await Read(await cashier.GetAsync("/api/tables"))).GetProperty("status").GetString());
+            Assert.Equal("Paid", Table(await Read(await cashier.GetAsync("/api/tables"))).GetProperty("status").GetString());
+            Assert.Equal(HttpStatusCode.OK, (await cashier.PostAsync($"/api/tables/{s.TableId}/clear", null)).StatusCode);
 
             // No kitchen screen at this outlet: paying closes the order at once.
             using (var scope = f.Services.CreateScope())
@@ -169,7 +170,7 @@ namespace RestaurantPOS.Tests
             var bill2 = await Read(await cashier.PostAsync($"/api/orders/{second}/bill", Json(new { })));
             Assert.Equal(HttpStatusCode.OK, (await cashier.PostAsync($"/api/bills/{bill2.GetProperty("id").GetInt32()}/payments", Json(new { method = "cash", amount = 500, version = 1 }))).StatusCode);
             Assert.Equal("Completed", (await Read(await cashier.GetAsync($"/api/orders/{second}"))).GetProperty("status").GetString());
-            Assert.Equal("Free", Table(await Read(await cashier.GetAsync("/api/tables"))).GetProperty("status").GetString());
+            Assert.Equal("Paid", Table(await Read(await cashier.GetAsync("/api/tables"))).GetProperty("status").GetString());
         }
 
         [Fact]
@@ -190,6 +191,8 @@ namespace RestaurantPOS.Tests
             var bill = await Read(await cashier.PostAsync($"/api/orders/{first}/bill", Json(new { })));
             Assert.Equal(HttpStatusCode.OK, (await cashier.PostAsync($"/api/bills/{bill.GetProperty("id").GetInt32()}/payments", Json(new { method = "cash", amount = 500, version = 1 }))).StatusCode);
             Assert.Equal("Completed", (await Read(await cashier.GetAsync($"/api/orders/{first}"))).GetProperty("status").GetString());
+            Assert.Equal("Paid", Table(await Read(await cashier.GetAsync("/api/tables"))).GetProperty("status").GetString());
+            Assert.Equal(HttpStatusCode.OK, (await cashier.PostAsync($"/api/tables/{s.TableId}/clear", null)).StatusCode);
             Assert.Equal("Free", Table(await Read(await cashier.GetAsync("/api/tables"))).GetProperty("status").GetString());
 
             // Paid while cooking, then served: closes on Served.
@@ -200,7 +203,7 @@ namespace RestaurantPOS.Tests
             Assert.Equal("Occupied", Table(await Read(await cashier.GetAsync("/api/tables"))).GetProperty("status").GetString());
             Assert.Equal(HttpStatusCode.OK, (await admin.PutAsync($"/api/orders/{second}/status", Json(new { status = "Served" }))).StatusCode);
             Assert.Equal("Completed", (await Read(await cashier.GetAsync($"/api/orders/{second}"))).GetProperty("status").GetString());
-            Assert.Equal("Free", Table(await Read(await cashier.GetAsync("/api/tables"))).GetProperty("status").GetString());
+            Assert.Equal("Paid", Table(await Read(await cashier.GetAsync("/api/tables"))).GetProperty("status").GetString());
         }
 
         [Fact]

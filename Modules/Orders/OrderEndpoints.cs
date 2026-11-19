@@ -20,7 +20,11 @@ namespace POSSystem.Orders
         public static WebApplication MapOrderEndpoints(this WebApplication app)
         {
             app.MapGet("/api/tables", async (AppDbContext db) => Results.Ok(await TableBoard.Load(db)))
-                .WithName("GetTables").WithSummary("List restaurant tables with free, occupied or billed");
+                .WithName("GetTables").WithSummary("List restaurant tables with free, occupied, billed or paid");
+
+            app.MapPost("/api/tables/{id:int}/clear", async (int id, AppDbContext db) =>
+                await TableBoard.Clear(db, id) is { } message ? Results.Conflict(new { message }) : Results.Ok())
+                .WithName("ClearTable").WithSummary("Customer left: the paid table is free again");
 
             app.MapGet("/api/orders", async (string? date, IOrderService orderService) =>
             {

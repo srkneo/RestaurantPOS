@@ -45,6 +45,9 @@ namespace POSSystem.Models
         public DateTime? PreparingAt { get; set; }
         public DateTime? ReadyAt { get; set; }
         public DateTime? CompletedAt { get; set; }
+
+        // When staff tapped Customer left: from then on this order no longer holds its table.
+        public DateTime? TableFreedAt { get; set; }
         public DateTime? CancelledAt { get; set; }
 
         [MaxLength(200)]
