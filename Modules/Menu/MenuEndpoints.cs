@@ -32,7 +32,8 @@ namespace POSSystem.Menu
                 var closed = await MenuHours.ClosedCategoryIds(db);
                 var items = (await menuItemService.GetMenuItems()).Where(i => i.CategoryId == null || !closed.Contains(i.CategoryId.Value)).ToList();
                 var options = await MenuOptions.ForItems(db, items.Select(i => i.Id).ToList());
-                return Results.Ok(items.Select(i => MenuOptions.ToPosDto(i, options)).ToList());
+                var includes = await Combos.IncludesFor(db, items.Select(i => i.Id).ToList());
+                return Results.Ok(items.Select(i => MenuOptions.ToPosDto(i, options, includes)).ToList());
             })
                 .WithName("GetMenuItems").WithSummary("List menu items with their sizes and extras");
 
