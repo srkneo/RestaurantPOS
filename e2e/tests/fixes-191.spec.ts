@@ -38,8 +38,8 @@ test('H1 Served on Orders keeps a dine-in table busy until the bill is paid', as
   const page = await pageAs(browser);
   await page.goto('/orders');
   const row = page.getByRole('row').filter({ has: page.getByRole('cell', { name: String(placed.tokenNumber), exact: true }) });
-  await row.getByRole('button', { name: 'Served' }).click();
-  await expect(page.getByText(`Token ${placed.tokenNumber} served. The table stays busy until the bill is paid.`)).toBeVisible();
+  await row.getByRole('button', { name: 'Food delivered' }).click();
+  await expect(page.getByText(`Token ${placed.tokenNumber}: food delivered. The table stays busy until the bill is paid.`)).toBeVisible();
   expect((await ok(await api.get(`/api/orders/${placed.orderId}`))).status).toBe('Served');
   expect((await boardOf(table.id)).status).toBe('Occupied');
 
@@ -71,7 +71,7 @@ test('H3 a takeaway that is ready shows Collected on Orders', async ({ browser }
   const page = await pageAs(browser);
   await page.goto('/orders');
   const row = page.getByRole('row').filter({ hasText: `Collect ${id}` });
-  await row.getByRole('button', { name: 'Collected' }).click();
+  await row.getByRole('button', { name: 'Handed over' }).click();
   await expect(page.getByText(`Token ${placed.tokenNumber} done.`)).toBeVisible();
   expect((await ok(await api.get(`/api/orders/${placed.orderId}`))).status).toBe('Completed');
 });

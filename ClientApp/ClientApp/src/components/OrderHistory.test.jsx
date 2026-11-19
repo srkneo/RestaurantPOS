@@ -116,8 +116,8 @@ describe('Order history', () => {
     const calls = mockApi();
     renderPage();
     const row = (await screen.findByText('Classic Burger', { exact: false })).closest('tr');
-    fireEvent.click(within(row).getByRole('button', { name: 'Served' }));
-    expect(await screen.findByText('Token 1 served. The table stays busy until the bill is paid.')).toBeInTheDocument();
+    fireEvent.click(within(row).getByRole('button', { name: 'Food delivered' }));
+    expect(await screen.findByText('Token 1: food delivered. The table stays busy until the bill is paid.')).toBeInTheDocument();
     const sent = calls.find((c) => c.url === '/api/orders/1/status');
     expect(JSON.parse(sent.options.body)).toEqual({ status: 'Served', version: 3 });
   });
