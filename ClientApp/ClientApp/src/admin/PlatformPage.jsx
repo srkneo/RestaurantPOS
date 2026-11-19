@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
+import Pager, { usePaged } from '../ui/Pager';
 import FormDialog from '../ui/FormDialog';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import { readErrors, send, Field } from '../ui/forms';
@@ -23,6 +24,7 @@ export default function PlatformPage() {
     const [busy, setBusy] = useState(false);
     const [confirm, setConfirm] = useState(null);
     const [demoFor, setDemoFor] = useState(null);
+    const [search, setSearch] = useState('');
 
     const load = useCallback(async () => {
         try {
@@ -109,6 +111,10 @@ export default function PlatformPage() {
         }
     };
 
+    const query = search.trim().toLowerCase();
+    const shownTenants = query ? tenants.filter((x) => (x.name ?? '').toLowerCase().includes(query)) : tenants;
+    const { page, pageCount, pageItems, setPage, total } = usePaged(shownTenants, 50);
+
     return (
         <main className="pos-page">
             <div className="pos-page-head">
@@ -121,6 +127,13 @@ export default function PlatformPage() {
             {loadState === 'error' && <StateMessage kind="error" onRetry={load} />}
             {loadState === 'ready' && tenants.length === 0 && <StateMessage kind="empty" message={t('platform.empty')} />}
             {loadState === 'ready' && tenants.length > 0 && (
+                <div className="mb-2" style={{ maxWidth: 360 }}>
+                    <label htmlFor="platform-search" className="form-label">{t('platform.search')}</label>
+                    <input id="platform-search" type="search" className="form-control" value={search} onChange={(e) => setSearch(e.target.value)} />
+                </div>
+            )}
+            {loadState === 'ready' && tenants.length > 0 && shownTenants.length === 0 && <StateMessage kind="empty" message={t('platform.noMatch')} />}
+            {loadState === 'ready' && shownTenants.length > 0 && (
                 <div className="pos-card table-responsive">
                     <table className="table align-middle">
                         <thead>
@@ -134,7 +147,7 @@ export default function PlatformPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {tenants.map((tenant) => (
+                            {pageItems.map((tenant) => (
                                 <tr key={tenant.id}>
                                     <td className="fw-semibold">{tenant.name}</td>
                                     <td>{tenant.outletCount}</td>
@@ -159,6 +172,7 @@ export default function PlatformPage() {
                     </table>
                 </div>
             )}
+            {loadState === 'ready' && <Pager page={page} pageCount={pageCount} total={total} onPage={setPage} />}
             <FormDialog open={adding} title={t('platform.add')} submitLabel={t('platform.create')} busy={busy}
                 error={errors.general !== undefined ? (errors.general || t('common.error')) : null}
                 onCancel={() => setAdding(false)} onSubmit={submit}>

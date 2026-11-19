@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
+import Pager, { usePaged } from '../ui/Pager';
 import FormDialog from '../ui/FormDialog';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import { readErrors, send, Field } from '../ui/forms';
@@ -29,6 +30,7 @@ export default function ShopLicencesPage() {
   const [updating, setUpdating] = useState(null);
   const [resetCode, setResetCode] = useState(null);
   const [updateForm, setUpdateForm] = useState({ mode: 'auto', version: '' });
+  const [search, setSearch] = useState('');
 
   const load = useCallback(async () => {
     try {
@@ -179,6 +181,13 @@ export default function ShopLicencesPage() {
   const setExtendField = (name) => (e) => setExtendForm({ ...extendForm, [name]: e.target.value });
   const active = (licence) => licence.state === 'Trial' || licence.state === 'Active';
 
+  // Search by customer name or licence key.
+  const query = search.trim().toLowerCase();
+  const shown = query
+    ? licences.filter((l) => `${l.customer ?? ''} ${l.key ?? ''}`.toLowerCase().includes(query))
+    : licences;
+  const { page, pageCount, pageItems, setPage, total } = usePaged(shown, 50);
+
   return (
     <main className="pos-page">
       <div className="pos-page-head">
@@ -191,6 +200,13 @@ export default function ShopLicencesPage() {
       {loadState === 'error' && <StateMessage kind="error" onRetry={load} />}
       {loadState === 'ready' && licences.length === 0 && <StateMessage kind="empty" message={t('licences.empty')} />}
       {loadState === 'ready' && licences.length > 0 && (
+        <div className="mb-2" style={{ maxWidth: 360 }}>
+          <label htmlFor="licences-search" className="form-label">{t('licences.search')}</label>
+          <input id="licences-search" type="search" className="form-control" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+      )}
+      {loadState === 'ready' && licences.length > 0 && shown.length === 0 && <StateMessage kind="empty" message={t('licences.noMatch')} />}
+      {loadState === 'ready' && shown.length > 0 && (
         <div className="pos-card table-responsive">
           <table className="table align-middle">
             <thead>
@@ -207,7 +223,7 @@ export default function ShopLicencesPage() {
               </tr>
             </thead>
             <tbody>
-              {licences.map((licence) => (
+              {pageItems.map((licence) => (
                 <tr key={licence.id}>
                   <td className="fw-semibold">{licence.customer}</td>
                   <td>
@@ -241,6 +257,7 @@ export default function ShopLicencesPage() {
           </table>
         </div>
       )}
+      {loadState === 'ready' && <Pager page={page} pageCount={pageCount} total={total} onPage={setPage} />}
       <FormDialog open={creating} title={t('licences.createTitle')} submitLabel={t('licences.create')} busy={busy}
         error={errors.general !== undefined ? (errors.general || t('common.error')) : null}
         onCancel={() => setCreating(false)} onSubmit={submitCreate}>
