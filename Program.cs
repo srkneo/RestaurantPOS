@@ -10,6 +10,7 @@ using POSSystem.Orders;
 using POSSystem.Platform;
 using POSSystem.Billing;
 using POSSystem.Inventory;
+using POSSystem.Reservations;
 using POSSystem.Repositories;
 using POSSystem.Services;
 using POSSystem.Staff;
@@ -62,6 +63,7 @@ try
     builder.Services.AddScoped<TipService>();
     builder.Services.AddScoped<ExpenseService>();
     builder.Services.AddScoped<StockService>();
+    builder.Services.AddScoped<ReservationService>();
     builder.Services.AddMemoryCache();
     builder.Services.AddScoped<ApprovalService>();
     builder.Services.AddScoped<CreditNoteService>();
@@ -92,6 +94,7 @@ try
     app.MapExpenseEndpoints();
     app.MapStockEndpoints();
     app.MapRecipeEndpoints();
+    app.MapReservationEndpoints();
     app.MapQrOrderingEndpoints();
     app.MapDemoDataEndpoints();
     app.MapReviewLinkEndpoints();
