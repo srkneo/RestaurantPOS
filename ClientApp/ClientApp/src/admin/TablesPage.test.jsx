@@ -40,6 +40,19 @@ describe('Tables page', () => {
     expect(within(row).getByText('2')).toBeInTheDocument();
   });
 
+  it('does not say there are no tables when there are', async () => {
+    mockApi();
+    renderPage();
+    expect(await screen.findByText('Terrace')).toBeInTheDocument();
+    expect(screen.queryByText('No tables yet.')).not.toBeInTheDocument();
+  });
+
+  it('says so when there are no tables yet', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => [] })));
+    renderPage();
+    expect(await screen.findByText('No tables yet.')).toBeInTheDocument();
+  });
+
   it('adds a table after checking the number', async () => {
     const calls = mockApi({ ok: true, status: 201, json: async () => ({}) });
     renderPage();
