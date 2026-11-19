@@ -96,7 +96,7 @@ namespace POSSystem.Models
         // A cashier needs a manager PIN to print a bill a second time (owner can turn it off).
         public bool ReprintNeedsPin { get; set; } = true;
 
-        // Receipt printer: 58 or 80 mm paper; bills and KOTs in English (en) or Gujarati (gu).
+        // Receipt printer: 58 or 80 mm paper; bills and KOTs in English (en), Gujarati (gu) or Hindi (hi).
         public int PaperWidth { get; set; } = 80;
         public string PrintLanguage { get; set; } = "en";
 
