@@ -795,6 +795,8 @@
   "reports.bills": "Bills",
   "reports.total": "Total",
   "reports.net": "Net sales",
+  "reports.rating": "Guest rating",
+  "reports.ratingValue": "{average} / 5 ({count})",
   "reports.discount": "Discount",
   "reports.gst": "GST",
   "reports.hint": "Void bills are left out. Net sales is the total minus credit notes. Category and item amounts are before discount.",

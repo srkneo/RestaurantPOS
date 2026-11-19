@@ -47,6 +47,14 @@ describe('Reports page', () => {
     expect(screen.getByRole('link', { name: 'Download sales (CSV)' })).toHaveAttribute('href', '/api/reports/sales.csv?from=2026-11-01&to=2026-11-18');
   });
 
+  it('shows the guest rating for the chosen days', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ ...REPORT, feedbackCount: 3, feedbackAverage: 3.7 }) })));
+    render(<I18nProvider><ReportsPage /></I18nProvider>);
+    const summary = await screen.findByRole('region', { name: 'Summary' });
+    expect(within(summary).getByText('Guest rating')).toBeInTheDocument();
+    expect(within(summary).getByText('3.7 / 5 (3)')).toBeInTheDocument();
+  });
+
   it('shows the server message for a range that is too long', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 400, json: async () => ({ message: 'Choose at most 92 days.' }) })));
     render(<I18nProvider><ReportsPage /></I18nProvider>);
