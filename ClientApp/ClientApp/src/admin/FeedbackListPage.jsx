@@ -30,7 +30,10 @@ export default function FeedbackListPage() {
 
   return (
     <main className="container py-3 d-flex flex-column gap-3">
-      <h1 className="h3">{t('feedback.title')}</h1>
+      <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h1 className="h3 mb-0">{t('feedback.title')}</h1>
+        <a className="btn btn-outline-primary" href="/api/admin/feedback.csv" download>{t('feedback.csv')}</a>
+      </div>
       {state === 'loading' && <StateMessage kind="loading" />}
       {state === 'error' && <StateMessage kind="error" onRetry={load} />}
       {state === 'ready' && data.count === 0 && <p className="pos-hint">{t('feedback.none')}</p>}

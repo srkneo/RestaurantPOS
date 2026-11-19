@@ -165,6 +165,26 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task FeedbackCsv_ListsEveryRating()
+        {
+            var s = Build();
+            using var f = s.Factory;
+            var admin = As(f, "admin");
+            Assert.Equal(HttpStatusCode.OK, (await admin.PutAsync("/api/admin/feedback-setting", Json(new { enabled = true }))).StatusCode);
+            var bill = await Bill(s);
+            var token = (await Read(await admin.GetAsync($"/api/bills/{bill.GetProperty("id").GetInt32()}/feedback-link"))).GetProperty("token").GetString()!;
+            Assert.Equal(HttpStatusCode.OK, (await f.CreateClient().PostAsync($"/api/feedback/{token}", Json(new { rating = 3, comment = "=Slow, but tasty" }))).StatusCode);
+
+            var response = await As(f, "manager").GetAsync("/api/admin/feedback.csv");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("text/csv", response.Content.Headers.ContentType?.MediaType);
+            var csv = await response.Content.ReadAsStringAsync();
+            Assert.Contains("Date (UTC),Bill,Stars,Comment", csv);
+            Assert.Contains($"{bill.GetProperty("invoiceNumber").GetString()},3,\"'=Slow, but tasty\"", csv);
+            Assert.Equal(HttpStatusCode.Forbidden, (await As(f, "cashier").GetAsync("/api/admin/feedback.csv")).StatusCode);
+        }
+
+        [Fact]
         public async Task BadTokens_FeedbackOff_AndRoles()
         {
             var s = Build();

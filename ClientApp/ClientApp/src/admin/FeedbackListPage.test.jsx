@@ -26,6 +26,7 @@ describe('Feedback list page', () => {
     expect(screen.getByText('Great masala tea')).toBeInTheDocument();
     expect(screen.getByLabelText('5 stars')).toBeInTheDocument();
     expect(screen.getByLabelText('4 stars')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Download (CSV)' })).toHaveAttribute('href', '/api/admin/feedback.csv');
   });
 
   it('says when there is no feedback yet', async () => {

@@ -14,6 +14,7 @@ using POSSystem.Models;
 using POSSystem.Platform;
 using Microsoft.AspNetCore.SignalR;
 using POSSystem.Hubs;
+using System.Text;
 
 namespace POSSystem.Billing
 {
@@ -62,6 +63,13 @@ namespace POSSystem.Billing
             db.CurrentTenantId = tenantId;
             db.CurrentOutletId = bill.OutletId;
             return bill;
+        }
+
+        private static string CsvCell(string? text)
+        {
+            if (string.IsNullOrEmpty(text)) return string.Empty;
+            var value = "=+-@".Contains(text[0]) ? "'" + text : text;
+            return value.IndexOfAny(new[] { ',', '"', '\r', '\n' }) >= 0 ? "\"" + value.Replace("\"", "\"\"") + "\"" : value;
         }
 
         private static Task<Outlet?> CurrentOutlet(AppDbContext db) =>
@@ -142,6 +150,22 @@ namespace POSSystem.Billing
                     numbers.TryGetValue(f.BillId, out var n) ? n : string.Empty, f.Rating, f.Comment, f.CreatedAt)).ToList()));
             }).RequireAuthorization(p => p.RequireRole(Managers)).WithTags("Feedback")
               .WithName("GetFeedback").WithSummary("Latest guest ratings of this outlet with the average");
+
+            // Every rating of this outlet as CSV (opens in Excel). Comments that start with = + - @ stay text.
+            app.MapGet("/api/admin/feedback.csv", async (AppDbContext db) =>
+            {
+                var all = await db.Set<GuestFeedback>().Where(f => f.OutletId == db.CurrentOutletId).OrderBy(f => f.Id).ToListAsync();
+                var billIds = all.Select(f => f.BillId).ToList();
+                var numbers = await db.Bills.AsNoTracking().Where(b => billIds.Contains(b.Id)).ToDictionaryAsync(b => b.Id, b => b.InvoiceNumber);
+                var csv = new StringBuilder("Date (UTC),Bill,Stars,Comment\r\n");
+                foreach (var f in all)
+                    csv.Append(string.Join(",", f.CreatedAt.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
+                        CsvCell(numbers.TryGetValue(f.BillId, out var n) ? n : string.Empty),
+                        f.Rating.ToString(CultureInfo.InvariantCulture), CsvCell(f.Comment))).Append("\r\n");
+                var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
+                return Results.File(bytes, "text/csv", "guest-feedback.csv");
+            }).RequireAuthorization(p => p.RequireRole(Managers)).WithTags("Feedback")
+              .WithName("GetFeedbackCsv").WithSummary("Every guest rating of this outlet as CSV");
 
             var setting = app.MapGroup("/api/admin/feedback-setting").RequireAuthorization(p => p.RequireRole("admin")).WithTags("Settings");
             setting.MapGet("/", async (AppDbContext db) =>
