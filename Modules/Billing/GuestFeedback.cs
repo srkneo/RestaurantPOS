@@ -12,6 +12,8 @@ using Microsoft.EntityFrameworkCore;
 using POSSystem.Data;
 using POSSystem.Models;
 using POSSystem.Platform;
+using Microsoft.AspNetCore.SignalR;
+using POSSystem.Hubs;
 
 namespace POSSystem.Billing
 {
@@ -77,7 +79,8 @@ namespace POSSystem.Billing
                 return Results.Ok(new FeedbackFormDto(bill.RestaurantName, bill.InvoiceNumber, given));
             }).WithName("GetFeedbackForm").WithSummary("Restaurant and bill for a guest who scanned the feedback QR");
 
-            guest.MapPost("/", async (string token, FeedbackRequest request, AppDbContext db, TenantStatus tenants, IDataProtectionProvider protection) =>
+            guest.MapPost("/", async (string token, FeedbackRequest request, AppDbContext db, TenantStatus tenants, IDataProtectionProvider protection,
+                IHubContext<OrderHub> hub) =>
             {
                 var bill = await Open(db, tenants, protection, token);
                 if (bill == null) return Results.NotFound();
@@ -94,6 +97,10 @@ namespace POSSystem.Billing
                     CreatedBy = "guest"
                 });
                 await db.SaveChangesAsync();
+                // 1 or 2 stars: tell the staff at once, the guest may still be at the table.
+                if (request.Rating <= 2)
+                    await hub.Clients.Group($"tenant-{bill.TenantId}").SendAsync("LowRating",
+                        new { billId = bill.Id, invoiceNumber = bill.InvoiceNumber, orderLabel = bill.OrderLabel, rating = request.Rating, comment });
                 return Results.Ok(new { message = "Thank you!" });
             }).WithName("GiveFeedback").WithSummary("A guest's 1-5 star rating and comment for one bill");
 

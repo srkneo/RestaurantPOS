@@ -186,6 +186,10 @@ const POSMenu = () => {
     connection.on('TableCall', (call) => {
       showToast(tRef.current(call.kind === 'bill' ? 'qr.tableWantsBill' : 'qr.tableCalls', { number: call.tableNumber }));
     });
+    // A guest gave 1 or 2 stars from the feedback QR on the bill.
+    connection.on('LowRating', (r) => {
+      showToast(tRef.current('feedback.lowRating', { rating: r.rating, label: r.orderLabel ?? '', number: r.invoiceNumber }));
+    });
     const started = connection.start().catch((err) => console.error(err));
     return () => {
       started.then(() => connection.stop());
