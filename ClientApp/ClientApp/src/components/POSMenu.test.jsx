@@ -98,7 +98,8 @@ describe('POS screen', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Add note for Fries' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Add note for Fries' }), { target: { value: 'Jain' } });
-    fireEvent.change(screen.getByLabelText('Table'), { target: { value: '1' } });
+    fireEvent.click(screen.getByLabelText('Table'));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Tables' })).getByRole('button', { name: 'Table 1' }));
     fireEvent.click(screen.getByRole('button', { name: 'Place order' }));
 
     expect(await screen.findByText('Order placed. Token 7')).toBeInTheDocument();
@@ -204,7 +205,8 @@ describe('POS screen', () => {
     const open = vi.spyOn(window, 'open').mockImplementation(() => null);
     renderPos();
     fireEvent.click(await screen.findByRole('button', { name: 'Add Fries' }));
-    fireEvent.change(screen.getByLabelText('Table'), { target: { value: '1' } });
+    fireEvent.click(screen.getByLabelText('Table'));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Tables' })).getByRole('button', { name: 'Table 1' }));
     expect(screen.getByText('Table 1 has token 9 open. New items are added to it.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Add to token 9' }));
 
@@ -229,14 +231,14 @@ describe('POS screen', () => {
       return { ok: false, status: 404, json: async () => ({}) };
     }));
     renderPos();
-    fireEvent.click(await screen.findByRole('button', { name: 'Tables' }));
+    fireEvent.click(await screen.findByLabelText('Table'));
     const grid = screen.getByRole('dialog', { name: 'Tables' });
     expect(within(grid).getByText('Token 9 · 20 min')).toBeInTheDocument();
     expect(within(grid).getByText('Bill printed')).toBeInTheDocument();
     fireEvent.click(within(grid).getByRole('button', { name: 'Table 1' }));
 
     expect(screen.queryByRole('dialog', { name: 'Tables' })).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Table')).toHaveValue('1');
+    expect(screen.getByLabelText('Table')).toHaveTextContent('Table 1');
     expect(screen.getByText('Table 1 has token 9 open. New items are added to it.')).toBeInTheDocument();
   });
 

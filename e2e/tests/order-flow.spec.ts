@@ -21,7 +21,8 @@ test('order flows from POS to kitchen and back', async ({ browser }) => {
   await expect(kitchen.getByRole('heading', { name: 'Kitchen', exact: true })).toBeVisible({ timeout: 15_000 });
 
   await signIn(pos, '/pos');
-  await pos.getByLabel('Table', { exact: true }).selectOption({ label: 'Table 1' });
+  await pos.getByLabel('Table', { exact: true }).click();
+  await pos.getByRole('dialog', { name: 'Tables' }).getByRole('button', { name: 'Table 1', exact: true }).click();
   await pos.getByRole('button', { name: 'Add Classic Burger' }).click();
   await pos.getByRole('button', { name: 'Add Classic Burger' }).click();
   await pos.getByRole('button', { name: 'Add Fries' }).click();

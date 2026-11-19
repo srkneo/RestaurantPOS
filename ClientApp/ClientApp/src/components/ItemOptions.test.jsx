@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, cleanup, fireEvent } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { I18nProvider } from '../i18n/I18nContext';
@@ -65,7 +65,8 @@ describe('POS sizes and extras', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Add Tea' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText('Table'), { target: { value: '1' } });
+    fireEvent.click(screen.getByLabelText('Table'));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Tables' })).getByRole('button', { name: 'Table 1' }));
     fireEvent.click(screen.getByRole('button', { name: 'Place order' }));
     expect(await screen.findByText('Order placed. Token 7')).toBeInTheDocument();
     const body = JSON.parse(calls.filter((c) => c.options?.method === 'POST').at(-1).options.body);

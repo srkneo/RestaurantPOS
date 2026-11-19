@@ -390,19 +390,13 @@ const POSMenu = () => {
           {orderType === 'DineIn' ? (
             <div className="pos-field-table">
               <label htmlFor="pos-table" className="form-label">{t('pos.table')}</label>
-              <select id="pos-table" className="form-select" value={selectedTable} disabled={!!editing} onChange={(e) => setSelectedTable(e.target.value)}>
-                <option value="">{t('pos.chooseTable')}</option>
-                {tables.map((tb) => (
-                  <option key={tb.id} value={tb.id}>
-                    {tb.status === 'Occupied' ? t('pos.tableBusy', { number: tb.tableNumber, token: tb.tokenNumber })
-                      : tb.status === 'Billed' ? t('pos.tableBilled', { number: tb.tableNumber })
-                        : t('pos.tableName', { number: tb.tableNumber })}
-                  </option>
-                ))}
-              </select>
-              {!editing && (
-                <button type="button" className="btn btn-outline-secondary btn-sm mt-1 w-100" onClick={() => setTableGrid(true)}>{t('pos.tableGrid')}</button>
-              )}
+              {/* One picker: shows the chosen table and opens the grid with every table's state. */}
+              <button id="pos-table" type="button" className="form-select text-start" disabled={!!editing} onClick={() => setTableGrid(true)}>
+                {!tableInfo ? t('pos.chooseTable')
+                  : tableInfo.status === 'Occupied' ? t('pos.tableBusy', { number: tableInfo.tableNumber, token: tableInfo.tokenNumber })
+                    : tableInfo.status === 'Billed' ? t('pos.tableBilled', { number: tableInfo.tableNumber })
+                      : t('pos.tableName', { number: tableInfo.tableNumber })}
+              </button>
               {tab && <div className="pos-hint pos-tab-hint" role="status">{t('pos.tabOpen', { number: tab.tableNumber, token: tab.tokenNumber })}</div>}
               {!editing && tableInfo?.status === 'Billed' && (
                 <div className="pos-hint text-danger" role="status">{t('pos.tabBilled', { number: tableInfo.tableNumber })}</div>
