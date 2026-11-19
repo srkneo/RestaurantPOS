@@ -148,7 +148,7 @@ namespace RestaurantPOS.Tests
 
             using var scope = f.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            Assert.Contains(db.AuditLogs.IgnoreQueryFilters().ToList(), a => a.Action == "Approve" && a.Details == "reprint approved by Meena");
+            Assert.Contains(db.AuditLogs.IgnoreQueryFilters().ToList(), a => a.Action == "Approve" && (a.Details ?? string.Empty).Contains("reprint approved by Meena"));
             Assert.DoesNotContain(db.AuditLogs.IgnoreQueryFilters().ToList(), a => (a.Details ?? string.Empty).Contains("AQAAAA"));
         }
 

@@ -33,6 +33,7 @@ npx playwright test @Specs --reporter=list --output=$out
 $code = $LASTEXITCODE
 
 Set-Location $repo
+if ($code -ne 0) { Write-Host "---- API log (last lines) ----"; docker compose -p $project @files logs api --tail 80 --no-color }
 docker compose -p $project @files down -v 2>&1 | Out-Null
 if ($code -eq 0) { Write-Host "E2E RESULT: PASSED" } else { Write-Host "E2E RESULT: FAILED" }
 exit $code

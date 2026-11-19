@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
@@ -89,8 +90,13 @@ namespace POSSystem.Billing
             user.PinHash = string.IsNullOrEmpty(pin) ? null : _users.PasswordHasher.HashPassword(user, pin);
 
         // Written with the next save, so the approval and the change it allowed are stored together.
+        // Details is a jsonb column on Postgres, so the text goes in as JSON.
         public void Record(string entityType, string entityId, string details) =>
-            _db.AuditLogs.Add(new AuditLog { Action = "Approve", EntityType = entityType, EntityId = entityId, Details = details });
+            _db.AuditLogs.Add(new AuditLog
+            {
+                Action = "Approve", EntityType = entityType, EntityId = entityId,
+                Details = JsonSerializer.Serialize(new { approval = details })
+            });
 
         private async Task<List<AppUser>> Approvers()
         {
