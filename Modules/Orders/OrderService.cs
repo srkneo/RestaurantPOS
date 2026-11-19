@@ -24,7 +24,8 @@ namespace POSSystem.Services
         {
             [OrderStatus.Received] = new[] { OrderStatus.Preparing, OrderStatus.Ready },
             [OrderStatus.Preparing] = new[] { OrderStatus.Ready },
-            [OrderStatus.Ready] = new[] { OrderStatus.Completed },
+            [OrderStatus.Ready] = new[] { OrderStatus.Served, OrderStatus.Completed },
+            [OrderStatus.Served] = new[] { OrderStatus.Completed },
             [OrderStatus.Completed] = Array.Empty<OrderStatus>(),
             [OrderStatus.Cancelled] = Array.Empty<OrderStatus>()
         };
@@ -221,6 +222,10 @@ namespace POSSystem.Services
             if (!AllowedTransitions[order.Status].Contains(status))
                 throw new InvalidOperationException($"Cannot change status from {order.Status} to {status}");
 
+            // Food served at a table whose bill is already paid: the guests are done, so the order closes.
+            if (status == OrderStatus.Served && await _context.Bills.AnyAsync(b => b.KitchenOrderId == id && b.Status == BillStatus.Paid))
+                status = OrderStatus.Completed;
+
             var now = DateTime.UtcNow;
             order.Status = status;
             if (status == OrderStatus.Preparing) order.PreparingAt = now;
@@ -288,7 +293,7 @@ namespace POSSystem.Services
                 item.Round = round;
                 order.Items.Add(item);
             }
-            if (order.Status == OrderStatus.Ready)
+            if (order.Status is OrderStatus.Ready or OrderStatus.Served)
             {
                 order.Status = OrderStatus.Received;
                 order.ReadyAt = null;
