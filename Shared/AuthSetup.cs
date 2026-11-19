@@ -17,6 +17,7 @@ using POSSystem.Platform;
 namespace POSSystem.Data
 {
     public record LoginRequest(string Email, string Password);
+    public record LoginCodeRequest(string? Challenge, string? Code);
 
     public class AppUserClaimsFactory : UserClaimsPrincipalFactory<AppUser, IdentityRole>
     {
@@ -67,6 +68,9 @@ namespace POSSystem.Data
 
             services.AddMemoryCache();
             services.AddSingleton<TenantStatus>();
+            services.AddHttpClient("telegram-otp");
+            services.AddSingleton<IOtpSender, TelegramOtpSender>();
+            services.AddSingleton<PlatformOtp>();
 
             services.AddAuthorizationBuilder()
                 .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
@@ -115,7 +119,8 @@ namespace POSSystem.Data
 
         public static WebApplication MapPosAuth(this WebApplication app)
         {
-            app.MapPost("/api/auth/login", async (LoginRequest req, SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, AppDbContext db) =>
+            app.MapPost("/api/auth/login", async (LoginRequest req, SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, AppDbContext db,
+                PlatformOtp otp, HttpContext http) =>
             {
                 if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrEmpty(req.Password)) return Results.Unauthorized();
 
@@ -126,12 +131,30 @@ namespace POSSystem.Data
                 var check = await signInManager.CheckPasswordSignInAsync(user, req.Password, lockoutOnFailure: true);
                 if (!check.Succeeded) return Results.Unauthorized();
 
+                // Platform owner: a second step, a one-time code sent to Telegram (when the server has its bot set up).
+                if (user.IsPlatformAdmin && otp.Required)
+                {
+                    var challenge = await otp.StartAsync(user, http.Connection.RemoteIpAddress?.ToString());
+                    if (challenge == null) return Results.Json(new { message = "Could not send the sign-in code. Try again in a minute." }, statusCode: 503);
+                    return Results.Ok(new { twoStep = true, challenge });
+                }
+
                 // Kitchen screen devices keep a persistent 30-day session; people get a 12-hour browser session.
                 var props = new AuthenticationProperties { IsPersistent = user.IsDevice };
                 if (user.IsDevice) props.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(DeviceLoginDays);
                 await signInManager.SignInAsync(user, props);
                 return Results.Ok();
             }).AllowAnonymous().RequireRateLimiting(RateLimits.Login).WithName("Login").WithSummary("Sign in");
+
+            app.MapPost("/api/auth/login/code", async (LoginCodeRequest req, PlatformOtp otp, SignInManager<AppUser> signInManager, UserManager<AppUser> userManager) =>
+            {
+                var userId = otp.Verify(req.Challenge, req.Code);
+                if (userId == null) return Results.Unauthorized();
+                var user = await userManager.FindByIdAsync(userId);
+                if (user is null || !user.IsActive || !user.IsPlatformAdmin) return Results.Unauthorized();
+                await signInManager.SignInAsync(user, new AuthenticationProperties { IsPersistent = false });
+                return Results.Ok();
+            }).AllowAnonymous().RequireRateLimiting(RateLimits.Login).WithName("LoginCode").WithSummary("Second sign-in step: the code sent to Telegram");
 
             app.MapPost("/api/auth/logout", async (SignInManager<AppUser> signInManager) =>
             {
