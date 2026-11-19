@@ -106,6 +106,38 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task PayingTheBillOfAReadyOrder_ClosesIt_AndFreesTheTable()
+        {
+            var s = Build(TaxMode.None, withGstin: false);
+            using var f = s.Factory;
+            var cashier = As(f, "cashier");
+
+            // Still cooking when paid: stays open.
+            var cooking = await PlaceOrder(s, cashier);
+            var cookingBill = await Read(await cashier.PostAsync($"/api/orders/{cooking}/bill", Json(new { })));
+            var paid = await cashier.PostAsync($"/api/bills/{cookingBill.GetProperty("id").GetInt32()}/payments", Json(new { method = "cash", amount = 500, version = 1 }));
+            Assert.Equal(HttpStatusCode.OK, paid.StatusCode);
+            Assert.Equal("Received", (await Read(await cashier.GetAsync($"/api/orders/{cooking}"))).GetProperty("status").GetString());
+
+            // Ready, then paid: closed and the table is free.
+            var ready = await As(f, "admin").PutAsync($"/api/orders/{cooking}/status", Json(new { status = "Ready" }));
+            Assert.Equal(HttpStatusCode.OK, ready.StatusCode);
+            var order = await Read(await cashier.GetAsync($"/api/orders/{cooking}"));
+            Assert.Equal("Ready", order.GetProperty("status").GetString());
+            Assert.Equal(JsonValueKind.String, order.GetProperty("readyAt").ValueKind);
+            var served = await As(f, "admin").PutAsync($"/api/orders/{cooking}/status", Json(new { status = "Completed" }));
+            Assert.Equal(HttpStatusCode.OK, served.StatusCode);
+
+            var second = await PlaceOrder(s, cashier);
+            Assert.Equal(HttpStatusCode.OK, (await As(f, "admin").PutAsync($"/api/orders/{second}/status", Json(new { status = "Ready" }))).StatusCode);
+            var bill = await Read(await cashier.PostAsync($"/api/orders/{second}/bill", Json(new { })));
+            Assert.Equal(HttpStatusCode.OK, (await cashier.PostAsync($"/api/bills/{bill.GetProperty("id").GetInt32()}/payments", Json(new { method = "cash", amount = 500, version = 1 }))).StatusCode);
+            Assert.Equal("Completed", (await Read(await cashier.GetAsync($"/api/orders/{second}"))).GetProperty("status").GetString());
+            var table = (await Read(await cashier.GetAsync("/api/tables"))).EnumerateArray().Single(t => t.GetProperty("id").GetInt32() == s.TableId);
+            Assert.Equal("Free", table.GetProperty("status").GetString());
+        }
+
+        [Fact]
         public async Task Cash_WithChange_PaysTheBill()
         {
             var s = Build(TaxMode.None, withGstin: false);

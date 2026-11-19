@@ -69,8 +69,20 @@ namespace POSSystem.Billing
                 .RequireAuthorization(p => p.RequireRole(Till))
                 .WithName("VoidBill").WithSummary("Void a bill with a reason (the bill and its number are kept)");
 
-            app.MapPost("/api/bills/{id:int}/payments", (int id, AddPaymentRequest request, BillService bills) =>
-                Run(async () => Results.Ok(BillService.ToDto(await bills.AddPayment(id, request)))))
+            app.MapPost("/api/bills/{id:int}/payments", (int id, AddPaymentRequest request, BillService bills, IOrderService orders) =>
+                Run(async () =>
+                {
+                    var bill = await bills.AddPayment(id, request);
+                    // Paid and the food is out: the order is done. It leaves the token screen and frees its table.
+                    // An order still cooking stays open; staff press Served / Collected on Orders when it goes out.
+                    if (bill.Status == POSSystem.Models.BillStatus.Paid)
+                    {
+                        try { await orders.UpdateOrderStatus(bill.KitchenOrderId, POSSystem.Models.OrderStatus.Completed); }
+                        catch (InvalidOperationException) { }
+                        catch (OrderConflictException) { }
+                    }
+                    return Results.Ok(BillService.ToDto(bill));
+                }))
                 .RequireAuthorization(p => p.RequireRole(Till))
                 .WithName("AddBillPayment").WithSummary("Record cash, UPI or card money received (several payments = split bill)");
 
