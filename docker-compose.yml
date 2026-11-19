@@ -22,6 +22,9 @@ services:
       Admin__Password: "${ADMIN_PASSWORD:-ChangeMe#12345}"
       # Test setup only: the E2E tests sign in many times a minute. Production keeps the default of 10.
       RateLimits__LoginPerMinute: "${LOGIN_LIMIT_PER_MINUTE:-1000}"
+      # Test setup only: every E2E test uses the owner login, two at a time, so 600 requests a minute per user is too few.
+      RateLimits__RequestsPerMinute: "${REQUESTS_LIMIT_PER_MINUTE:-100000}"
+      RateLimits__QrPerMinute: "${QR_LIMIT_PER_MINUTE:-10000}"
     depends_on:
       db:
         condition: service_healthy
