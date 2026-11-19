@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, cleanup, fireEvent } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { I18nProvider } from '../i18n/I18nContext';
@@ -49,6 +49,28 @@ describe('Guest QR page', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Call waiter' }));
     expect(await screen.findByText('A waiter is on the way.')).toBeInTheDocument();
+  });
+
+  it('has category buttons and a dish search', async () => {
+    const menu = {
+      ...MENU,
+      items: [
+        ...MENU.items,
+        { id: 2, name: 'Gujarati Thali', price: 220, category: 'Thali', categoryId: 2, description: null, isVeg: true, variants: [], addOns: [] },
+      ],
+    };
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200, json: async () => menu })));
+    renderPage();
+    expect(await screen.findByText('Table 5')).toBeInTheDocument();
+    const nav = screen.getByRole('navigation', { name: 'Menu sections' });
+    expect(within(nav).getByRole('button', { name: 'Thali' })).toBeInTheDocument();
+    fireEvent.click(within(nav).getByRole('button', { name: 'Thali' }));
+
+    fireEvent.change(screen.getByLabelText('Search dishes'), { target: { value: 'thali' } });
+    expect(screen.getByRole('button', { name: 'Add Gujarati Thali' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add Masala Tea' })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Search dishes'), { target: { value: 'pizza' } });
+    expect(screen.getByText('No dish matches. Try another word.')).toBeInTheDocument();
   });
 
   it('shows the menu only when ordering by QR is off, and a clear note for unknown codes', async () => {

@@ -19,6 +19,7 @@ export default function GuestOrderPage() {
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState(null); // { kind: 'ok' | 'error', text }
   const [clientId, setClientId] = useState(newClientId);
+  const [search, setSearch] = useState('');
 
   const load = useCallback(async () => {
     try {
@@ -43,6 +44,18 @@ export default function GuestOrderPage() {
     }
     return [...byCategory.entries()];
   }, [menu]);
+
+  // Dish search: name, description or what a combo includes.
+  const query = search.trim().toLowerCase();
+  const shown = useMemo(() => (query
+    ? groups
+      .map(([category, items]) => [category, items.filter((i) => `${i.name} ${i.description ?? ''} ${i.includes ?? ''}`.toLowerCase().includes(query))])
+      .filter(([, items]) => items.length > 0)
+    : groups), [groups, query]);
+
+  const jumpTo = (index) => {
+    document.getElementById(`guest-cat-${index}`)?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  };
 
   const addLine = (line) => {
     const key = lineKey(line.id, line.variantId, line.addOnIds);
@@ -132,8 +145,21 @@ export default function GuestOrderPage() {
       {!menu.ordering && <p className="guest-note">{t('qr.off')}</p>}
       {message && <p className={`guest-message ${message.kind}`} role="status">{message.text}</p>}
 
-      {groups.map(([category, items]) => (
-        <section key={category} className="guest-section" aria-label={category || t('qr.menu')}>
+      <div className="guest-find">
+        <input type="search" className="form-control" aria-label={t('qr.search')} placeholder={t('qr.search')}
+          value={search} onChange={(e) => setSearch(e.target.value)} />
+        {!query && groups.length > 1 && (
+          <nav className="guest-cats" aria-label={t('qr.categories')}>
+            {groups.map(([category], i) => (
+              <button key={category} type="button" className="guest-cat" onClick={() => jumpTo(i)}>{category || t('qr.menu')}</button>
+            ))}
+          </nav>
+        )}
+      </div>
+      {query && shown.length === 0 && <p className="guest-note">{t('qr.noMatch')}</p>}
+
+      {shown.map(([category, items], i) => (
+        <section key={category} id={`guest-cat-${i}`} className="guest-section" aria-label={category || t('qr.menu')}>
           {category && <h2>{category}</h2>}
           <ul className="guest-items">
             {items.map((item) => (
