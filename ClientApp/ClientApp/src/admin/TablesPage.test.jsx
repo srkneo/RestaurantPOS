@@ -9,8 +9,8 @@ import TablesPage from './TablesPage';
 import { MemoryRouter } from 'react-router-dom';
 
 const TABLES = [
-  { id: 1, tableNumber: '1', isActive: true, sortOrder: 1 },
-  { id: 2, tableNumber: 'Terrace', isActive: false, sortOrder: 2 },
+  { id: 1, tableNumber: '1', isActive: true, sortOrder: 1, used: true },
+  { id: 2, tableNumber: 'Terrace', isActive: false, sortOrder: 2, used: false },
 ];
 
 function mockApi(write = { ok: true, status: 200, json: async () => ({}) }) {
@@ -94,5 +94,20 @@ describe('Tables page', () => {
     fireEvent.change(within(dialog).getByLabelText('Table number or name'), { target: { value: '1' } });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
     expect(await within(dialog).findByText('A table with this number already exists.')).toBeInTheDocument();
+  });
+
+  it('offers Delete only for a table that never had an order', async () => {
+    const calls = mockApi({ ok: true, status: 204, json: async () => ({}) });
+    renderPage();
+    await screen.findByText('Terrace');
+    const used = screen.getAllByRole('row').find((r) => within(r).queryByText('1', { selector: 'td.fw-semibold' }));
+    expect(within(used).queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
+    const spare = screen.getByText('Terrace').closest('tr');
+    fireEvent.click(within(spare).getByRole('button', { name: 'Delete' }));
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('Delete table Terrace?')).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
+    expect(await screen.findByText('Table Terrace deleted.')).toBeInTheDocument();
+    expect(calls.some((c) => c.url === '/api/admin/tables/2' && c.options?.method === 'DELETE')).toBe(true);
   });
 });
