@@ -31,9 +31,12 @@ namespace POSSystem.Orders
             var ids = tables.Select(t => t.Id).ToList();
             var outlet = await db.Outlets.AsNoTracking().FirstOrDefaultAsync(o => o.Id == db.CurrentOutletId);
             var today = Today(outlet);
-            var open = await db.KitchenOrders
-                .Where(o => o.TableId != null && ids.Contains(o.TableId.Value) && Open.Contains(o.Status) && o.BusinessDate == today)
-                .Select(o => new { o.Id, TableId = o.TableId!.Value, o.TokenNumber, o.Version, o.CreatedAt }).ToListAsync();
+            // A table is held by today's open orders, and by paid (completed) orders until staff tap Customer left.
+            var held = await db.KitchenOrders
+                .Where(o => o.TableId != null && ids.Contains(o.TableId.Value) && o.BusinessDate == today && o.TableFreedAt == null
+                    && (Open.Contains(o.Status) || o.Status == OrderStatus.Completed))
+                .Select(o => new { o.Id, TableId = o.TableId!.Value, o.TokenNumber, o.Version, o.CreatedAt, o.CompletedAt, o.Status }).ToListAsync();
+            var open = held.Where(o => o.Status != OrderStatus.Completed).ToList();
             var orderIds = open.Select(o => o.Id).ToList();
             var billed = await db.Bills.Where(b => orderIds.Contains(b.KitchenOrderId) && b.Status == BillStatus.Unpaid)
                 .Select(b => b.KitchenOrderId).ToListAsync();
@@ -41,9 +44,30 @@ namespace POSSystem.Orders
             {
                 // A table normally has one open order; if an older screen made two, the newest one is the running tab.
                 var order = open.Where(o => o.TableId == t.Id).OrderByDescending(o => o.Id).FirstOrDefault();
-                var status = order == null ? "Free" : billed.Contains(order.Id) ? "Billed" : "Occupied";
-                return new TableStatusDto(t.Id, t.TableNumber, status, order?.Id, order?.TokenNumber, order?.Version, order?.CreatedAt);
+                if (order != null)
+                    return new TableStatusDto(t.Id, t.TableNumber, billed.Contains(order.Id) ? "Billed" : "Occupied", order.Id, order.TokenNumber, order.Version, order.CreatedAt);
+                // Paid, guests still at the table: no running tab (a new order starts a new token), Since = paid time.
+                var paid = held.Where(o => o.TableId == t.Id && o.Status == OrderStatus.Completed).OrderByDescending(o => o.Id).FirstOrDefault();
+                return paid == null
+                    ? new TableStatusDto(t.Id, t.TableNumber, "Free", null, null, null, null)
+                    : new TableStatusDto(t.Id, t.TableNumber, "Paid", null, paid.TokenNumber, null, paid.CompletedAt ?? paid.CreatedAt);
             }).ToList();
+        }
+
+        // Customer left: the table is free again. Refused while an order on it is still open (not paid or not done).
+        public static async Task<string?> Clear(AppDbContext db, int tableId)
+        {
+            var outlet = await db.Outlets.AsNoTracking().FirstOrDefaultAsync(o => o.Id == db.CurrentOutletId);
+            var today = Today(outlet);
+            var orders = await db.KitchenOrders
+                .Where(o => o.TableId == tableId && o.BusinessDate == today && o.TableFreedAt == null && o.Status != OrderStatus.Cancelled)
+                .ToListAsync();
+            var open = orders.FirstOrDefault(o => o.Status != OrderStatus.Completed);
+            if (open != null) return $"Token {open.TokenNumber} on this table is still open. Take payment (or mark the food delivered) first.";
+            var now = DateTime.UtcNow;
+            foreach (var o in orders) o.TableFreedAt = now;
+            await db.SaveChangesAsync();
+            return null;
         }
     }
 }

@@ -45,8 +45,17 @@ test('H1 Served on Orders keeps a dine-in table busy until the bill is paid', as
 
   const bill = await ok(await api.post(`/api/orders/${placed.orderId}/bill`, { data: {} }));
   await ok(await api.post(`/api/bills/${bill.id}/payments`, { data: { method: 'cash', amount: Number(bill.total), version: bill.version } }));
-  await expect.poll(async () => (await boardOf(table.id)).status).toBe('Free');
+  await expect.poll(async () => (await boardOf(table.id)).status).toBe('Paid');
   expect((await ok(await api.get(`/api/orders/${placed.orderId}`))).status).toBe('Completed');
+
+  // The guests go: Customer left on the table grid frees the table.
+  await page.goto('/pos');
+  await page.getByRole('button', { name: 'Dine-in', exact: true }).click();
+  await page.locator('#pos-table').click();
+  const grid = page.getByRole('dialog', { name: 'Tables' });
+  await grid.getByRole('button', { name: `Customer left table S${id}`, exact: true }).click();
+  await expect(page.getByText(`Table S${id} is free again.`)).toBeVisible();
+  await expect.poll(async () => (await boardOf(table.id)).status).toBe('Free');
 });
 
 test('H2 paying the bill of a ready takeaway closes it and it leaves the token screen', async ({ browser }) => {

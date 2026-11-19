@@ -144,6 +144,8 @@ test('sample data', async () => {
     paidBills.push(billId);
     const order = await ok(await api.get(`/api/orders/${id}`));
     if (order.status === 'Ready') await setStatus(id, 'Completed');
+    // Most guests have left; leave a few paid tables showing Paid.
+    if (order.tableId && k < 20) await api.post(`/api/tables/${order.tableId}/clear`);
     if (k % 6 === 0) await api.post(`/api/bills/${billId}/tips`, { data: { method: k % 12 === 0 ? 'cash' : 'upi', amount: 50, waiterName: 'Ramesh' } });
   }
 

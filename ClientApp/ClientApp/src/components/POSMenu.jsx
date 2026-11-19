@@ -77,6 +77,19 @@ const POSMenu = () => {
     tRef.current = t;
   }, [t]);
 
+  // Customer left: a paid table is free again.
+  const clearTable = async (tb) => {
+    const res = await fetch(`/api/tables/${tb.id}/clear`, { method: 'POST' }).catch(() => null);
+    if (res?.ok) {
+      showToast(t('pos.tableCleared', { number: tb.tableNumber }));
+      refreshTables();
+      return;
+    }
+    let message = null;
+    try { message = (await res.json())?.message; } catch { message = null; }
+    showToast(message || t('common.error'), 'error');
+  };
+
   // silent: try again in the background without replacing the screen by "Loading".
   const load = useCallback(async (silent) => {
     if (silent !== true) setLoadState('loading');
@@ -557,15 +570,24 @@ const POSMenu = () => {
                 const status = tb.status ?? 'Free';
                 const minutes = tb.since ? minutesSince(tb.since) : null;
                 return (
-                  <button key={tb.id} type="button" className={`pos-table-tile pos-tile-${status.toLowerCase()}`}
-                    aria-pressed={String(tb.id) === selectedTable} aria-label={t('pos.tableName', { number: tb.tableNumber })}
-                    onClick={() => { setSelectedTable(String(tb.id)); setTableGrid(false); }}>
-                    <span className="pos-tile-number">{tb.tableNumber}</span>
-                    <span className="pos-tile-status">
-                      {status === 'Occupied' ? t('pos.tileBusy', { token: tb.tokenNumber, minutes: minutes ?? 0 })
-                        : status === 'Billed' ? t('pos.tileBilled') : t('pos.tileFree')}
-                    </span>
-                  </button>
+                  <div key={tb.id} className="pos-table-cell">
+                    <button type="button" className={`pos-table-tile pos-tile-${status.toLowerCase()}`}
+                      aria-pressed={String(tb.id) === selectedTable} aria-label={t('pos.tableName', { number: tb.tableNumber })}
+                      onClick={() => { setSelectedTable(String(tb.id)); setTableGrid(false); }}>
+                      <span className="pos-tile-number">{tb.tableNumber}</span>
+                      <span className="pos-tile-status">
+                        {status === 'Occupied' ? t('pos.tileBusy', { token: tb.tokenNumber, minutes: minutes ?? 0 })
+                          : status === 'Billed' ? t('pos.tileBilled')
+                            : status === 'Paid' ? t('pos.tilePaid', { minutes: minutes ?? 0 }) : t('pos.tileFree')}
+                      </span>
+                    </button>
+                    {status === 'Paid' && (
+                      <button type="button" className="btn btn-outline-secondary btn-sm w-100 mt-1"
+                        aria-label={t('pos.customerLeftAt', { number: tb.tableNumber })} onClick={() => clearTable(tb)}>
+                        {t('pos.customerLeft')}
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>

@@ -1257,6 +1257,9 @@ namespace RestaurantPOS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("TableFreedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int?>("TableId")
                         .HasColumnType("integer");
 
