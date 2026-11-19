@@ -84,6 +84,11 @@ export default function SignupPage() {
             {/* Left empty by people; bots fill every field. */}
             <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ display: 'none' }} value={form.website} onChange={set('website')} />
             {errors.general !== undefined && <p className="text-danger mb-0" role="alert">{errors.general || t('common.error')}</p>}
+            <p className="small mb-0">
+              {t('signup.agree')}{' '}
+              <a href="/terms" target="_blank" rel="noreferrer">{t('legal.terms')}</a>{' · '}
+              <a href="/privacy" target="_blank" rel="noreferrer">{t('legal.privacy')}</a>
+            </p>
             <button type="submit" className="btn btn-primary btn-lg" disabled={busy}>{busy ? t('signup.creating') : t('signup.submit')}</button>
           </>
         )}
