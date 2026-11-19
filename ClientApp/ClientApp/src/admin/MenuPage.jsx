@@ -5,6 +5,7 @@ import { useToast } from '../ui/ToastContext';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import MenuOptionsDialog from './MenuOptionsDialog';
 import ComboDialog from './ComboDialog';
+import RecipeDialog from './RecipeDialog';
 import FormDialog from '../ui/FormDialog';
 import StateMessage from '../ui/StateMessage';
 import Pager, { usePaged } from '../ui/Pager';
@@ -59,6 +60,7 @@ export default function MenuPage() {
   const [optionsFor, setOptionsFor] = useState(null);
   const [stations, setStations] = useState([]);
   const [comboFor, setComboFor] = useState(null);
+  const [recipeFor, setRecipeFor] = useState(null);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'soldout' | category id
 
@@ -293,6 +295,7 @@ export default function MenuPage() {
                           <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openItem(item)}>{t('menu.edit')}</button>
                           <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => setOptionsFor(item)}>{t('options.button')}</button>
                           <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => setComboFor(item)}>{t('combo.button')}</button>
+                          <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => setRecipeFor(item)}>{t('recipe.button')}</button>
                           <button type="button" className="btn btn-outline-danger btn-sm px-3" onClick={() => setDeleting(item)}>{t('menu.delete')}</button>
                         </div>
                       </td>
@@ -359,6 +362,7 @@ export default function MenuPage() {
 
       <MenuOptionsDialog item={optionsFor} onClose={() => setOptionsFor(null)} />
       <ComboDialog item={comboFor} items={items} onClose={() => setComboFor(null)} />
+      <RecipeDialog item={recipeFor} onClose={() => setRecipeFor(null)} />
       <FormDialog open={dialog === 'category'} title={current ? t('menu.editItem', { name: current.name }) : t('menu.addCategory')} submitLabel={t('staff.save')}
         busy={busy} error={generalError} onCancel={close} onSubmit={save}>
         <Field id="category-name" label={t('menu.categoryName')} error={errors.name}>
