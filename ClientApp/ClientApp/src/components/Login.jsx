@@ -3,27 +3,45 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { LanguageSwitch, useT } from '../i18n/I18nContext';
 
+// Sign in. The platform owner gets a second step: the 6-digit code the server sends to Telegram.
 const Login = () => {
-  const { login } = useAuth();
+  const { login, loginCode } = useAuth();
   const t = useT();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [failed, setFailed] = useState(false);
+  const [challenge, setChallenge] = useState(null);
+  const [code, setCode] = useState('');
+  const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
-    setFailed(false);
+    setError(null);
     setBusy(true);
-    let ok = false;
+    let result = false;
     try {
-      ok = await login(email, password);
+      result = challenge ? await loginCode(challenge, code.trim()) : await login(email, password);
     } finally {
       setBusy(false);
     }
-    if (ok) navigate('/', { replace: true });
-    else setFailed(true);
+    if (result === true) {
+      navigate('/', { replace: true });
+    } else if (result?.twoStep) {
+      setChallenge(result.challenge);
+      setCode('');
+    } else if (result?.sendFailed) {
+      setError(t('login.sendFailed'));
+    } else {
+      setError(challenge ? t('login.codeError') : t('login.error'));
+    }
+  };
+
+  const startAgain = () => {
+    setChallenge(null);
+    setCode('');
+    setPassword('');
+    setError(null);
   };
 
   return (
@@ -33,22 +51,36 @@ const Login = () => {
           <span className="pos-brand">{t('app.name')}</span>
           <LanguageSwitch />
         </div>
-        <h1>{t('login.title')}</h1>
-        <div>
-          <label htmlFor="login-email" className="form-label">{t('login.email')}</label>
-          <input id="login-email" type="email" className="form-control" autoComplete="username" autoFocus required
-            value={email} onChange={(e) => setEmail(e.target.value)} />
-        </div>
-        <div>
-          <label htmlFor="login-password" className="form-label">{t('login.password')}</label>
-          <input id="login-password" type="password" className="form-control" autoComplete="current-password" required
-            value={password} onChange={(e) => setPassword(e.target.value)} />
-        </div>
-        {failed && <p className="text-danger mb-0" role="alert">{t('login.error')}</p>}
+        <h1>{challenge ? t('login.codeTitle') : t('login.title')}</h1>
+        {!challenge && (
+          <>
+            <div>
+              <label htmlFor="login-email" className="form-label">{t('login.email')}</label>
+              <input id="login-email" type="email" className="form-control" autoComplete="username" autoFocus required
+                value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div>
+              <label htmlFor="login-password" className="form-label">{t('login.password')}</label>
+              <input id="login-password" type="password" className="form-control" autoComplete="current-password" required
+                value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
+          </>
+        )}
+        {challenge && (
+          <div>
+            <label htmlFor="login-code" className="form-label">{t('login.code')}</label>
+            <input id="login-code" className="form-control form-control-lg" inputMode="numeric" autoComplete="one-time-code"
+              maxLength={6} autoFocus required value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} />
+            <div className="form-text">{t('login.codeHint')}</div>
+          </div>
+        )}
+        {error && <p className="text-danger mb-0" role="alert">{error}</p>}
         <button type="submit" className="btn btn-primary btn-lg" disabled={busy}>
-          {busy ? t('login.submitting') : t('login.submit')}
+          {busy ? t('login.submitting') : challenge ? t('login.verify') : t('login.submit')}
         </button>
-        <Link to="/reset-password" className="text-center">{t('login.forgot')}</Link>
+        {challenge
+          ? <button type="button" className="btn btn-link" onClick={startAgain}>{t('login.startAgain')}</button>
+          : <Link to="/reset-password" className="text-center">{t('login.forgot')}</Link>}
       </form>
     </main>
   );
