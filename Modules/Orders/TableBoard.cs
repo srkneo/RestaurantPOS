@@ -18,13 +18,20 @@ namespace POSSystem.Orders
     {
         public static readonly OrderStatus[] Open = { OrderStatus.Received, OrderStatus.Preparing, OrderStatus.Ready };
 
+        // Only today's open orders hold a table. An order left open on an earlier business day is not the
+        // table's running tab: new orders (POS or QR) must start fresh so they show on today's kitchen screen.
+        public static DateOnly Today(Outlet? outlet) =>
+            BusinessClock.BusinessDate(DateTime.UtcNow, outlet?.TimeZone, outlet?.BusinessDayStartHour ?? BusinessClock.DefaultDayStartHour);
+
         public static async Task<List<TableStatusDto>> Load(AppDbContext db)
         {
             var tables = await db.RestaurantTables.Where(t => t.IsActive && t.OutletId == db.CurrentOutletId)
                 .OrderBy(t => t.SortOrder).ThenBy(t => t.Id).Select(t => new { t.Id, t.TableNumber }).ToListAsync();
             var ids = tables.Select(t => t.Id).ToList();
+            var outlet = await db.Outlets.AsNoTracking().FirstOrDefaultAsync(o => o.Id == db.CurrentOutletId);
+            var today = Today(outlet);
             var open = await db.KitchenOrders
-                .Where(o => o.TableId != null && ids.Contains(o.TableId.Value) && Open.Contains(o.Status))
+                .Where(o => o.TableId != null && ids.Contains(o.TableId.Value) && Open.Contains(o.Status) && o.BusinessDate == today)
                 .Select(o => new { o.Id, TableId = o.TableId!.Value, o.TokenNumber, o.Version, o.CreatedAt }).ToListAsync();
             var orderIds = open.Select(o => o.Id).ToList();
             var billed = await db.Bills.Where(b => orderIds.Contains(b.KitchenOrderId) && b.Status == BillStatus.Unpaid)
