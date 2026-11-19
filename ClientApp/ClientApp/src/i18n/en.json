@@ -313,6 +313,7 @@
   "print.feedback": "Tell us how we did",
   "nav.feedback": "Feedback",
   "feedback.title": "Guest feedback",
+  "feedback.csv": "Download (CSV)",
   "feedback.average": "Average {average} of 5 from {count} guests",
   "feedback.none": "No feedback yet. Turn on the feedback QR on the Store page.",
   "feedback.stars": "{count} stars",

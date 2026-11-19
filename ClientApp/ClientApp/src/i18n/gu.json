@@ -313,6 +313,7 @@
   "print.feedback": "અમારી સેવા કેવી લાગી તે જણાવો",
   "nav.feedback": "પ્રતિસાદ",
   "feedback.title": "ગ્રાહક પ્રતિસાદ",
+  "feedback.csv": "ડાઉનલોડ (CSV)",
   "feedback.average": "{count} ગ્રાહકો તરફથી 5 માંથી સરેરાશ {average}",
   "feedback.none": "હજુ કોઈ પ્રતિસાદ નથી. Store પેજ પર પ્રતિસાદ QR ચાલુ કરો.",
   "feedback.stars": "{count} સ્ટાર",
