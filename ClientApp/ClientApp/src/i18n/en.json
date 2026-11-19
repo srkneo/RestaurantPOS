@@ -441,6 +441,7 @@
   "billing.printLanguage": "Bill and KOT language",
   "billing.lang.en": "English",
   "billing.lang.gu": "Gujarati",
+  "billing.lang.hi": "Hindi",
   "billing.save": "Save",
   "billing.saved": "Billing settings saved.",
   "nav.dayClose": "Day close",

@@ -1,8 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import en from './en.json';
 import gu from './gu.json';
-// Hindi covers the daily screens (POS, tables, kitchen, orders, bills, token and guest pages);
-// any text not in hi.json yet shows in English.
+// Hindi has every text; a key added later without Hindi shows in English until it is translated.
 import hi from './hi.json';
 
 export const LANGUAGES = [

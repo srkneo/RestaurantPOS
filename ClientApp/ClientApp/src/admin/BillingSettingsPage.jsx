@@ -183,6 +183,7 @@ export default function BillingSettingsPage() {
                         >
                             <option value="en">{t('billing.lang.en')}</option>
                             <option value="gu">{t('billing.lang.gu')}</option>
+                            <option value="hi">{t('billing.lang.hi')}</option>
                         </select>
                     </Field>
                     {errors.general !== undefined && (

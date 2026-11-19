@@ -67,7 +67,9 @@ namespace RestaurantPOS.Tests
             Assert.False(defaults.GetProperty("upiReady").GetBoolean());
 
             var admin = As(f, "admin");
-            var bad = await admin.PutAsync("/api/admin/billing-settings", Json(new { taxMode = "None", pricesIncludeTax = false, billPrefix = "INV", paperWidth = 72, printLanguage = "hi" }));
+            var bad = await admin.PutAsync("/api/admin/billing-settings", Json(new { taxMode = "None", pricesIncludeTax = false, billPrefix = "INV", paperWidth = 72, printLanguage = "fr" }));
+            var hindi = await admin.PutAsync("/api/admin/billing-settings", Json(new { taxMode = "None", pricesIncludeTax = false, billPrefix = "INV", paperWidth = 80, printLanguage = "hi" }));
+            Assert.Equal(HttpStatusCode.OK, hindi.StatusCode);
             Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
             var badBody = await bad.Content.ReadAsStringAsync();
             Assert.Contains("paperwidth", badBody);

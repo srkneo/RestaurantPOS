@@ -343,8 +343,8 @@ namespace POSSystem.Billing
                 errors["upiname"] = new[] { "The name for UPI can be at most 50 characters." };
             if (dto.PaperWidth != 58 && dto.PaperWidth != 80)
                 errors["paperwidth"] = new[] { "Choose 58 mm or 80 mm paper." };
-            if (dto.PrintLanguage != "en" && dto.PrintLanguage != "gu")
-                errors["printlanguage"] = new[] { "Choose English (en) or Gujarati (gu)." };
+            if (dto.PrintLanguage != "en" && dto.PrintLanguage != "gu" && dto.PrintLanguage != "hi")
+                errors["printlanguage"] = new[] { "Choose English (en), Gujarati (gu) or Hindi (hi)." };
             return errors;
         }
 
