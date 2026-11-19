@@ -105,7 +105,7 @@ export default function LicencePage() {
 
   const updateMode = (u) => (u.mode === 'pinned'
     ? t('licences.updates.pinned', { version: u.pinnedVersion || '' })
-    : t(`licences.updates.${u.mode === 'paused' ? 'paused' : 'auto'}`));
+    : t(`licences.updates.${u.mode === 'paused' || u.mode === 'early' ? u.mode : 'auto'}`));
 
   const call = async (url, body, doneKey) => {
     setBusy(true);
