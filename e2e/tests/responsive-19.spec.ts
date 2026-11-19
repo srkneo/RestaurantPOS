@@ -126,7 +126,7 @@ for (const size of sizes) {
         for (const n of [1, 5]) await expect(guest.getByRole('button', { name: `${n} stars`, exact: true })).toBeInViewport();
         expect(await overflow(guest)).toBeLessThanOrEqual(1);
       } finally {
-        await api.put('/api/admin/feedback-setting', { data: { enabled: false } });
+        // Feedback stays on; guests-19 sets it the way each of its tests needs.
       }
     });
 
