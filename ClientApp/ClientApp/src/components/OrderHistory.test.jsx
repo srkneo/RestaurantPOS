@@ -112,6 +112,16 @@ describe('Order history', () => {
     expect(within(rows[2]).getByText('Table 2')).toBeInTheDocument();
   });
 
+  it('closes a ready dine-in order with Served', async () => {
+    const calls = mockApi();
+    renderPage();
+    const row = (await screen.findByText('Classic Burger', { exact: false })).closest('tr');
+    fireEvent.click(within(row).getByRole('button', { name: 'Served' }));
+    expect(await screen.findByText('Token 1 done.')).toBeInTheDocument();
+    const sent = calls.find((c) => c.url === '/api/orders/1/status');
+    expect(JSON.parse(sent.options.body)).toEqual({ status: 'Completed', version: 3 });
+  });
+
   it('offers edit and cancel only before cooking', async () => {
     mockApi();
     renderPage();

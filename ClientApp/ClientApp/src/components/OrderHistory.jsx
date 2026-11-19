@@ -58,6 +58,23 @@ const OrderHistory = () => {
     load();
   }, [load]);
 
+  // Ready food went to the table (Served) or the customer took it (Collected): the order closes,
+  // leaves the token screen and frees its table.
+  const markDone = async (order) => {
+    try {
+      const res = await fetch(`/api/orders/${order.id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Completed', version: order.version }),
+      });
+      if (!res.ok) throw new Error('failed');
+      showToast(t('orders.doneToast', { token: order.tokenNumber }));
+    } catch {
+      showToast(t('common.error'), 'error');
+    }
+    load();
+  };
+
   const openCancel = (order) => {
     setCancelling(order);
     setReason('');
@@ -264,6 +281,13 @@ const OrderHistory = () => {
                         <div className="pos-row-actions">
                           <Link className="btn btn-outline-secondary btn-sm px-3" to={`/pos?edit=${order.id}`}>{t('orders.edit')}</Link>
                           <button type="button" className="btn btn-outline-danger btn-sm px-3" onClick={() => openCancel(order)}>{t('orders.cancel')}</button>
+                        </div>
+                      )}
+                      {order.status === 'Ready' && (
+                        <div className="pos-row-actions mb-1">
+                          <button type="button" className="btn btn-success btn-sm px-3" onClick={() => markDone(order)}>
+                            {order.orderType === 'DineIn' ? t('orders.served') : t('orders.collected')}
+                          </button>
                         </div>
                       )}
                       {order.orderType !== 'Takeaway' && ['Received', 'Preparing', 'Ready'].includes(order.status) && (

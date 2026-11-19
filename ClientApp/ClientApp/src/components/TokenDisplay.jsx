@@ -1,11 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { LanguageSwitch, useT } from '../i18n/I18nContext';
+import { parseServerDate } from '../ui/format';
 import './TokenDisplay.css';
 
 const COOKING = ['Received', 'Preparing'];
 const SHOWN = [...COOKING, 'Ready'];
 const byToken = (a, b) => a.tokenNumber - b.tokenNumber;
+// A ready token leaves the screen when staff press Served / Collected or the bill is paid,
+// and at the latest 15 minutes after it became ready (the customer has surely taken it by then).
+export const READY_SHOWN_MS = 15 * 60 * 1000;
 
 // Customer-facing screen (a TV near the counter): tokens being prepared and tokens ready to collect, updated live.
 export default function TokenDisplay() {
@@ -13,13 +17,19 @@ export default function TokenDisplay() {
   const [orders, setOrders] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [live, setLive] = useState(false);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, []);
 
   const fetchOrders = useCallback(async () => {
     try {
       const res = await fetch('/api/orders');
       if (!res.ok) return;
       const data = await res.json();
-      setOrders(data.filter((o) => SHOWN.includes(o.status)).map(({ id, tokenNumber, status }) => ({ id, tokenNumber, status })));
+      setOrders(data.filter((o) => SHOWN.includes(o.status)).map(({ id, tokenNumber, status, readyAt }) => ({ id, tokenNumber, status, readyAt })));
       setLoaded(true);
     } catch {
       // Keeps the last board; reconnecting loads it again.
@@ -30,7 +40,8 @@ export default function TokenDisplay() {
     fetchOrders();
     const upsert = (id, tokenNumber, status) => setOrders((prev) => {
       const rest = prev.filter((o) => o.id !== id);
-      return SHOWN.includes(status) ? [...rest, { id, tokenNumber, status }] : rest;
+      const readyAt = status === 'Ready' ? new Date().toISOString() : null;
+      return SHOWN.includes(status) ? [...rest, { id, tokenNumber, status, readyAt }] : rest;
     });
     const connection = new signalR.HubConnectionBuilder().withUrl('/orderHub').withAutomaticReconnect().build();
     connection.on('ReceiveNewOrder', (o) => upsert(o.id, o.tokenNumber, o.status ?? 'Received'));
@@ -49,7 +60,9 @@ export default function TokenDisplay() {
   }, [fetchOrders]);
 
   const cooking = orders.filter((o) => COOKING.includes(o.status)).sort(byToken);
-  const ready = orders.filter((o) => o.status === 'Ready').sort(byToken);
+  const ready = orders
+    .filter((o) => o.status === 'Ready' && !(o.readyAt && now - parseServerDate(o.readyAt).getTime() > READY_SHOWN_MS))
+    .sort(byToken);
 
   return (
     <div className="tokens">
