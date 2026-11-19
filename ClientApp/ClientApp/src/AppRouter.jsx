@@ -39,6 +39,8 @@ import HelpPage from './about/HelpPage';
 import AppFooter from './about/AppFooter';
 import ServerWatch from './about/ServerWatch';
 import ResetPasswordPage from './components/ResetPasswordPage';
+import SignupPage from './components/SignupPage';
+import SubscriptionBanner from './licence/SubscriptionBanner';
 
 const POS_ROLES = ['cashier', 'manager', 'admin'];
 // Captain mode: waiters use only the POS screen (take orders, add rounds), never billing.
@@ -99,6 +101,7 @@ function AppHeader() {
     {can(POS_ROLES) && <OfflineBanner />}
     {!can(PLATFORM_ROLES) && <LicenceBanner />}
     {can(ADMIN_ROLES) && <BackupBanner />}
+    {can(ADMIN_ROLES) && <SubscriptionBanner />}
     </>
   );
 }
@@ -107,7 +110,7 @@ function Layout() {
   const { pathname } = useLocation();
   // /t/<token> (table QR) and /feedback/<token> (bill QR) are guest pages: no staff header, footer or server watch.
   const guest = pathname.startsWith('/t/') || pathname.startsWith('/feedback/');
-  const hideHeader = guest || pathname.startsWith('/kitchen') || pathname.startsWith('/tokens') || pathname.startsWith('/login') || pathname.startsWith('/print');
+  const hideHeader = guest || pathname.startsWith('/kitchen') || pathname.startsWith('/tokens') || pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/print');
   // The kitchen screen and printouts stay clean; every other screen shows the support line at the bottom.
   // The POS screen fills the window (menu and order side by side), so the footer would push the order buttons off screen.
   const hideFooter = guest || pathname.startsWith('/kitchen') || pathname.startsWith('/tokens') || pathname.startsWith('/print') || pathname.startsWith('/pos');
@@ -118,6 +121,7 @@ function Layout() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/signup" element={<SignupPage />} />
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/pos" element={<RequireRole roles={CAPTAIN_ROLES}><POSMenu /></RequireRole>} />
         <Route path="/orders" element={<RequireRole roles={POS_ROLES}><OrderHistory /></RequireRole>} />

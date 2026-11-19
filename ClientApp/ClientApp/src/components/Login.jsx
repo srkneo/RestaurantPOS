@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { LanguageSwitch, useT } from '../i18n/I18nContext';
@@ -14,6 +14,17 @@ const Login = () => {
   const [code, setCode] = useState('');
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [signupOpen, setSignupOpen] = useState(false);
+
+  // Cloud only: offer the free trial to new restaurants (a shop PC says signup is closed).
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/signup/plans')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (alive) setSignupOpen(data?.signupOpen === true); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -81,6 +92,7 @@ const Login = () => {
         {challenge
           ? <button type="button" className="btn btn-link" onClick={startAgain}>{t('login.startAgain')}</button>
           : <Link to="/reset-password" className="text-center">{t('login.forgot')}</Link>}
+        {!challenge && signupOpen && <Link to="/signup" className="text-center">{t('signup.link')}</Link>}
       </form>
     </main>
   );

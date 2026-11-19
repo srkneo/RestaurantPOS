@@ -25,6 +25,9 @@ export default function PlatformPage() {
     const [confirm, setConfirm] = useState(null);
     const [demoFor, setDemoFor] = useState(null);
     const [search, setSearch] = useState('');
+    const [paying, setPaying] = useState(null);
+    const [payForm, setPayForm] = useState({ plan: 'monthly', amount: '', reference: '' });
+    const [prices, setPrices] = useState({ monthly: 1000, yearly: 10000 });
 
     const load = useCallback(async () => {
         try {
@@ -111,6 +114,50 @@ export default function PlatformPage() {
         }
     };
 
+    // Subscription column: free use, trial / paid-up date, overdue, stopped.
+    const subscriptionText = (tenant) => {
+        if (!tenant.paidUntil) return t('platform.sub.none');
+        const date = new Date(`${tenant.paidUntil}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        return t(`platform.sub.${tenant.state}`, { date });
+    };
+
+    // Prices come from the server when the dialog opens (Pricing__Monthly / Pricing__Yearly).
+    const openPay = async (tenant) => {
+        setPaying(tenant);
+        setErrors({});
+        let current = prices;
+        try {
+            const res = await fetch('/api/signup/plans');
+            if (res.ok) {
+                const data = await res.json();
+                current = { monthly: data.monthly, yearly: data.yearly };
+                setPrices(current);
+            }
+        } catch {
+            // keeps the last prices
+        }
+        setPayForm({ plan: 'monthly', amount: String(current.monthly), reference: '' });
+    };
+
+    const changePlan = (plan) => setPayForm({ ...payForm, plan, amount: String(plan === 'yearly' ? prices.yearly : prices.monthly) });
+
+    const savePay = async () => {
+        setBusy(true);
+        const res = await send(`/api/platform/tenants/${paying.id}/payments`, 'POST', {
+            plan: payForm.plan, amount: Number(payForm.amount), reference: payForm.reference.trim() || null,
+        });
+        setBusy(false);
+        if (!res.ok) {
+            setErrors(await readErrors(res));
+            return;
+        }
+        const data = await res.json();
+        const date = new Date(`${data.paidUntil}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        showToast(t('platform.paymentSaved', { name: paying.name, date }));
+        setPaying(null);
+        load();
+    };
+
     const query = search.trim().toLowerCase();
     const shownTenants = query ? tenants.filter((x) => (x.name ?? '').toLowerCase().includes(query)) : tenants;
     const { page, pageCount, pageItems, setPage, total } = usePaged(shownTenants, 50);
@@ -142,6 +189,7 @@ export default function PlatformPage() {
                                 <th>{t('platform.outlets')}</th>
                                 <th>{t('platform.staff')}</th>
                                 <th>{t('platform.lastOrder')}</th>
+                                <th>{t('platform.subscription')}</th>
                                 <th>{t('staff.status')}</th>
                                 <th></th>
                             </tr>
@@ -153,6 +201,7 @@ export default function PlatformPage() {
                                     <td>{tenant.outletCount}</td>
                                     <td>{tenant.staffCount}</td>
                                     <td>{lastOrder(tenant.lastOrderAt)}</td>
+                                    <td className={tenant.state === 'suspended' ? 'text-danger fw-semibold' : tenant.state === 'overdue' ? 'text-warning fw-semibold' : ''}>{subscriptionText(tenant)}</td>
                                     <td>
                                         <span className={`pos-status ${tenant.isActive ? 'pos-status-active' : 'pos-status-inactive'}`}>
                                             {tenant.isActive ? t('platform.active') : t('platform.disabled')}
@@ -162,6 +211,7 @@ export default function PlatformPage() {
                                         {tenant.isActive
                                             ? <button type="button" className="btn btn-outline-danger btn-sm px-3" onClick={() => setConfirm(tenant)}>{t('platform.disable')}</button>
                                             : <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => changeStatus(tenant, true)}>{t('platform.enable')}</button>}
+                                        <button type="button" className="btn btn-outline-primary btn-sm px-3 ms-2" onClick={() => openPay(tenant)}>{t('platform.payment')}</button>
                                         {!tenant.lastOrderAt && (
                                             <button type="button" className="btn btn-outline-primary btn-sm px-3 ms-2" onClick={() => setDemoFor(tenant)}>{t('platform.demo')}</button>
                                         )}
@@ -173,6 +223,24 @@ export default function PlatformPage() {
                 </div>
             )}
             {loadState === 'ready' && <Pager page={page} pageCount={pageCount} total={total} onPage={setPage} />}
+            <FormDialog open={!!paying} title={t('platform.paymentTitle', { name: paying?.name ?? '' })} submitLabel={t('platform.paymentSave')} busy={busy}
+                error={errors.general !== undefined ? (errors.general || t('common.error')) : null}
+                onCancel={() => setPaying(null)} onSubmit={savePay}>
+                <Field id="pay-plan" label={t('platform.plan')} error={errors.plan}>
+                    <select id="pay-plan" className="form-select" value={payForm.plan} onChange={(e) => changePlan(e.target.value)}>
+                        <option value="monthly">{t('platform.planMonthly', { price: prices.monthly })}</option>
+                        <option value="yearly">{t('platform.planYearly', { price: prices.yearly })}</option>
+                    </select>
+                </Field>
+                <Field id="pay-amount" label={t('platform.amount')} error={errors.amount}>
+                    <input id="pay-amount" type="number" min="0" step="1" className="form-control" value={payForm.amount}
+                        onChange={(e) => setPayForm({ ...payForm, amount: e.target.value })} />
+                </Field>
+                <Field id="pay-reference" label={t('platform.reference')} error={errors.reference}>
+                    <input id="pay-reference" className="form-control" maxLength={60} value={payForm.reference}
+                        onChange={(e) => setPayForm({ ...payForm, reference: e.target.value })} />
+                </Field>
+            </FormDialog>
             <FormDialog open={adding} title={t('platform.add')} submitLabel={t('platform.create')} busy={busy}
                 error={errors.general !== undefined ? (errors.general || t('common.error')) : null}
                 onCancel={() => setAdding(false)} onSubmit={submit}>
