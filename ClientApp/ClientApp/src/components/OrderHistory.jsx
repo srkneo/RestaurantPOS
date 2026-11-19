@@ -11,6 +11,8 @@ import './OrderHistory.css';
 
 const REASONS = ['reasonCustomerLeft', 'reasonWrongOrder', 'reasonOutOfStock', 'reasonOther'];
 const OPEN = ['Received', 'Preparing', 'Ready', 'Served'];
+// Served / Collected at any stage: some kitchens do not use the kitchen screen, so orders never show Ready.
+const CAN_FINISH = ['Received', 'Preparing', 'Ready'];
 
 // Works with both item shapes: items (itemName, unitPrice) and menuItems (name, price)
 const getItems = (order) =>
@@ -299,7 +301,7 @@ const OrderHistory = () => {
                           <button type="button" className="btn btn-outline-danger btn-sm px-3" onClick={() => openCancel(order)}>{t('orders.cancel')}</button>
                         </div>
                       )}
-                      {order.status === 'Ready' && (
+                      {CAN_FINISH.includes(order.status) && (
                         <div className="pos-row-actions mb-1">
                           <button type="button" className="btn btn-success btn-sm px-3" onClick={() => markDone(order)}>
                             {order.orderType === 'DineIn' ? t('orders.served') : t('orders.collected')}
