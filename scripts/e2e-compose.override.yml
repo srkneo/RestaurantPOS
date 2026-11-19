@@ -1,0 +1,5 @@
+# Used only by scripts/e2e-local.ps1: the web container on port 18080 instead of 8080.
+services:
+  web:
+    ports: !override
+      - "18080:80"
