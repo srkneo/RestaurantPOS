@@ -7,6 +7,7 @@ import MenuOptionsDialog from './MenuOptionsDialog';
 import ComboDialog from './ComboDialog';
 import FormDialog from '../ui/FormDialog';
 import StateMessage from '../ui/StateMessage';
+import Pager, { usePaged } from '../ui/Pager';
 import { VegMark } from '../components/POSMenu';
 import { formatMoney } from '../ui/format';
 import '../components/OrderHistory.css';
@@ -58,6 +59,8 @@ export default function MenuPage() {
   const [optionsFor, setOptionsFor] = useState(null);
   const [stations, setStations] = useState([]);
   const [comboFor, setComboFor] = useState(null);
+  const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'soldout' | category id
 
   const load = useCallback(async () => {
     try {
@@ -183,6 +186,13 @@ export default function MenuPage() {
 
   const generalError = errors.general !== undefined ? (errors.general || t('common.error')) : null;
 
+  // Search by name; show one category or only sold-out items.
+  const query = search.trim().toLowerCase();
+  const shownItems = items.filter((item) => (!query || item.name.toLowerCase().includes(query))
+    && (categoryFilter === 'all'
+      || (categoryFilter === 'soldout' ? !item.isAvailable : String(item.categoryId) === categoryFilter)));
+  const { page, pageCount, pageItems, setPage, total } = usePaged(shownItems, 100);
+
   return (
     <main className="pos-page">
       <div className="pos-page-head">
@@ -232,9 +242,26 @@ export default function MenuPage() {
             )}
           </section>
 
+          {items.length > 0 && (
+            <div className="d-flex flex-wrap align-items-end gap-2">
+              <div>
+                <label htmlFor="menu-search" className="form-label">{t('menu.search')}</label>
+                <input id="menu-search" type="search" className="form-control" value={search} onChange={(e) => setSearch(e.target.value)} />
+              </div>
+              <div>
+                <label htmlFor="menu-filter" className="form-label">{t('menu.filter')}</label>
+                <select id="menu-filter" className="form-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+                  <option value="all">{t('menu.filterAll')}</option>
+                  <option value="soldout">{t('menu.filterSoldOut')}</option>
+                  {categories.map((c) => <option key={c.id} value={String(c.id)}>{c.name}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
+          {items.length > 0 && shownItems.length === 0 && <StateMessage kind="empty" message={t('menu.noMatch')} />}
           {items.length === 0 ? (
             <StateMessage kind="empty" message={t('menu.empty')} />
-          ) : (
+          ) : shownItems.length > 0 && (
             <div className="pos-card table-responsive">
               <table className="table align-middle">
                 <thead>
@@ -248,7 +275,7 @@ export default function MenuPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((item) => (
+                  {pageItems.map((item) => (
                     <tr key={item.id}>
                       <td className="fw-semibold"><VegMark isVeg={item.isVeg} />{item.name}</td>
                       <td>{item.category}</td>
@@ -275,6 +302,7 @@ export default function MenuPage() {
               </table>
             </div>
           )}
+          <Pager page={page} pageCount={pageCount} total={total} onPage={setPage} />
         </>
       )}
 
