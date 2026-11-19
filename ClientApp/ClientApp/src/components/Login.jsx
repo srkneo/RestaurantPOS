@@ -93,6 +93,7 @@ const Login = () => {
           ? <button type="button" className="btn btn-link" onClick={startAgain}>{t('login.startAgain')}</button>
           : <Link to="/reset-password" className="text-center">{t('login.forgot')}</Link>}
         {!challenge && signupOpen && <Link to="/signup" className="text-center">{t('signup.link')}</Link>}
+        {!challenge && signupOpen && <Link to="/pricing" className="text-center">{t('pricing.link')}</Link>}
       </form>
     </main>
   );
