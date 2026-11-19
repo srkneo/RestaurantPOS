@@ -121,7 +121,7 @@ namespace POSSystem.Platform
         public async Task<ShopLicenceDto> SetUpdates(int id, ShopLicenceUpdatesRequest request, CancellationToken ct)
         {
             var mode = (request.Mode ?? "").Trim().ToLowerInvariant();
-            if (Array.IndexOf(ShopUpdates.Modes, mode) < 0) throw new ArgumentException("Choose auto, paused or pinned.");
+            if (Array.IndexOf(ShopUpdates.Modes, mode) < 0) throw new ArgumentException("Choose auto, early, paused or pinned.");
             var version = (request.Version ?? "").Trim().TrimStart('v', 'V');
             if (mode == "pinned" && !ShopUpdates.IsVersion(version)) throw new ArgumentException("Enter the version to keep, like 1.7.3.");
             var licence = await Find(id, ct);

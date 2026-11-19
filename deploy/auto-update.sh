@@ -28,7 +28,7 @@ main() {
   flock -n 9 || exit 0
 
   current="$(sed -n 's/^POS_VERSION=//p' version.env 2> /dev/null | head -n 1)"
-  local mode pinned target="" tags v before log script
+  local mode pinned target="" tags v before log script waiting=""
   mode="$(sed -n 's/^mode=//p' "$upd/policy" 2> /dev/null | head -n 1)"
   pinned="$(sed -n 's/^version=//p' "$upd/policy" 2> /dev/null | head -n 1)"
   mode="${mode:-auto}"
@@ -50,9 +50,19 @@ main() {
       exit 0
     fi
     # The newest release whose images are published (right after a release they may still be building).
+    # Staged rollout: the nightly update takes a release only after it has been out for 2 days (on the cloud and
+    # on early shops), so a bad release reaches few shops. Early shops and "Update now" take the newest at once.
+    local soak=$((2 * 86400))
+    if [ "$mode" = "early" ] || [ "$trigger" = "requested" ]; then soak=0; fi
+    if [ -n "${POS_UPDATE_SOAK_SECONDS:-}" ]; then soak="$POS_UPDATE_SOAK_SECONDS"; fi
     for v in $(printf '%s' "$tags" | grep -o '"name": *"v[0-9]*\.[0-9]*\.[0-9]*"' | grep -o '[0-9]*\.[0-9]*\.[0-9]*' | sort -rV); do
+      if [ "$soak" -gt 0 ] && ! old_enough "$v" "$soak" "$tags"; then waiting="${waiting:-$v}"; continue; fi
       if has_images "$v"; then target="$v"; break; fi
     done
+    if [ -z "$target" ] && [ -n "$waiting" ]; then
+      status up-to-date "Version $waiting is new; this PC takes it after it has been out for 2 days." "$waiting"
+      exit 0
+    fi
     if [ -z "$target" ]; then
       status offline "No finished release could be found right now. It is tried again later."
       exit 0
@@ -62,6 +72,7 @@ main() {
   # Never goes back to an older version by itself (database changes are not undone).
   if ! newer "$target" "$current"; then
     if [ "$mode" = "pinned" ]; then status up-to-date "Support keeps this PC on version $current." "$target"
+    elif [ -n "$waiting" ]; then status up-to-date "Version $current is in use; $waiting comes after it has been out for 2 days." "$target"
     else status up-to-date "Version $current is the newest." "$target"; fi
     exit 0
   fi
@@ -101,6 +112,20 @@ status() {
   chmod 644 "$tmp"
   mv "$tmp" "$UPD/status.json"
   echo "$(date -u +%FT%TZ) $1: $2"
+}
+
+# old_enough V SECONDS TAGS_JSON: release V has been out for at least SECONDS (date of its tag's commit).
+# When the date cannot be found it counts as old enough, so a lookup problem never blocks updates for good.
+old_enough() {
+  local sha when epoch auth=()
+  sha="$(printf '%s' "$3" | tr -d ' \n\r' | grep -o "\"name\":\"v$1\",[^}]*\"sha\":\"[0-9a-f]*\"" | grep -o '[0-9a-f]\{40\}' | head -n 1)"
+  [ -n "$sha" ] || return 0
+  if [ -n "${GITHUB_TOKEN:-}" ]; then auth=(-H "Authorization: Bearer $GITHUB_TOKEN"); fi
+  when="$(curl -fsSL --connect-timeout 20 --max-time 60 "${auth[@]}" "https://api.github.com/repos/srkneo/RestaurantPOS/commits/$sha" 2> /dev/null \
+    | grep -o '"date": *"[^"]*"' | tail -n 1 | grep -o '[0-9][0-9T:.-]*Z')" || return 0
+  [ -n "$when" ] || return 0
+  epoch="$(date -d "$when" +%s 2> /dev/null)" || return 0
+  [ $(( $(date +%s) - epoch )) -ge "$2" ]
 }
 
 # newer A B: A is a higher version than B.
