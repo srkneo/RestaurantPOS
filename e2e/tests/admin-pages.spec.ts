@@ -31,5 +31,6 @@ test('owner names the store and adds a table the POS can use', async ({ page }) 
   await expect(page.getByRole('cell', { name: table, exact: true })).toBeVisible();
 
   await page.getByRole('link', { name: 'POS', exact: true }).click();
-  await expect(page.getByLabel('Table', { exact: true }).locator('option', { hasText: table })).toHaveCount(1);
+  await page.getByLabel('Table', { exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Tables' }).getByRole('button', { name: `Table ${table}`, exact: true })).toHaveCount(1);
 });

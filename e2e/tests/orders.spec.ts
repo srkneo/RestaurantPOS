@@ -51,7 +51,8 @@ test('takeaway order shows the customer name in the kitchen and can be cancelled
 test('an order can be changed before cooking, not after', async ({ page }) => {
   await signIn(page);
   await page.goto('/pos');
-  await page.getByLabel('Table', { exact: true }).selectOption({ label: 'Table 2' });
+  await page.getByLabel('Table', { exact: true }).click();
+  await page.getByRole('dialog', { name: 'Tables' }).getByRole('button', { name: 'Table 2', exact: true }).click();
   await page.getByRole('button', { name: 'Add Fries' }).click();
   await page.getByRole('button', { name: 'Place order' }).click();
   const token = await placedToken(page);
