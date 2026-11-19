@@ -69,13 +69,16 @@ namespace POSSystem.Billing
                 .RequireAuthorization(p => p.RequireRole(Till))
                 .WithName("VoidBill").WithSummary("Void a bill with a reason (the bill and its number are kept)");
 
-            app.MapPost("/api/bills/{id:int}/payments", (int id, AddPaymentRequest request, BillService bills, IOrderService orders) =>
+            app.MapPost("/api/bills/{id:int}/payments", (int id, AddPaymentRequest request, BillService bills, IOrderService orders, AppDbContext db) =>
                 Run(async () =>
                 {
                     var bill = await bills.AddPayment(id, request);
-                    // Paid and the food is out: the order is done. It leaves the token screen and frees its table.
-                    // An order still cooking stays open; staff press Served / Collected on Orders when it goes out.
-                    if (bill.Status == POSSystem.Models.BillStatus.Paid)
+                    // Paid and the food is out (Ready or Served), or the outlet works without a kitchen screen: the order
+                    // is done. It leaves the token screen and frees its table. An order still cooking stays open;
+                    // staff press Served / Collected on Orders when it goes out.
+                    var order = bill.Status == POSSystem.Models.BillStatus.Paid ? await orders.GetOrder(bill.KitchenOrderId) : null;
+                    var noKitchenScreen = order != null && await LoadOutlet(db) is { } outlet && !outlet.GetSettings().KitchenScreenEnabled;
+                    if (order != null && (order.Status is POSSystem.Models.OrderStatus.Ready or POSSystem.Models.OrderStatus.Served || noKitchenScreen))
                     {
                         try { await orders.UpdateOrderStatus(bill.KitchenOrderId, POSSystem.Models.OrderStatus.Completed); }
                         catch (InvalidOperationException) { }

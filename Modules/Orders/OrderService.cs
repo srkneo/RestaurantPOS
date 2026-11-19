@@ -22,8 +22,9 @@ namespace POSSystem.Services
         // Cancelling goes through CancelOrder (it needs a reason), not through a status change.
         private static readonly Dictionary<OrderStatus, OrderStatus[]> AllowedTransitions = new()
         {
-            [OrderStatus.Received] = new[] { OrderStatus.Preparing, OrderStatus.Ready },
-            [OrderStatus.Preparing] = new[] { OrderStatus.Ready },
+            // Served / Completed straight away: the food went out without the kitchen screen marking it ready.
+            [OrderStatus.Received] = new[] { OrderStatus.Preparing, OrderStatus.Ready, OrderStatus.Served, OrderStatus.Completed },
+            [OrderStatus.Preparing] = new[] { OrderStatus.Ready, OrderStatus.Served, OrderStatus.Completed },
             [OrderStatus.Ready] = new[] { OrderStatus.Served, OrderStatus.Completed },
             [OrderStatus.Served] = new[] { OrderStatus.Completed },
             [OrderStatus.Completed] = Array.Empty<OrderStatus>(),
