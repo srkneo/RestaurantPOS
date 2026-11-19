@@ -95,7 +95,9 @@ export default function TablesPage() {
                 </button>
             </div>
 
-            <StateMessage kind={loadState} onRetry={load} message={t('tables.empty')} />
+            {loadState === 'loading' && <StateMessage kind="loading" />}
+            {loadState === 'error' && <StateMessage kind="error" onRetry={load} />}
+            {loadState === 'ready' && tables.length === 0 && <StateMessage kind="empty" message={t('tables.empty')} />}
 
             {loadState === 'ready' && tables.length > 0 && (
                 <div className="pos-card table-responsive">
