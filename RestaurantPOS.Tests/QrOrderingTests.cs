@@ -113,6 +113,36 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task AnOpenOrderFromAnEarlierDay_DoesNotHoldTheTable()
+        {
+            var s = Build(qrOn: true);
+            using var f = s.Factory;
+            var token = await TokenOf(s);
+            Assert.Equal(HttpStatusCode.OK, (await Order(s, token, 1)).StatusCode);
+
+            // The order was never closed and the day changed.
+            int oldId;
+            using (var scope = f.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var old = db.KitchenOrders.IgnoreQueryFilters().Single(o => o.TableId == s.TableId);
+                old.BusinessDate = old.BusinessDate.AddDays(-3);
+                db.SaveChanges();
+                oldId = old.Id;
+            }
+
+            var board = (await Read(await As(f, "cashier").GetAsync("/api/tables"))).EnumerateArray().Single(t => t.GetProperty("id").GetInt32() == s.TableId);
+            Assert.Equal("Free", board.GetProperty("status").GetString());
+
+            var placed = await Order(s, token, 1);
+            Assert.Equal(HttpStatusCode.OK, placed.StatusCode);
+            Assert.Equal(1, (await Read(placed)).GetProperty("round").GetInt32());
+            board = (await Read(await As(f, "cashier").GetAsync("/api/tables"))).EnumerateArray().Single(t => t.GetProperty("id").GetInt32() == s.TableId);
+            Assert.Equal("Occupied", board.GetProperty("status").GetString());
+            Assert.NotEqual(oldId, board.GetProperty("orderId").GetInt32());
+        }
+
+        [Fact]
         public async Task TableQrImage_IsAnSvgOfTheGuestLink()
         {
             var s = Build(qrOn: true);

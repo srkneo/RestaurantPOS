@@ -80,8 +80,9 @@ namespace POSSystem.Orders
                     // Two tries: if staff change the table's order at the same moment, the second try uses the new version.
                     for (var attempt = 0; ; attempt++)
                     {
+                        var today = TableBoard.Today(outlet);
                         var open = await db.KitchenOrders.AsNoTracking()
-                            .Where(o => o.TableId == table.Id && TableBoard.Open.Contains(o.Status))
+                            .Where(o => o.TableId == table.Id && TableBoard.Open.Contains(o.Status) && o.BusinessDate == today)
                             .OrderByDescending(o => o.Id).Select(o => new { o.Id, o.Version }).FirstOrDefaultAsync();
                         try
                         {

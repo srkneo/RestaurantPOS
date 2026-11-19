@@ -312,7 +312,8 @@ namespace POSSystem.Services
             var table = await _context.RestaurantTables.FirstOrDefaultAsync(t => t.Id == tableId && t.IsActive && t.OutletId == _context.CurrentOutletId)
                 ?? throw new ArgumentException("Choose a table that is in use.");
             var open = POSSystem.Orders.TableBoard.Open;
-            if (await _context.KitchenOrders.AnyAsync(o => o.TableId == tableId && o.Id != id && open.Contains(o.Status)))
+            var today = TodayFor(await CurrentOutlet());
+            if (await _context.KitchenOrders.AnyAsync(o => o.TableId == tableId && o.Id != id && open.Contains(o.Status) && o.BusinessDate == today))
                 throw new ArgumentException($"Table {table.TableNumber} already has an open order.");
 
             order.TableId = table.Id;
