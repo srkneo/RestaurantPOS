@@ -47,3 +47,16 @@
 
 ## Accountant / એકાઉન્ટન્ટ
 - **Tally export** (Reports): one Sales voucher per day (cash, UPI, card and unpaid against sales, CGST, SGST, round off) and one Credit Note voucher per credit note, for Tally Import Data. Ledgers: Cash, UPI Collections, Card Collections, POS Unpaid Bills, Sales, Output CGST, Output SGST, Round Off.
+
+## 1.9.1 – fixes / સુધારા
+- **Orders close properly**: paying the bill of a ready order closes it and frees its table. Ready orders on Orders have **Served** (dine-in) or **Collected** (takeaway). The token screen drops a ready token after 15 minutes at the latest.
+- **Old open orders no longer hold a table**: an order left open on an earlier day does not block the table, so a new POS or QR order starts fresh and reaches the kitchen screen.
+- **Guest QR menu**: a bar at the top with a dish search and category buttons that jump to that part of the menu.
+- **Delete a table**: only a table that never had an order can be deleted; others can be marked not in use.
+- **Search and pages**: Orders (token, name, table or item), Feedback (comment, bill number, rating), Menu (name, category, sold out), Platform restaurants and Shop licences.
+- **About**: lists the free open-source software inside the POS and its licences.
+- **Sample data script** (for testing): `scripts\seed-aws.ps1` fills a restaurant with a menu, staff and a busy day of orders.
+
+## Next update
+- **Settings saved at the same moment** on two screens no longer undo each other.
+- **Hindi** (हिन्दी): a third language button. Daily screens are in Hindi; owner pages still show English for now.
