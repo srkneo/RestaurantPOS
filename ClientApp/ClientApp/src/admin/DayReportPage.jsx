@@ -3,6 +3,8 @@ import { useT } from '../i18n/I18nContext';
 import StateMessage from '../ui/StateMessage';
 import DayReport from '../print/DayReport';
 import { formatMoney } from '../ui/format';
+
+const qty = (n) => Number(n ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 3 });
 import '../components/OrderHistory.css';
 import '../components/DayClosePage.css';
 
@@ -16,8 +18,9 @@ export default function DayReportPage() {
     setState({ status: 'loading' });
     try {
       const query = day ? `?date=${encodeURIComponent(day)}` : '';
-      const [reportRes, settingsRes, tipsRes] = await Promise.all([
-        fetch(`/api/reports/day${query}`), fetch('/api/print-settings'), fetch(`/api/tips${query}`).catch(() => null)]);
+      const [reportRes, settingsRes, tipsRes, stockRes] = await Promise.all([
+        fetch(`/api/reports/day${query}`), fetch('/api/print-settings'), fetch(`/api/tips${query}`).catch(() => null),
+        fetch('/api/stock').catch(() => null)]);
       if (!reportRes.ok) {
         setState({ status: 'error' });
         return;
@@ -26,7 +29,10 @@ export default function DayReportPage() {
       const settings = settingsRes.ok ? await settingsRes.json() : { printLanguage: 'en', paperWidth: 80 };
       // Tips are kept apart from sales; the report still shows when they cannot be loaded.
       const tips = tipsRes?.ok ? await tipsRes.json() : null;
-      setState({ status: 'ready', report, settings, tips });
+      // Stock as it is now (not for the chosen day): only the items at or under their low level.
+      const stock = stockRes?.ok ? await stockRes.json().catch(() => []) : [];
+      const lowStock = Array.isArray(stock) ? stock.filter((s) => s.isLow) : [];
+      setState({ status: 'ready', report, settings, tips, lowStock });
       setDate(report.businessDate);
     } catch {
       setState({ status: 'error' });
@@ -54,6 +60,9 @@ export default function DayReportPage() {
       lines.push(t('share.feedback', { average: Number(r.feedbackAverage).toFixed(1), count: r.feedbackCount }));
     }
     lines.push(t('share.net', { net: formatMoney(r.netSales) }));
+    if ((state.lowStock?.length ?? 0) > 0) {
+      lines.push(t('share.lowStock', { items: state.lowStock.map((s) => `${s.name} ${qty(s.quantity)} ${s.unit}`).join(', ') }));
+    }
     window.open(`https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`, '_blank', 'noopener');
   };
 
@@ -100,6 +109,17 @@ export default function DayReportPage() {
             </table>
           </div>
           <p className="pos-hint mb-0">{t('tips.hint')}</p>
+        </section>
+      )}
+      {state.status === 'ready' && (state.lowStock?.length ?? 0) > 0 && (
+        <section className="pos-card p-3 mt-3" aria-labelledby="low-stock-title">
+          <h2 id="low-stock-title" className="h5">{t('dayReport.lowStock')}</h2>
+          <ul className="mb-2">
+            {state.lowStock.map((s) => (
+              <li key={s.id}><span className="fw-semibold">{s.name}</span>: <span>{t('dayReport.lowStockLine', { quantity: qty(s.quantity), unit: s.unit, low: qty(s.lowLevel) })}</span></li>
+            ))}
+          </ul>
+          <a href="/stock">{t('dayReport.openStock')}</a>
         </section>
       )}
     </main>
