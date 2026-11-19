@@ -104,20 +104,36 @@ namespace POSSystem.Data
 
         public override int SaveChanges()
         {
-            ApplyAuditFields();
-            var pending = CollectAudit();
-            var result = base.SaveChanges();
-            if (AddAuditRows(pending)) base.SaveChanges();
-            return result;
+            var locks = LockAndMergeSettings();
+            try
+            {
+                ApplyAuditFields();
+                var pending = CollectAudit();
+                var result = base.SaveChanges();
+                if (AddAuditRows(pending)) base.SaveChanges();
+                return result;
+            }
+            finally
+            {
+                foreach (var gate in locks) gate.Release();
+            }
         }
 
         public override async System.Threading.Tasks.Task<int> SaveChangesAsync(System.Threading.CancellationToken cancellationToken = default)
         {
-            ApplyAuditFields();
-            var pending = CollectAudit();
-            var result = await base.SaveChangesAsync(cancellationToken);
-            if (AddAuditRows(pending)) await base.SaveChangesAsync(cancellationToken);
-            return result;
+            var locks = await LockAndMergeSettingsAsync(cancellationToken);
+            try
+            {
+                ApplyAuditFields();
+                var pending = CollectAudit();
+                var result = await base.SaveChangesAsync(cancellationToken);
+                if (AddAuditRows(pending)) await base.SaveChangesAsync(cancellationToken);
+                return result;
+            }
+            finally
+            {
+                foreach (var gate in locks) gate.Release();
+            }
         }
     }
 }
