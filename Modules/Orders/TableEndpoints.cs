@@ -10,7 +10,8 @@ using POSSystem.Models;
 
 namespace POSSystem.Orders
 {
-    public record TableDto(int Id, string TableNumber, bool IsActive, int SortOrder);
+    // Used: the table had at least one order, so it cannot be deleted (old orders and bills point to it).
+    public record TableDto(int Id, string TableNumber, bool IsActive, int SortOrder, bool Used = false);
     public record TableRequest(string? TableNumber, bool IsActive = true, int SortOrder = 0);
 
     public static class TableEndpoints
@@ -21,7 +22,7 @@ namespace POSSystem.Orders
 
             group.MapGet("/", async (AppDbContext db) =>
                 Results.Ok(await db.RestaurantTables.Where(t => t.OutletId == db.CurrentOutletId).OrderBy(t => t.SortOrder).ThenBy(t => t.Id)
-                    .Select(t => new TableDto(t.Id, t.TableNumber, t.IsActive, t.SortOrder)).ToListAsync()))
+                    .Select(t => new TableDto(t.Id, t.TableNumber, t.IsActive, t.SortOrder, db.KitchenOrders.Any(o => o.TableId == t.Id))).ToListAsync()))
                 .WithName("GetAdminTables").WithSummary("List all tables, including tables not in use");
 
             group.MapPost("/", async (TableRequest req, AppDbContext db) =>
@@ -46,6 +47,18 @@ namespace POSSystem.Orders
                 await db.SaveChangesAsync();
                 return Results.Ok(ToDto(table));
             }).WithName("UpdateTable").WithSummary("Rename a table or mark it not in use");
+
+            group.MapDelete("/{id:int}", async (int id, AppDbContext db) =>
+            {
+                var table = await db.RestaurantTables.FirstOrDefaultAsync(t => t.Id == id);
+                if (table == null) return Results.NotFound();
+                // A table that ever had an order stays, so old orders and bills keep it; mark it not in use instead.
+                if (await db.KitchenOrders.AnyAsync(o => o.TableId == id))
+                    return Results.Conflict(new { message = "This table has orders, so it cannot be deleted. Mark it not in use instead." });
+                db.RestaurantTables.Remove(table);
+                await db.SaveChangesAsync();
+                return Results.NoContent();
+            }).WithName("DeleteTable").WithSummary("Delete a table that never had an order");
 
             return app;
         }

@@ -7,6 +7,7 @@ import { readErrors, send, Field } from '../ui/forms';
 import '../components/OrderHistory.css';
 import './StaffPage.css';
 import FormDialog from '../ui/FormDialog';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 export default function TablesPage() {
     const t = useT();
@@ -19,6 +20,7 @@ export default function TablesPage() {
     const [form, setForm] = useState({ tableNumber: '', sortOrder: '0', isActive: true });
     const [errors, setErrors] = useState({});
     const [busy, setBusy] = useState(false);
+    const [deleting, setDeleting] = useState(null);
 
     const load = useCallback(async () => {
         try {
@@ -80,6 +82,20 @@ export default function TablesPage() {
         setBusy(false);
     };
 
+    const confirmDelete = async () => {
+        const table = deleting;
+        setDeleting(null);
+        const res = await send(`/api/admin/tables/${table.id}`, 'DELETE').catch(() => null);
+        if (res?.ok) {
+            showToast(t('tables.deleted', { name: table.tableNumber }));
+            load();
+        } else if (res?.status === 409) {
+            showToast(t('tables.cannotDelete'), 'error');
+        } else {
+            showToast(t('common.error'), 'error');
+        }
+    };
+
     return (
         <main className="pos-page">
             <div className="pos-page-head">
@@ -129,6 +145,11 @@ export default function TablesPage() {
                                         }}>
                                             {t('tables.edit')}
                                         </button>
+                                        {!table.used && (
+                                            <button className="btn btn-outline-danger btn-sm px-3 ms-2" onClick={() => setDeleting(table)}>
+                                                {t('tables.delete')}
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -157,6 +178,9 @@ export default function TablesPage() {
                     <label htmlFor="table-active" className="mb-0 fw-semibold">{t('tables.inUse')}</label>
                 </div>
             </FormDialog>
+
+            <ConfirmDialog open={!!deleting} title={t('tables.deleteTitle', { name: deleting?.tableNumber ?? '' })} message={t('tables.deleteHint')}
+                confirmLabel={t('tables.delete')} danger onCancel={() => setDeleting(null)} onConfirm={confirmDelete} />
         </main>
     );
 }

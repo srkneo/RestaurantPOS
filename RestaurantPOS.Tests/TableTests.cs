@@ -137,5 +137,44 @@ namespace RestaurantPOS.Tests
             Assert.Equal(HttpStatusCode.OK, keepOwnName.StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, otherTenant.StatusCode);
         }
+
+        [Fact]
+        public async Task OnlyATableWithoutOrders_CanBeDeleted()
+        {
+            using var f = Build();
+            var admin = As(f, "admin");
+            var spare = await CreateTable(f, "Spare");
+            var patio = await CreateTable(f, "Patio");
+
+            var category = await Read(await admin.PostAsync("/api/admin/menu/categories", Json(new { name = "Tea", sortOrder = 1 })));
+            var item = await Read(await admin.PostAsync("/api/admin/menu/items", Json(new
+            {
+                name = "Masala tea", price = 20m, categoryId = category.GetProperty("id").GetInt32(), description = (string?)null,
+                isVeg = true, isAvailable = true, taxRate = 5m, sortOrder = 1
+            })));
+            var order = await As(f, "cashier").PostAsync("/api/orders", Json(new
+            {
+                orderType = "DineIn", table = patio, clientOrderId = Guid.NewGuid().ToString(),
+                items = new[] { new { menuItemId = item.GetProperty("id").GetInt32(), quantity = 1 } }
+            }));
+            Assert.True(order.IsSuccessStatusCode, await order.Content.ReadAsStringAsync());
+
+            var list = await Read(await admin.GetAsync("/api/admin/tables"));
+            foreach (var t in list.EnumerateArray())
+            {
+                var id = t.GetProperty("id").GetInt32();
+                if (id == patio) Assert.True(t.GetProperty("used").GetBoolean());
+                if (id == spare) Assert.False(t.GetProperty("used").GetBoolean());
+            }
+
+            Assert.Equal(HttpStatusCode.NotFound, (await As(f, "admin", "2").DeleteAsync($"/api/admin/tables/{spare}")).StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, (await As(f, "cashier").DeleteAsync($"/api/admin/tables/{spare}")).StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, (await admin.DeleteAsync($"/api/admin/tables/{patio}")).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await admin.DeleteAsync($"/api/admin/tables/{spare}")).StatusCode);
+
+            var after = await (await admin.GetAsync("/api/admin/tables")).Content.ReadAsStringAsync();
+            Assert.DoesNotContain("Spare", after);
+            Assert.Contains("Patio", after);
+        }
     }
 }
