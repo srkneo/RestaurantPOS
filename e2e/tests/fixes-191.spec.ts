@@ -29,7 +29,7 @@ const order = async (data: Record<string, unknown>) =>
   ok(await api.post('/api/orders', { data: { items: [{ menuItemId: teaId, quantity: 1 }], clientOrderId: crypto.randomUUID(), ...data } }));
 const setStatus = async (orderId: number, status: string) => ok(await api.put(`/api/orders/${orderId}/status`, { data: { status } }));
 
-test('H1 Served on Orders closes a ready dine-in order and frees its table', async ({ browser }) => {
+test('H1 Served on Orders keeps a dine-in table busy until the bill is paid', async ({ browser }) => {
   const table = await addTable(`S${id}`);
   const placed = await order({ orderType: 'DineIn', table: table.id });
   await setStatus(placed.orderId, 'Ready');
@@ -39,8 +39,14 @@ test('H1 Served on Orders closes a ready dine-in order and frees its table', asy
   await page.goto('/orders');
   const row = page.getByRole('row').filter({ has: page.getByRole('cell', { name: String(placed.tokenNumber), exact: true }) });
   await row.getByRole('button', { name: 'Served' }).click();
-  await expect(page.getByText(`Token ${placed.tokenNumber} done.`)).toBeVisible();
+  await expect(page.getByText(`Token ${placed.tokenNumber} served. The table stays busy until the bill is paid.`)).toBeVisible();
+  expect((await ok(await api.get(`/api/orders/${placed.orderId}`))).status).toBe('Served');
+  expect((await boardOf(table.id)).status).toBe('Occupied');
+
+  const bill = await ok(await api.post(`/api/orders/${placed.orderId}/bill`, { data: {} }));
+  await ok(await api.post(`/api/bills/${bill.id}/payments`, { data: { method: 'cash', amount: Number(bill.total), version: bill.version } }));
   await expect.poll(async () => (await boardOf(table.id)).status).toBe('Free');
+  expect((await ok(await api.get(`/api/orders/${placed.orderId}`))).status).toBe('Completed');
 });
 
 test('H2 paying the bill of a ready takeaway closes it and it leaves the token screen', async ({ browser }) => {

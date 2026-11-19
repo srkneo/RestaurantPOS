@@ -6,6 +6,8 @@ namespace POSSystem.Models
         Preparing,
         Ready,
         Completed,
-        Cancelled
+        Cancelled,
+        // Dine-in food is at the table; the table stays busy until the bill is paid (then Completed).
+        Served
     }
 }

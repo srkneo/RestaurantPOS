@@ -16,7 +16,8 @@ namespace POSSystem.Orders
 
     public static class TableBoard
     {
-        public static readonly OrderStatus[] Open = { OrderStatus.Received, OrderStatus.Preparing, OrderStatus.Ready };
+        // Served still holds the table: the guests are eating until the bill is paid.
+        public static readonly OrderStatus[] Open = { OrderStatus.Received, OrderStatus.Preparing, OrderStatus.Ready, OrderStatus.Served };
 
         // Only today's open orders hold a table. An order left open on an earlier business day is not the
         // table's running tab: new orders (POS or QR) must start fresh so they show on today's kitchen screen.
