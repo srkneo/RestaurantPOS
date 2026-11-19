@@ -10,7 +10,7 @@ import { formatMoney, parseServerDate } from '../ui/format';
 import './OrderHistory.css';
 
 const REASONS = ['reasonCustomerLeft', 'reasonWrongOrder', 'reasonOutOfStock', 'reasonOther'];
-const OPEN = ['Received', 'Preparing', 'Ready'];
+const OPEN = ['Received', 'Preparing', 'Ready', 'Served'];
 
 // Works with both item shapes: items (itemName, unitPrice) and menuItems (name, price)
 const getItems = (order) =>
@@ -67,10 +67,11 @@ const OrderHistory = () => {
       const res = await fetch(`/api/orders/${order.id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'Completed', version: order.version }),
+        // Dine-in: the food is at the table, the table stays busy until the bill is paid. Takeaway: the customer left.
+        body: JSON.stringify({ status: order.orderType === 'DineIn' ? 'Served' : 'Completed', version: order.version }),
       });
       if (!res.ok) throw new Error('failed');
-      showToast(t('orders.doneToast', { token: order.tokenNumber }));
+      showToast(t(order.orderType === 'DineIn' ? 'orders.servedToast' : 'orders.doneToast', { token: order.tokenNumber }));
     } catch {
       showToast(t('common.error'), 'error');
     }
@@ -305,7 +306,7 @@ const OrderHistory = () => {
                           </button>
                         </div>
                       )}
-                      {order.orderType !== 'Takeaway' && ['Received', 'Preparing', 'Ready'].includes(order.status) && (
+                      {order.orderType !== 'Takeaway' && OPEN.includes(order.status) && (
                         <div className="pos-row-actions mt-1">
                           <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openMove(order)}>{t('orders.move')}</button>
                           <button type="button" className="btn btn-outline-secondary btn-sm px-3"
