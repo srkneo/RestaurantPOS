@@ -38,12 +38,15 @@ Test on the local POS (or WSL shop PC) as owner, cashier, waiter and kitchen. Ti
 - [ ] POS > Tables: tiles show free / busy with token and minutes / bill printed; tapping a tile picks the table.
 - [ ] Billing settings > Cashier discount limit 10: as cashier a 20% discount asks for a manager PIN; wrong PIN refused; right PIN makes the bill; Audit log shows it; as manager no PIN asked.
 - [ ] Bill > Send on WhatsApp: opens WhatsApp with items and total; with a customer phone it opens that chat.
+- [ ] Billing settings > Manager PIN: turn off "Cashiers need a manager PIN to print a bill again"; as cashier reprint without a PIN works (reprint without a PIN); turn it back on and the PIN is asked again.
 
 ## Guests
 - [ ] Store > Google review link: save a https link; printed bill shows the review QR; scanning opens the review page.
 - [ ] Store > Feedback QR on: printed bill shows the feedback QR; scan from a phone; give 4 stars and a comment; second try says already given.
 - [ ] Feedback page lists it with the average; turning Feedback QR off makes the old QR say the link does not work.
 - [ ] With Feedback QR on, the WhatsApp bill message has the feedback link.
+- [ ] Give 2 stars from a phone with the POS open on another screen: the POS shows the low rating message with the table and bill number.
+- [ ] Day report > Share on WhatsApp: the summary has the guest rating line when the day has feedback.
 
 ## Accountant
 - [ ] Reports > Download for Tally (XML): file opens; in Tally (if available) Import Data > Vouchers accepts it after creating the 8 ledgers; a credit note day has a Credit Note voucher.
