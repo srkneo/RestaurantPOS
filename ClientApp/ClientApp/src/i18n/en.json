@@ -859,6 +859,7 @@
   "share.extra": "Expenses {expenses} · Tips {tips}",
   "share.net": "Net sales {net}",
   "share.feedback": "Guest rating {average} of 5 ({count} guests)",
+  "feedback.lowRating": "Low rating: {rating} star(s) for {label} (bill {number}). Please check on the guest.",
   "qr.table": "Table {number}",
   "qr.menu": "Menu",
   "qr.add": "Add {name}",
