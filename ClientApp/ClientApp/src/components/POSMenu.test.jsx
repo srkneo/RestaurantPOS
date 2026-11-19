@@ -58,6 +58,16 @@ afterEach(() => {
 });
 
 describe('POS screen', () => {
+  it('shows what a combo includes under its name', async () => {
+    mockApi();
+    const base = globalThis.fetch;
+    vi.stubGlobal('fetch', vi.fn(async (url, options) => (url === '/api/menuitems'
+      ? { ok: true, json: async () => [...MENU, { id: 9, name: 'Thali Combo', price: 299, category: 'Mains', isVeg: true, includes: '1 x Dal, 2 x Naan' }] }
+      : base(url, options))));
+    renderPos();
+    expect(await screen.findByText('1 x Dal · 2 x Naan')).toBeInTheDocument();
+  });
+
   it('shows a bar with the total that jumps to the order on small screens', async () => {
     mockApi();
     renderPos();

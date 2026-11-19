@@ -106,6 +106,20 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task Combo_PartsShowOnThePosAndQrMenu()
+        {
+            var s = Build();
+            using var f = s.Factory;
+            Assert.Equal(HttpStatusCode.OK, (await SaveCombo(f, s.MealId, (s.BurgerId, 1), (s.FriesId, 2))).StatusCode);
+
+            var menu = await Read(await As(f, "cashier").GetAsync("/api/menuitems"));
+            var meal = menu.EnumerateArray().Single(i => i.GetProperty("id").GetInt32() == s.MealId);
+            Assert.Equal("1 x Burger, 2 x Fries", meal.GetProperty("includes").GetString());
+            var cola = menu.EnumerateArray().Single(i => i.GetProperty("id").GetInt32() == s.ColaId);
+            Assert.Equal(JsonValueKind.Null, cola.GetProperty("includes").ValueKind);
+        }
+
+        [Fact]
         public async Task Combo_IsChecked_AndOnlyForOwnerOrManager()
         {
             var s = Build();

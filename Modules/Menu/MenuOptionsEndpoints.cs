@@ -18,7 +18,7 @@ namespace POSSystem.Menu
     // What the POS gets for each item: the item plus its sizes and extras.
     public record PosMenuItemDto(int Id, string Name, decimal Price, string Category, int? CategoryId, string? Description,
         bool IsVeg, bool IsAvailable, decimal TaxRate, int SortOrder, bool IsDeleted, int OutletId,
-        List<MenuOptionDto> Variants, List<MenuOptionDto> AddOns);
+        List<MenuOptionDto> Variants, List<MenuOptionDto> AddOns, string? Includes = null);
 
     public static class MenuOptions
     {
@@ -43,11 +43,13 @@ namespace POSSystem.Menu
                     .Select(a => new MenuOptionDto(a.Id, a.Name, a.Price, a.IsAvailable)).ToList()));
         }
 
-        public static PosMenuItemDto ToPosDto(MenuItem m, Dictionary<int, MenuOptionsDto> options)
+        // includes: "1 x Dal, 2 x Naan" for combo items (Combos.IncludesFor), shown under the name on the POS and QR menu.
+        public static PosMenuItemDto ToPosDto(MenuItem m, Dictionary<int, MenuOptionsDto> options, Dictionary<int, string>? includes = null)
         {
             var o = options.TryGetValue(m.Id, out var found) ? found : new MenuOptionsDto(new(), new());
             return new PosMenuItemDto(m.Id, m.Name, m.Price, m.Category, m.CategoryId, m.Description, m.IsVeg, m.IsAvailable,
-                m.TaxRate, m.SortOrder, m.IsDeleted, m.OutletId, o.Variants, o.AddOns);
+                m.TaxRate, m.SortOrder, m.IsDeleted, m.OutletId, o.Variants, o.AddOns,
+                includes != null && includes.TryGetValue(m.Id, out var parts) ? parts : null);
         }
 
         public static Dictionary<string, string[]> Validate(MenuOptionsRequest req)

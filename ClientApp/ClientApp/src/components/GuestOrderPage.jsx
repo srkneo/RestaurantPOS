@@ -140,6 +140,7 @@ export default function GuestOrderPage() {
               <li key={item.id}>
                 <div>
                   <div className="guest-name">{item.name}</div>
+                  {item.includes && <div className="guest-desc">{item.includes.split(', ').join(' · ')}</div>}
                   {item.description && <div className="guest-desc">{item.description}</div>}
                   <div className="guest-price">{formatMoney(item.price)}</div>
                 </div>

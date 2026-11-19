@@ -59,8 +59,9 @@ namespace POSSystem.Orders
                 var closed = await MenuHours.ClosedCategoryIds(db);
                 var items = (await menu.GetMenuItems()).Where(i => i.CategoryId == null || !closed.Contains(i.CategoryId.Value)).ToList();
                 var options = await MenuOptions.ForItems(db, items.Select(i => i.Id).ToList());
+                var includes = await Combos.IncludesFor(db, items.Select(i => i.Id).ToList());
                 return Results.Ok(new QrMenuDto(tenant?.Name ?? string.Empty, outlet.Name, table.TableNumber,
-                    outlet.GetSettings().QrOrderingEnabled, items.Select(i => MenuOptions.ToPosDto(i, options)).ToList()));
+                    outlet.GetSettings().QrOrderingEnabled, items.Select(i => MenuOptions.ToPosDto(i, options, includes)).ToList()));
             }).WithName("GetQrMenu").WithSummary("Menu for a guest who scanned a table's QR code");
 
             guest.MapPost("/order", async (string token, QrOrderRequest request, AppDbContext db, TenantStatus tenants, IOrderService orders) =>
