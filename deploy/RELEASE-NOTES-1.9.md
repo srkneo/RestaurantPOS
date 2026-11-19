@@ -37,10 +37,13 @@
 - **Table grid**: the POS has a Tables button showing every table as a tile: free, busy (token and minutes) or bill printed. Tap one to pick it.
 - **Cashier discount limit** (Billing settings): the most discount a cashier gives alone. Above it a manager types their PIN on the bill; it is noted in the audit log. Empty = no limit.
 - **Send on WhatsApp**: the bill opens WhatsApp with its items, total and due amount, straight to the customer's number when the order has one.
+- **Reprint without a PIN** (Billing settings > Manager PIN): by default a cashier needs a manager PIN to print a bill again; the owner can turn that off. Void and credit notes always need a manager.
 
 ## Guests / ગ્રાહકો
 - **Google review QR** (Store page): paste your Google review link and every bill prints a "Rate us on Google" QR code.
 - **Feedback QR** (Store page): bills print a "Tell us how we did" QR. Guests give 1–5 stars and a comment without an app or sign-in, once per bill. Read them under Feedback, with the average. The WhatsApp bill carries the same link.
+- **Low rating alert**: when a guest gives 1 or 2 stars, the POS shows a message with the table and bill number, so staff can check on them while they are still there.
+- **Rating in the day summary**: the WhatsApp day summary adds "Guest rating 4.3 of 5 (12 guests)" for the day's bills.
 
 ## Accountant / એકાઉન્ટન્ટ
 - **Tally export** (Reports): one Sales voucher per day (cash, UPI, card and unpaid against sales, CGST, SGST, round off) and one Credit Note voucher per credit note, for Tally Import Data. Ledgers: Cash, UPI Collections, Card Collections, POS Unpaid Bills, Sales, Output CGST, Output SGST, Round Off.
