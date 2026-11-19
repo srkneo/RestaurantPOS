@@ -5,6 +5,7 @@ import { useToast } from '../ui/ToastContext';
 import FormDialog from '../ui/FormDialog';
 import BillDialog from './BillDialog';
 import StateMessage from '../ui/StateMessage';
+import Pager, { usePaged } from '../ui/Pager';
 import { formatMoney, parseServerDate } from '../ui/format';
 import './OrderHistory.css';
 
@@ -26,6 +27,7 @@ const OrderHistory = () => {
   const [orders, setOrders] = useState([]);
   const [loadState, setLoadState] = useState('loading');
   const [date, setDate] = useState('');
+  const [search, setSearch] = useState('');
   const [cancelling, setCancelling] = useState(null);
   const [reason, setReason] = useState('');
   const [otherReason, setOtherReason] = useState('');
@@ -220,12 +222,24 @@ const OrderHistory = () => {
   const sorted = [...orders].sort(
     (a, b) => (parseServerDate(b.createdAt)?.getTime() ?? 0) - (parseServerDate(a.createdAt)?.getTime() ?? 0),
   );
+  // Search by token number, customer name or phone, table, or an item name.
+  const query = search.trim().toLowerCase();
+  const filtered = query
+    ? sorted.filter((o) => [String(o.tokenNumber), o.customerName, o.customerPhone, o.table?.tableNumber, ...(o.items ?? []).map((i) => i.itemName)]
+      .some((v) => v != null && String(v).toLowerCase().includes(query)))
+    : sorted;
+  const { page, pageCount, pageItems, setPage, total } = usePaged(filtered, 50);
 
   return (
     <main className="pos-page">
       <div className="pos-page-head">
         <h1>{t('orders.title')}</h1>
-        <div className="d-flex align-items-end gap-2">
+        <div className="d-flex flex-wrap align-items-end gap-2">
+          <div>
+            <label htmlFor="orders-search" className="form-label">{t('orders.search')}</label>
+            <input id="orders-search" type="search" className="form-control" placeholder={t('orders.searchHint')}
+              value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
           <div>
             <label htmlFor="orders-date" className="form-label">{t('orders.date')}</label>
             <input id="orders-date" type="date" className="form-control" value={date} onChange={(e) => setDate(e.target.value)} />
@@ -237,7 +251,8 @@ const OrderHistory = () => {
       {loadState === 'loading' && <StateMessage kind="loading" />}
       {loadState === 'error' && <StateMessage kind="error" onRetry={load} />}
       {loadState === 'ready' && sorted.length === 0 && <StateMessage kind="empty" message={t('orders.empty')} />}
-      {loadState === 'ready' && sorted.length > 0 && (
+      {loadState === 'ready' && sorted.length > 0 && filtered.length === 0 && <StateMessage kind="empty" message={t('orders.noMatch')} />}
+      {loadState === 'ready' && filtered.length > 0 && (
         <div className="pos-card table-responsive">
           <table className="table align-middle">
             <thead>
@@ -252,7 +267,7 @@ const OrderHistory = () => {
               </tr>
             </thead>
             <tbody>
-              {sorted.map((order) => {
+              {pageItems.map((order) => {
                 const items = getItems(order);
                 const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
                 const created = parseServerDate(order.createdAt);
@@ -307,6 +322,7 @@ const OrderHistory = () => {
           </table>
         </div>
       )}
+      {loadState === 'ready' && <Pager page={page} pageCount={pageCount} total={total} onPage={setPage} />}
 
       <FormDialog open={!!cancelling} title={t('orders.cancelTitle', { token: cancelling?.tokenNumber ?? '' })} submitLabel={t('orders.cancelConfirm')}
         busy={busy} error={cancelError} onCancel={() => setCancelling(null)} onSubmit={confirmCancel}>
