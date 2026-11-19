@@ -20,7 +20,8 @@ namespace POSSystem.Billing
         decimal Cgst, decimal Sgst, decimal Total, decimal CreditTotal, decimal NetSales,
         IReadOnlyList<DaySalesDto> Days, IReadOnlyList<ItemSalesDto> Items, IReadOnlyList<CategorySalesDto> Categories,
         IReadOnlyList<PaymentTotalDto> Payments, IReadOnlyList<HourSalesDto> Hours, IReadOnlyList<StaffSalesDto> Staff,
-        IReadOnlyList<TaxSummaryRow> TaxSummary, IReadOnlyList<ExpenseTotalDto>? Expenses = null, decimal ExpenseTotal = 0m);
+        IReadOnlyList<TaxSummaryRow> TaxSummary, IReadOnlyList<ExpenseTotalDto>? Expenses = null, decimal ExpenseTotal = 0m,
+        int FeedbackCount = 0, decimal? FeedbackAverage = null);
 
     // Owner reports (v1.9) for a range of business days: sales by day, item, category, payment, hour and staff,
     // GST per rate, and a GST bill list for the accountant as CSV. Read-only: nothing here changes a bill.
@@ -132,12 +133,16 @@ namespace POSSystem.Billing
             var creditTotal = await db.CreditNotes.Where(c => c.OutletId == db.CurrentOutletId && c.BusinessDate >= from && c.BusinessDate <= to)
                 .SumAsync(c => c.Total);
             var expenses = await ExpenseService.Totals(db, from, to);
+            // Guest ratings given for the range's bills (feedback QR).
+            var billIds = bills.Select(b => b.Id).ToList();
+            var ratings = await db.GuestFeedbacks.Where(f => billIds.Contains(f.BillId)).Select(f => f.Rating).ToListAsync();
+            decimal? feedbackAverage = ratings.Count == 0 ? null : Math.Round((decimal)ratings.Average(), 1);
             var total = bills.Sum(b => b.Total);
             return new SalesReportDto(from, to, bills.Count, bills.Sum(b => b.ItemsTotal), bills.Sum(b => b.Discount), bills.Sum(b => b.TaxableValue),
                 bills.Sum(b => b.Cgst), bills.Sum(b => b.Sgst), total, creditTotal, total - creditTotal,
                 days, items, categories, byMethod, hours, staff,
                 BillCalculator.TaxSummary(bills.Where(b => b.TaxMode == TaxMode.Regular).SelectMany(b => b.Lines)),
-                expenses, expenses.Sum(e => e.Amount));
+                expenses, expenses.Sum(e => e.Amount), ratings.Count, feedbackAverage);
         }
 
         public static async Task<string> GstCsv(AppDbContext db, DateOnly from, DateOnly to)

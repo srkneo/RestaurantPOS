@@ -141,6 +141,30 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task TheSalesReportShowsTheRangesRatings()
+        {
+            var s = Build();
+            using var f = s.Factory;
+            var admin = As(f, "admin");
+            Assert.Equal(HttpStatusCode.OK, (await admin.PutAsync("/api/admin/feedback-setting", Json(new { enabled = true }))).StatusCode);
+            var none = await Read(await As(f, "manager").GetAsync("/api/reports/sales"));
+            Assert.Equal(0, none.GetProperty("feedbackCount").GetInt32());
+            Assert.Equal(JsonValueKind.Null, none.GetProperty("feedbackAverage").ValueKind);
+
+            var guest = f.CreateClient();
+            foreach (var rating in new[] { 3, 4, 4 })
+            {
+                var billId = (await Bill(s)).GetProperty("id").GetInt32();
+                var token = (await Read(await admin.GetAsync($"/api/bills/{billId}/feedback-link"))).GetProperty("token").GetString()!;
+                Assert.Equal(HttpStatusCode.OK, (await guest.PostAsync($"/api/feedback/{token}", Json(new { rating }))).StatusCode);
+            }
+
+            var report = await Read(await As(f, "manager").GetAsync("/api/reports/sales"));
+            Assert.Equal(3, report.GetProperty("feedbackCount").GetInt32());
+            Assert.Equal(3.7m, report.GetProperty("feedbackAverage").GetDecimal());
+        }
+
+        [Fact]
         public async Task BadTokens_FeedbackOff_AndRoles()
         {
             var s = Build();
