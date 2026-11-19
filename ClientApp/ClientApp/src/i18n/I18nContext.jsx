@@ -1,13 +1,17 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import en from './en.json';
 import gu from './gu.json';
+// Hindi covers the daily screens (POS, tables, kitchen, orders, bills, token and guest pages);
+// any text not in hi.json yet shows in English.
+import hi from './hi.json';
 
 export const LANGUAGES = [
   { code: 'en', label: 'EN', name: 'English' },
   { code: 'gu', label: 'ગુ', name: 'ગુજરાતી' },
+  { code: 'hi', label: 'हि', name: 'हिन्दी' },
 ];
 
-const dictionaries = { en, gu };
+const dictionaries = { en, gu, hi };
 const STORAGE_KEY = 'pos.lang';
 
 function readStoredLang() {
