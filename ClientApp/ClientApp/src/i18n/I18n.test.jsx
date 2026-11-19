@@ -5,6 +5,7 @@ import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import en from './en.json';
 import gu from './gu.json';
+import hi from './hi.json';
 import { I18nProvider, LanguageSwitch, translate, useT } from './I18nContext';
 
 function Title() {
@@ -20,6 +21,28 @@ afterEach(() => {
 describe('i18n', () => {
   it('has a Gujarati text for every English key', () => {
     expect(Object.keys(gu).sort()).toEqual(Object.keys(en).sort());
+  });
+
+  it('has Hindi only for English keys, with the same {placeholders}', () => {
+    const marks = (text) => (text.match(/\{\w+\}/g) ?? []).sort();
+    for (const [key, text] of Object.entries(hi)) {
+      expect(en[key], key).toBeDefined();
+      expect(marks(text), key).toEqual(marks(en[key]));
+    }
+  });
+
+  it('shows English where Hindi has no text yet', () => {
+    const missing = Object.keys(en).find((key) => !(key in hi));
+    expect(translate('hi', missing)).toBe(en[missing]);
+    expect(translate('hi', 'login.title')).toBe(hi['login.title']);
+  });
+
+  it('switches to Hindi', () => {
+    render(<I18nProvider><Title /><LanguageSwitch /></I18nProvider>);
+    fireEvent.click(screen.getByRole('button', { name: 'हि' }));
+    expect(screen.getByRole('heading')).toHaveTextContent(hi['login.title']);
+    expect(localStorage.getItem('pos.lang')).toBe('hi');
+    expect(document.documentElement.lang).toBe('hi');
   });
 
   it('falls back to the key when a text is missing', () => {
