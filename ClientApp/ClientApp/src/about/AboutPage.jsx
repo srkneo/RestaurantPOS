@@ -3,6 +3,7 @@ import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
 import { loadAbout, telLink, versionText, whatsAppLink } from './about';
+import { LICENCES } from './licences';
 import '../components/OrderHistory.css';
 
 // Who to call for help, the version, and (on a shop PC) the licence and a short PC code. "Copy details" gives
@@ -83,6 +84,18 @@ export default function AboutPage() {
             {about.email && <a className="btn btn-outline-secondary px-4" href={`mailto:${about.email}`}>{t('about.sendEmail')}</a>}
             <button type="button" className="btn btn-primary px-4" onClick={copy}>{t('about.copy')}</button>
           </div>
+          <details className="pos-card">
+            <summary className="fw-semibold">{t('about.openSource')}</summary>
+            <p className="text-body-secondary mt-2 mb-2">{t('about.openSourceHint')}</p>
+            <ul className="list-unstyled mb-0">
+              {LICENCES.map((l) => (
+                <li key={l.name} className="d-flex flex-wrap gap-2 py-1 border-bottom">
+                  <a href={l.url} target="_blank" rel="noreferrer" className="text-break">{l.name}</a>
+                  <span className="text-body-secondary ms-auto">{l.licence}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
         </div>
       )}
     </main>
