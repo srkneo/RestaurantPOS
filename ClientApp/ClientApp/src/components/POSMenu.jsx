@@ -456,6 +456,9 @@ const POSMenu = () => {
                       aria-label={t('pos.addItem', { name: item.name })} onClick={() => tapItem(item)}>
                       <span className="pos-item-cat"><VegMark isVeg={item.isVeg} />{item.category}</span>
                       <span className="pos-item-name">{item.name}</span>
+                      {(item.includes || item.description) && (
+                        <span className="pos-item-desc">{item.includes ? item.includes.split(', ').join(' · ') : item.description}</span>
+                      )}
                       <span className="pos-item-foot">
                         {item.variants?.length
                           ? t('pos.fromPrice', { price: formatMoney(Math.min(...item.variants.map((v) => Number(v.price)))) })
