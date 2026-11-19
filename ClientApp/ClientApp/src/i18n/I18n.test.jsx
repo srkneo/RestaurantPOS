@@ -31,9 +31,8 @@ describe('i18n', () => {
     }
   });
 
-  it('shows English where Hindi has no text yet', () => {
-    const missing = Object.keys(en).find((key) => !(key in hi));
-    expect(translate('hi', missing)).toBe(en[missing]);
+  it('has a Hindi text for every English key', () => {
+    expect(Object.keys(hi).sort()).toEqual(Object.keys(en).sort());
     expect(translate('hi', 'login.title')).toBe(hi['login.title']);
   });
 

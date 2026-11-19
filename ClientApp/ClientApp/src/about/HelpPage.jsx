@@ -2,7 +2,7 @@ import React from 'react';
 import { useI18n } from '../i18n/I18nContext';
 import { HELP } from './helpContent';
 
-// How-to pages for staff in the language chosen on screen (English or Gujarati).
+// How-to pages for staff in the language chosen on screen (English, Gujarati or Hindi).
 export default function HelpPage() {
   const { lang, t } = useI18n();
   const sections = HELP[lang] ?? HELP.en;
