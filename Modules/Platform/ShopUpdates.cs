@@ -20,7 +20,9 @@ namespace POSSystem.Platform
     // status.json (written by the script).
     public class ShopUpdates
     {
-        public static readonly string[] Modes = { "auto", "paused", "pinned" };
+        // auto: the newest release once it has been out 2 days; early: the newest at once (a few trusted shops first);
+        // paused: none; pinned: stays on one version.
+        public static readonly string[] Modes = { "auto", "early", "paused", "pinned" };
         private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
         private static readonly Regex VersionPattern = new(@"^\d{1,4}\.\d{1,4}\.\d{1,4}$");
 

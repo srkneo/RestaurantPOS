@@ -107,6 +107,7 @@ export default function ShopLicencesPage() {
 
   const updatesText = (licence) => {
     if (licence.updateMode === 'paused') return t('licences.updates.paused');
+    if (licence.updateMode === 'early') return t('licences.updates.early');
     if (licence.updateMode === 'pinned') return t('licences.updates.pinned', { version: licence.pinnedVersion || '' });
     return t('licences.updates.auto');
   };
@@ -297,6 +298,7 @@ export default function ShopLicencesPage() {
           <select className="form-select" id="licences-updates-mode" value={updateForm.mode}
             onChange={(e) => setUpdateForm({ ...updateForm, mode: e.target.value })}>
             <option value="auto">{t('licences.updates.auto')}</option>
+            <option value="early">{t('licences.updates.early')}</option>
             <option value="paused">{t('licences.updates.paused')}</option>
             <option value="pinned">{t('licences.updates.pinned', { version: '…' })}</option>
           </select>
