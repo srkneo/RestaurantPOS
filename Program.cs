@@ -81,6 +81,7 @@ try
     app.MapStoreEndpoints();
     app.MapSettingsEndpoints();
     app.MapPlatformEndpoints();
+    app.MapSubscriptionEndpoints();
     app.MapBillEndpoints();
     app.MapDayCloseEndpoints();
     app.MapTipEndpoints();

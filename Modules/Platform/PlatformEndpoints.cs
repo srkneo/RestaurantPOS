@@ -12,7 +12,8 @@ using POSSystem.Models;
 
 namespace POSSystem.Platform
 {
-    public record PlatformTenantDto(int Id, string Name, bool IsActive, DateTime CreatedAt, int OutletCount, int StaffCount, DateTime? LastOrderAt);
+    public record PlatformTenantDto(int Id, string Name, bool IsActive, DateTime CreatedAt, int OutletCount, int StaffCount, DateTime? LastOrderAt,
+        string? Plan = null, DateOnly? PaidUntil = null, string State = "none", string? OwnerPhone = null);
 
     public record CreateTenantRequest(string? RestaurantName, string? OutletName, string? OwnerName, string? OwnerEmail, string? OwnerPassword);
 
@@ -30,52 +31,8 @@ namespace POSSystem.Platform
 
             group.MapPost("/tenants", async (CreateTenantRequest req, AppDbContext db, UserManager<AppUser> users) =>
             {
-                var errors = await ValidateAsync(req, users);
-                if (errors.Count > 0) return Results.ValidationProblem(errors);
-
-                var tenant = new Tenant { Name = req.RestaurantName!.Trim(), IsActive = true };
-                db.Tenants.Add(tenant);
-                await db.SaveChangesAsync();
-
-                var outlet = new Outlet { TenantId = tenant.Id, Name = req.OutletName!.Trim() };
-                db.Outlets.Add(outlet);
-                await db.SaveChangesAsync();
-
-                // Tables and the owner belong to the new restaurant, so switch to it while adding them.
-                var tenantBefore = db.CurrentTenantId;
-                var outletBefore = db.CurrentOutletId;
-                db.CurrentTenantId = tenant.Id;
-                db.CurrentOutletId = outlet.Id;
-                try
-                {
-                    for (var i = 1; i <= StarterTables; i++)
-                    {
-                        db.RestaurantTables.Add(new RestaurantTable { TableNumber = i.ToString(), QRCodeString = $"t{tenant.Id}-table-{i}-qr", SortOrder = i });
-                    }
-                    await db.SaveChangesAsync();
-
-                    var email = req.OwnerEmail!.Trim();
-                    var owner = new AppUser
-                    {
-                        UserName = email, Email = email, EmailConfirmed = true, DisplayName = req.OwnerName!.Trim(),
-                        TenantId = tenant.Id, OutletId = outlet.Id
-                    };
-                    var created = await users.CreateAsync(owner, req.OwnerPassword!);
-                    if (!created.Succeeded)
-                    {
-                        return Results.ValidationProblem(new Dictionary<string, string[]>
-                        {
-                            ["owneremail"] = created.Errors.Select(e => e.Description).ToArray()
-                        });
-                    }
-                    await users.AddToRoleAsync(owner, "admin");
-                }
-                finally
-                {
-                    db.CurrentTenantId = tenantBefore;
-                    db.CurrentOutletId = outletBefore;
-                }
-
+                var (tenant, errors) = await CreateTenantAsync(req, db, users);
+                if (tenant == null) return Results.ValidationProblem(errors!);
                 var dto = (await ListAsync(db)).First(t => t.Id == tenant.Id);
                 return Results.Created($"/api/platform/tenants/{tenant.Id}", dto);
             }).WithName("CreatePlatformTenant").WithSummary("Add a restaurant with its first outlet, 10 tables and an owner");
@@ -87,6 +44,57 @@ namespace POSSystem.Platform
                 .WithName("EnablePlatformTenant").WithSummary("Let a disabled restaurant sign in again");
 
             return app;
+        }
+
+        // A restaurant with its first outlet, 10 tables and its owner (admin). Used by /platform and by self-signup.
+        public static async Task<(Tenant? Tenant, Dictionary<string, string[]>? Errors)> CreateTenantAsync(CreateTenantRequest req, AppDbContext db, UserManager<AppUser> users)
+        {
+            var errors = await ValidateAsync(req, users);
+            if (errors.Count > 0) return (null, errors);
+
+            var tenant = new Tenant { Name = req.RestaurantName!.Trim(), IsActive = true };
+            db.Tenants.Add(tenant);
+            await db.SaveChangesAsync();
+
+            var outlet = new Outlet { TenantId = tenant.Id, Name = req.OutletName!.Trim() };
+            db.Outlets.Add(outlet);
+            await db.SaveChangesAsync();
+
+            // Tables and the owner belong to the new restaurant, so switch to it while adding them.
+            var tenantBefore = db.CurrentTenantId;
+            var outletBefore = db.CurrentOutletId;
+            db.CurrentTenantId = tenant.Id;
+            db.CurrentOutletId = outlet.Id;
+            try
+            {
+                for (var i = 1; i <= StarterTables; i++)
+                {
+                    db.RestaurantTables.Add(new RestaurantTable { TableNumber = i.ToString(), QRCodeString = $"t{tenant.Id}-table-{i}-qr", SortOrder = i });
+                }
+                await db.SaveChangesAsync();
+
+                var email = req.OwnerEmail!.Trim();
+                var owner = new AppUser
+                {
+                    UserName = email, Email = email, EmailConfirmed = true, DisplayName = req.OwnerName!.Trim(),
+                    TenantId = tenant.Id, OutletId = outlet.Id
+                };
+                var created = await users.CreateAsync(owner, req.OwnerPassword!);
+                if (!created.Succeeded)
+                {
+                    return (null, new Dictionary<string, string[]>
+                    {
+                        ["owneremail"] = created.Errors.Select(e => e.Description).ToArray()
+                    });
+                }
+                await users.AddToRoleAsync(owner, "admin");
+            }
+            finally
+            {
+                db.CurrentTenantId = tenantBefore;
+                db.CurrentOutletId = outletBefore;
+            }
+            return (tenant, null);
         }
 
         private static async Task<IResult> SetActive(int id, bool active, AppDbContext db, TenantStatus status)
@@ -120,11 +128,12 @@ namespace POSSystem.Platform
                 t.CreatedAt,
                 outlets.FirstOrDefault(o => o.TenantId == t.Id)?.Count ?? 0,
                 staff.FirstOrDefault(s => s.TenantId == t.Id)?.Count ?? 0,
-                lastOrders.FirstOrDefault(o => o.TenantId == t.Id)?.Last)).ToList();
+                lastOrders.FirstOrDefault(o => o.TenantId == t.Id)?.Last,
+                t.Plan, t.PaidUntil, Subscription.StateOf(t), t.OwnerPhone)).ToList();
         }
 
         // All checks before anything is saved, so a bad form never leaves a half-made restaurant.
-        private static async Task<Dictionary<string, string[]>> ValidateAsync(CreateTenantRequest req, UserManager<AppUser> users)
+        public static async Task<Dictionary<string, string[]>> ValidateAsync(CreateTenantRequest req, UserManager<AppUser> users)
         {
             var errors = new Dictionary<string, string[]>();
             void Name(string key, string? value, string label)

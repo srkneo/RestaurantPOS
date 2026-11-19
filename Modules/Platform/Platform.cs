@@ -11,6 +11,12 @@ namespace POSSystem.Models
         public string Name { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Cloud subscription (v2.0): trial, monthly or yearly, paid up to and including PaidUntil (India date).
+        // No PaidUntil = no subscription needed (shop PCs with a licence, restaurants added before subscriptions).
+        [MaxLength(10)] public string? Plan { get; set; }
+        public DateOnly? PaidUntil { get; set; }
+        [MaxLength(20)] public string? OwnerPhone { get; set; }
     }
 
     // One location of a restaurant. Orders, menu and tables belong to an outlet.
