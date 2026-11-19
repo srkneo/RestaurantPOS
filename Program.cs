@@ -91,6 +91,7 @@ try
     app.MapReportEndpoints();
     app.MapExpenseEndpoints();
     app.MapStockEndpoints();
+    app.MapRecipeEndpoints();
     app.MapQrOrderingEndpoints();
     app.MapDemoDataEndpoints();
     app.MapReviewLinkEndpoints();

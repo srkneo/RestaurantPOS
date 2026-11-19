@@ -107,6 +107,7 @@ namespace POSSystem.Data
             var locks = LockAndMergeSettings();
             try
             {
+                UseStockForCompletedOrders();
                 ApplyAuditFields();
                 var pending = CollectAudit();
                 var result = base.SaveChanges();
@@ -124,6 +125,7 @@ namespace POSSystem.Data
             var locks = await LockAndMergeSettingsAsync(cancellationToken);
             try
             {
+                await UseStockForCompletedOrdersAsync(cancellationToken);
                 ApplyAuditFields();
                 var pending = CollectAudit();
                 var result = await base.SaveChangesAsync(cancellationToken);
