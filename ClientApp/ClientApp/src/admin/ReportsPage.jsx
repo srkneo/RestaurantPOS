@@ -7,8 +7,15 @@ import '../components/OrderHistory.css';
 // yyyy-MM-dd of a local date.
 const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-function quickRange(kind) {
-  const today = new Date();
+// Date of a yyyy-MM-dd text, at local midnight.
+const fromIso = (s) => {
+  const [y, m, d] = s.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+
+// Quick ranges count from the restaurant's business day (base), which before the day-start hour is still yesterday.
+function quickRange(kind, base) {
+  const today = base ? fromIso(base) : new Date();
   if (kind === 'week') {
     const start = new Date(today);
     start.setDate(today.getDate() - 6);
@@ -45,15 +52,21 @@ export default function ReportsPage() {
   const t = useT();
   const [range, setRange] = useState(() => quickRange('today'));
   const [state, setState] = useState({ status: 'loading' });
+  const [businessToday, setBusinessToday] = useState(null);
 
+  // r = null asks the server for its business day (the first load).
   const load = useCallback(async (r) => {
     setState({ status: 'loading' });
     try {
-      const res = await fetch(`/api/reports/sales?from=${r.from}&to=${r.to}`);
+      const res = await fetch(r ? `/api/reports/sales?from=${r.from}&to=${r.to}` : '/api/reports/sales');
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setState({ status: 'error', message: data.message });
         return;
+      }
+      if (!r && data.from && data.to) {
+        setRange({ from: data.from, to: data.to });
+        setBusinessToday(data.to);
       }
       setState({ status: 'ready', report: data });
     } catch {
@@ -61,10 +74,10 @@ export default function ReportsPage() {
     }
   }, []);
 
-  useEffect(() => { load(quickRange('today')); }, [load]);
+  useEffect(() => { load(null); }, [load]);
 
   const pick = (kind) => {
-    const r = quickRange(kind);
+    const r = quickRange(kind, businessToday);
     setRange(r);
     load(r);
   };
