@@ -122,6 +122,17 @@ describe('Order history', () => {
     expect(JSON.parse(sent.options.body)).toEqual({ status: 'Completed', version: 3 });
   });
 
+  it('finds orders by customer name or item', async () => {
+    mockApi();
+    renderPage();
+    expect(await screen.findByText('Classic Burger', { exact: false })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Search'), { target: { value: 'ravi' } });
+    expect(screen.queryByText('Classic Burger', { exact: false })).not.toBeInTheDocument();
+    expect(screen.getByText('Fries', { exact: false })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Search'), { target: { value: 'pizza' } });
+    expect(screen.getByText('No orders match your search.')).toBeInTheDocument();
+  });
+
   it('offers edit and cancel only before cooking', async () => {
     mockApi();
     renderPage();
