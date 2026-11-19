@@ -138,6 +138,41 @@ namespace RestaurantPOS.Tests
         }
 
         [Fact]
+        public async Task NotMarkedReady_ServedOrNoKitchenScreen_FreesTheTable()
+        {
+            var s = Build(TaxMode.None, withGstin: false);
+            using var f = s.Factory;
+            var cashier = As(f, "cashier");
+            var admin = As(f, "admin");
+            JsonElement Table(JsonElement list) => list.EnumerateArray().Single(t => t.GetProperty("id").GetInt32() == s.TableId);
+
+            // Paid, the kitchen never pressed ready: Served closes it and frees the table.
+            var first = await PlaceOrder(s, cashier);
+            var bill = await Read(await cashier.PostAsync($"/api/orders/{first}/bill", Json(new { })));
+            Assert.Equal(HttpStatusCode.OK, (await cashier.PostAsync($"/api/bills/{bill.GetProperty("id").GetInt32()}/payments", Json(new { method = "cash", amount = 500, version = 1 }))).StatusCode);
+            Assert.Equal("Occupied", Table(await Read(await cashier.GetAsync("/api/tables"))).GetProperty("status").GetString());
+            Assert.Equal(HttpStatusCode.OK, (await admin.PutAsync($"/api/orders/{first}/status", Json(new { status = "Served" }))).StatusCode);
+            Assert.Equal("Completed", (await Read(await cashier.GetAsync($"/api/orders/{first}"))).GetProperty("status").GetString());
+            Assert.Equal("Free", Table(await Read(await cashier.GetAsync("/api/tables"))).GetProperty("status").GetString());
+
+            // No kitchen screen at this outlet: paying closes the order at once.
+            using (var scope = f.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var outlet = db.Outlets.Single(o => o.Id == 1);
+                var settings = outlet.GetSettings();
+                settings.KitchenScreenEnabled = false;
+                outlet.Settings = settings.ToJson();
+                db.SaveChanges();
+            }
+            var second = await PlaceOrder(s, cashier);
+            var bill2 = await Read(await cashier.PostAsync($"/api/orders/{second}/bill", Json(new { })));
+            Assert.Equal(HttpStatusCode.OK, (await cashier.PostAsync($"/api/bills/{bill2.GetProperty("id").GetInt32()}/payments", Json(new { method = "cash", amount = 500, version = 1 }))).StatusCode);
+            Assert.Equal("Completed", (await Read(await cashier.GetAsync($"/api/orders/{second}"))).GetProperty("status").GetString());
+            Assert.Equal("Free", Table(await Read(await cashier.GetAsync("/api/tables"))).GetProperty("status").GetString());
+        }
+
+        [Fact]
         public async Task ServedDineIn_KeepsTheTable_UntilTheBillIsPaid()
         {
             var s = Build(TaxMode.None, withGstin: false);
