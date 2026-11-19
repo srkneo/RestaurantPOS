@@ -106,6 +106,12 @@ export default function ReportsPage() {
               <div><div className="pos-hint">{t('reports.discount')}</div><div className="h4 mb-0">{n(report.discount)}</div></div>
               <div><div className="pos-hint">{t('reports.gst')}</div><div className="h4 mb-0">{n(Number(report.cgst) + Number(report.sgst))}</div></div>
               <div><div className="pos-hint">{t('reports.expenses')}</div><div className="h4 mb-0">{n(report.expenseTotal ?? 0)}</div></div>
+              {Number(report.feedbackCount ?? 0) > 0 && (
+                <div>
+                  <div className="pos-hint">{t('reports.rating')}</div>
+                  <div className="h4 mb-0">{t('reports.ratingValue', { average: Number(report.feedbackAverage).toFixed(1), count: report.feedbackCount })}</div>
+                </div>
+              )}
             </div>
             <p className="pos-hint mb-0 mt-2">{t('reports.hint')}</p>
           </section>

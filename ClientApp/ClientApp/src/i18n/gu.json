@@ -795,6 +795,8 @@
   "reports.bills": "બિલ",
   "reports.total": "કુલ",
   "reports.net": "ચોખ્ખું વેચાણ",
+  "reports.rating": "ગ્રાહક રેટિંગ",
+  "reports.ratingValue": "{average} / 5 ({count})",
   "reports.discount": "ડિસ્કાઉન્ટ",
   "reports.gst": "GST",
   "reports.hint": "રદ બિલ ગણ્યા નથી. ચોખ્ખું વેચાણ = કુલ માંથી ક્રેડિટ નોટ બાદ. શ્રેણી અને વસ્તુની રકમ ડિસ્કાઉન્ટ પહેલાંની છે.",
