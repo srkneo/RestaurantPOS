@@ -23,7 +23,8 @@ namespace POSSystem.Dtos
         string BusinessDate,
         int Version,
         string? CancelReason,
-        string? TakenBy = null);
+        string? TakenBy = null,
+        DateTime? ReadyAt = null);
 
     public static class OrderMapping
     {
@@ -42,6 +43,7 @@ namespace POSSystem.Dtos
             o.BusinessDate.ToString("yyyy-MM-dd"),
             o.Version,
             o.CancelReason,
-            o.TakenBy);
+            o.TakenBy,
+            o.ReadyAt);
     }
 }
