@@ -47,6 +47,12 @@
 .pos-item-name { font-family: var(--pos-font-display); font-size: 20px; font-weight: 600; line-height: 1.2;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
 .pos-item { overflow: hidden; height: auto; }
+/* The tile grows with its text: parts never shrink, so a two-line dish name is never cut off. */
+.pos-item > * { flex-shrink: 0; }
+/* Dish text size chosen by the owner in Settings (normal is the size above). */
+.pos-text-small .pos-item-name { font-size: 16px; -webkit-line-clamp: 3; line-clamp: 3; }
+.pos-text-large .pos-item-name { font-size: 24px; }
+.pos-text-large .pos-item-foot { font-size: 20px; }
 .pos-item-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; }
 .pos-badge { padding: 4px 10px; border-radius: 12px; background: var(--pos-accent); color: #FFFFFF; font-size: 13px; font-weight: 600; }
 .pos-order {

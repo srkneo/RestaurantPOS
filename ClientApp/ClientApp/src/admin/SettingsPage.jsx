@@ -172,6 +172,23 @@ export default function SettingsPage() {
                             />
                         </Field>
                         <Field
+                            id="set-text-size"
+                            label={t('settings.menuTextSize')}
+                            hint={t('settings.menuTextSizeHint')}
+                            error={errors.menutextsize}
+                        >
+                            <select
+                                id="set-text-size"
+                                className="form-select"
+                                value={form.menuTextSize ?? 'normal'}
+                                onChange={text('menuTextSize')}
+                            >
+                                <option value="small">{t('settings.textSmall')}</option>
+                                <option value="normal">{t('settings.textNormal')}</option>
+                                <option value="large">{t('settings.textLarge')}</option>
+                            </select>
+                        </Field>
+                        <Field
                             id="set-zone"
                             label={t('settings.timeZone')}
                             error={errors.timezone}
