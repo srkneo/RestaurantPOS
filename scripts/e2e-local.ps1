@@ -10,7 +10,12 @@ $project = "pos-e2e"
 $files = @("-f", "docker-compose.yml", "-f", "scripts/e2e-compose.override.yml")
 
 docker compose -p $project @files down -v 2>&1 | Out-Null
-docker compose -p $project @files up -d --build 2>&1 | Select-Object -Last 5
+docker compose -p $project @files up -d --build 2>&1 | Select-Object -Last 40
+if ($LASTEXITCODE -ne 0) {
+  # Docker Desktop sometimes fails a build once (busy builder); try once more before giving up.
+  Start-Sleep -Seconds 15
+  docker compose -p $project @files up -d --build 2>&1 | Select-Object -Last 40
+}
 if ($LASTEXITCODE -ne 0) { Write-Host "E2E RESULT: FAILED (could not start the stack; is Docker running?)"; exit 1 }
 
 $up = $false
