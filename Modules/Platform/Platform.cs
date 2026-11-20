@@ -67,6 +67,9 @@ namespace POSSystem.Models
 
         public int MaxItemQuantity { get; set; } = 99;
 
+        // Size of dish names on the POS: small (long names fit), normal or large (easy to read from a distance).
+        public string MenuTextSize { get; set; } = "normal";
+
         // Up to this many rupees still due after a payment can be waived as small change (0 = never).
         public decimal SmallChangeLimit { get; set; } = 5m;
 
