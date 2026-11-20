@@ -50,6 +50,9 @@ services:
       Gemini__ApiKey: ${GEMINI_API_KEY:-}
       Gemini__Model: ${GEMINI_MODEL:-}
       Gemini__FallbackModel: ${GEMINI_FALLBACK_MODEL:-}
+      # Error tracking (Sentry free plan). Empty = off (shop PCs, load-test server).
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
       # Shop PC licence. Empty = no licence needed (the cloud version). The installer sets these on a shop PC.
       Licence__Required: ${LICENCE_REQUIRED:-}
       Licence__PublicKey: ${LICENCE_PUBLIC_KEY:-}

@@ -32,6 +32,8 @@ try
 
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
+    // OB3: errors to Sentry only when SENTRY_DSN is set (production server).
+    builder.AddPosSentry();
 
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
