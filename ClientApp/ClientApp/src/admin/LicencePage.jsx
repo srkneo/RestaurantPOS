@@ -149,7 +149,7 @@ export default function LicencePage() {
       {loadState === 'ready' && !status.required && <StateMessage kind="empty" message={t('licence.notRequired')} />}
       {loadState === 'ready' && status.required && (
         <div className="d-flex flex-column gap-3" style={{ maxWidth: 640 }}>
-          <div className="pos-card">
+          <div className="pos-card p-3 p-md-4">
             <dl className="row mb-2">
               <dt className="col-sm-5">{t('licence.status')}</dt>
               <dd className="col-sm-7 fw-semibold">{t(`licence.state.${status.state}`)}</dd>
