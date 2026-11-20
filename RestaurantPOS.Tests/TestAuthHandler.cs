@@ -25,6 +25,9 @@ namespace RestaurantPOS.Tests
                 new Claim("outlet_id", outlet)
             };
             var identity = new ClaimsIdentity(claims, "Test");
+            // Optional: act as a real staff account (needed by "my account" endpoints such as 2-step sign-in).
+            if (Request.Headers.TryGetValue("X-Test-User", out var userId) && !string.IsNullOrEmpty(userId.ToString()))
+                identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, userId.ToString()));
             var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), "Test");
             return Task.FromResult(AuthenticateResult.Success(ticket));
         }

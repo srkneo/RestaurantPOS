@@ -54,7 +54,7 @@ export function AuthProvider({ children }) {
     if (res.status === 503) return { sendFailed: true };
     if (!res.ok) return false;
     const data = await res.json().catch(() => null);
-    if (data?.twoStep) return { twoStep: true, challenge: data.challenge };
+    if (data?.twoStep) return { twoStep: true, challenge: data.challenge, method: data.method ?? 'telegram' };
     await refresh();
     return true;
   };

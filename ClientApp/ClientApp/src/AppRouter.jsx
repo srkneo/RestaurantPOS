@@ -41,6 +41,7 @@ import LicencePage from './admin/LicencePage';
 import ShopLicencesPage from './admin/ShopLicencesPage';
 import PlatformSupportPage from './admin/PlatformSupportPage';
 import AboutPage from './about/AboutPage';
+import SecurityPage from './admin/SecurityPage';
 import HelpPage from './about/HelpPage';
 import AppFooter from './about/AppFooter';
 import ServerWatch from './about/ServerWatch';
@@ -109,6 +110,7 @@ function AppHeader() {
           can(ADMIN_ROLES) && { to: '/admin/settings', label: t('nav.settings') },
           can(ADMIN_ROLES) && { to: '/admin/billing', label: t('nav.billing') },
           can(ADMIN_ROLES) && { to: '/admin/licence', label: t('nav.licence') },
+          can(MENU_ROLES) && { to: '/account/security', label: t('nav.security') },
         ].filter(Boolean)} />
         {can(PLATFORM_ROLES) && <NavLink to="/platform" end><Icon name="building" className="me-1" />{t('nav.platform')}</NavLink>}
         {can(PLATFORM_ROLES) && <NavLink to="/platform/licences"><Icon name="key" className="me-1" />{t('nav.licences')}</NavLink>}
@@ -174,6 +176,7 @@ function Layout() {
         <Route path="/admin/settings" element={<RequireRole roles={ADMIN_ROLES}><SettingsPage /></RequireRole>} />
         <Route path="/admin/billing" element={<RequireRole roles={ADMIN_ROLES}><BillingSettingsPage /></RequireRole>} />
         <Route path="/admin/licence" element={<RequireRole roles={ADMIN_ROLES}><LicencePage /></RequireRole>} />
+        <Route path="/account/security" element={<RequireRole roles={MENU_ROLES}><SecurityPage /></RequireRole>} />
         <Route path="/platform" element={<RequireRole roles={PLATFORM_ROLES}><PlatformPage /></RequireRole>} />
         <Route path="/platform/licences" element={<RequireRole roles={PLATFORM_ROLES}><ShopLicencesPage /></RequireRole>} />
         <Route path="/platform/support" element={<RequireRole roles={PLATFORM_ROLES}><PlatformSupportPage /></RequireRole>} />

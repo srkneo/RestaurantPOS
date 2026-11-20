@@ -12,6 +12,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [challenge, setChallenge] = useState(null);
   const [code, setCode] = useState('');
+  const [method, setMethod] = useState('telegram');   // telegram (platform owner) or app (authenticator app)
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
@@ -40,6 +41,7 @@ const Login = () => {
       navigate('/', { replace: true });
     } else if (result?.twoStep) {
       setChallenge(result.challenge);
+      setMethod(result.method ?? 'telegram');
       setCode('');
     } else if (result?.sendFailed) {
       setError(t('login.sendFailed'));
@@ -79,10 +81,11 @@ const Login = () => {
         )}
         {challenge && (
           <div>
-            <label htmlFor="login-code" className="form-label">{t('login.code')}</label>
-            <input id="login-code" className="form-control form-control-lg" inputMode="numeric" autoComplete="one-time-code"
-              maxLength={6} autoFocus required value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} />
-            <div className="form-text">{t('login.codeHint')}</div>
+            <label htmlFor="login-code" className="form-label">{method === 'app' ? t('login.appCode') : t('login.code')}</label>
+            <input id="login-code" className="form-control form-control-lg" inputMode={method === 'app' ? 'text' : 'numeric'} autoComplete="one-time-code"
+              maxLength={method === 'app' ? 11 : 6} autoFocus required value={code}
+              onChange={(e) => setCode(method === 'app' ? e.target.value.replace(/[^0-9A-Za-z-]/g, '') : e.target.value.replace(/\D/g, ''))} />
+            <div className="form-text">{method === 'app' ? t('login.appCodeHint') : t('login.codeHint')}</div>
           </div>
         )}
         {error && <p className="text-danger mb-0" role="alert">{error}</p>}
