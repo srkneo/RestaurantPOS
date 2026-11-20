@@ -117,10 +117,31 @@ namespace RestaurantPOS.Tests
             Assert.Equal(HttpStatusCode.Created, (await As(f, "cashier").PostAsync($"/api/orders/{orderId}/bill", Json(new { }))).StatusCode);
             Assert.Equal("Billed", Row(await Board(f), s.Tables[0]).GetProperty("status").GetString());
 
+            // Printed but unpaid: the new round joins the same token and the same bill (40 naan + 20 tea).
             var more = await As(f, "cashier").PostAsync($"/api/orders/{orderId}/add-items",
                 Json(new { items = new[] { new { menuItemId = s.TeaId, quantity = 1 } }, version }));
-            Assert.Equal(HttpStatusCode.Conflict, more.StatusCode);
-            Assert.Equal("billed", (await Read(more)).GetProperty("code").GetString());
+            Assert.Equal(HttpStatusCode.OK, more.StatusCode);
+            var newVersion = (await Read(more)).GetProperty("version").GetInt32();
+            int billId, billVersion;
+            using (var scope = f.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var bill = await db.Bills.Include(b => b.Lines).SingleAsync(b => b.KitchenOrderId == orderId);
+                Assert.Equal(60m, bill.Total);
+                Assert.Equal(2, bill.Lines.Count);
+                Assert.Equal(2, bill.Version);
+                Assert.Equal(1, await db.Bills.CountAsync());
+                billId = bill.Id;
+                billVersion = bill.Version;
+            }
+            Assert.Equal("Billed", Row(await Board(f), s.Tables[0]).GetProperty("status").GetString());
+
+            // Once paid, the bill is fixed: more items need a new order.
+            var paid = await As(f, "cashier").PostAsync($"/api/bills/{billId}/payments", Json(new { method = "cash", amount = 60, version = billVersion }));
+            Assert.Equal(HttpStatusCode.OK, paid.StatusCode);
+            var after = await As(f, "cashier").PostAsync($"/api/orders/{orderId}/add-items",
+                Json(new { items = new[] { new { menuItemId = s.TeaId, quantity = 1 } }, version = newVersion }));
+            Assert.Equal(HttpStatusCode.Conflict, after.StatusCode);
         }
 
         [Fact]
