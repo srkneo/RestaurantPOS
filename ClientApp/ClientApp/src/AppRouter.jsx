@@ -40,6 +40,7 @@ import BackupBanner from './licence/BackupBanner';
 import LicencePage from './admin/LicencePage';
 import ShopLicencesPage from './admin/ShopLicencesPage';
 import PlatformSupportPage from './admin/PlatformSupportPage';
+import PlatformDiagnosticsPage from './admin/PlatformDiagnosticsPage';
 import AboutPage from './about/AboutPage';
 import SecurityPage from './admin/SecurityPage';
 import HelpPage from './about/HelpPage';
@@ -115,6 +116,7 @@ function AppHeader() {
         {can(PLATFORM_ROLES) && <NavLink to="/platform" end><Icon name="building" className="me-1" />{t('nav.platform')}</NavLink>}
         {can(PLATFORM_ROLES) && <NavLink to="/platform/licences"><Icon name="key" className="me-1" />{t('nav.licences')}</NavLink>}
         {can(PLATFORM_ROLES) && <NavLink to="/platform/support"><Icon name="headset" className="me-1" />{t('nav.support')}</NavLink>}
+        {can(PLATFORM_ROLES) && <NavLink to="/platform/diagnostics"><Icon name="chart-line" className="me-1" />{t('nav.diagnostics')}</NavLink>}
       </nav>
       <div className="pos-user">
         {mainRole && <span className="pos-role" title={user.email}>{t(`role.${mainRole}`)}</span>}
@@ -180,6 +182,7 @@ function Layout() {
         <Route path="/platform" element={<RequireRole roles={PLATFORM_ROLES}><PlatformPage /></RequireRole>} />
         <Route path="/platform/licences" element={<RequireRole roles={PLATFORM_ROLES}><ShopLicencesPage /></RequireRole>} />
         <Route path="/platform/support" element={<RequireRole roles={PLATFORM_ROLES}><PlatformSupportPage /></RequireRole>} />
+        <Route path="/platform/diagnostics" element={<RequireRole roles={PLATFORM_ROLES}><PlatformDiagnosticsPage /></RequireRole>} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/help" element={<HelpPage />} />
         <Route path="/print/bill/:id" element={<RequireRole roles={POS_ROLES}><PrintBillPage /></RequireRole>} />

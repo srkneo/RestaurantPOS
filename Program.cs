@@ -117,6 +117,7 @@ try
     app.MapAboutEndpoints();
     app.MapClientErrorEndpoints();
     app.MapSecurityEventEndpoints();
+    app.MapDiagnosticsEndpoints();
 
     // OB1: request ID first, so every later log line and error response carries it.
     app.UseRequestIds();
