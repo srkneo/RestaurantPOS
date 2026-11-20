@@ -63,7 +63,9 @@ namespace POSSystem.Billing
             var cash = PaidBy(PaymentMethod.Cash);
             var upi = PaidBy(PaymentMethod.Upi);
             var card = PaidBy(PaymentMethod.Card);
-            var unpaid = total - cash - upi - card;
+            // Small change let go is booked like a round off (a debit), never as unpaid.
+            var waived = PaidBy(PaymentMethod.Waived);
+            var unpaid = total - cash - upi - card - waived;
             var sales = total - cgst - sgst - roundOff;
 
             var first = bills.Min(b => b.InvoiceNumber);
@@ -92,6 +94,7 @@ namespace POSSystem.Billing
             Entry(CgstLedger, cgst);
             Entry(SgstLedger, sgst);
             Entry(RoundOffLedger, roundOff);
+            Entry(RoundOffLedger, -waived);
             return voucher;
         }
 

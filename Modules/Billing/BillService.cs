@@ -228,6 +228,15 @@ namespace POSSystem.Billing
             var amount = BillCalculator.Paise(request.Amount);
             if (amount <= 0) throw new ArgumentException("Enter an amount above 0.");
             if (amount > due) throw new ArgumentException($"Only {due.ToString("0.00", CultureInfo.InvariantCulture)} is due on this bill.");
+            if (method == PaymentMethod.Waived)
+            {
+                var outlet = await _db.Outlets.FirstAsync(o => o.Id == bill.OutletId);
+                var limit = outlet.GetSettings().SmallChangeLimit;
+                if (limit <= 0) throw new ArgumentException("Waiving small change is turned off for this outlet.");
+                if (!bill.Payments.Any(p => p.Method != PaymentMethod.Waived)) throw new ArgumentException("Take the payment first, then waive the small change that is left.");
+                if (amount != due) throw new ArgumentException("Waive exactly the amount still due.");
+                if (amount > limit) throw new ArgumentException($"Only up to {limit.ToString("0.##", CultureInfo.InvariantCulture)} rupees of small change can be waived.");
+            }
             var reference = request.Reference?.Trim();
             if (reference is { Length: > 40 }) throw new ArgumentException("The reference can be at most 40 characters.");
 

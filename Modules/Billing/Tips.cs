@@ -48,7 +48,7 @@ namespace POSSystem.Billing
         {
             var bill = await _db.Bills.FirstOrDefaultAsync(b => b.Id == billId) ?? throw new KeyNotFoundException("Bill not found.");
             if (bill.Status == BillStatus.Void) throw new ArgumentException("This bill is void.");
-            if (!Enum.TryParse<PaymentMethod>(request.Method, true, out var method) || int.TryParse(request.Method, out _))
+            if (!Enum.TryParse<PaymentMethod>(request.Method, true, out var method) || int.TryParse(request.Method, out _) || method == PaymentMethod.Waived)
                 throw new ArgumentException("Choose Cash, UPI or Card.");
             var amount = BillCalculator.Paise(request.Amount);
             if (amount <= 0 || amount > MaxTip) throw new ArgumentException("Enter a tip above 0, up to 1,00,000.");
