@@ -63,7 +63,7 @@ export default function ComboDialog({ item, items, onClose }) {
   };
 
   return (
-    <FormDialog open title={t('combo.title', { name: item.name })} submitLabel={t('staff.save')} busy={busy} error={error}
+    <FormDialog open size="wide" title={t('combo.title', { name: item.name })} submitLabel={t('staff.save')} busy={busy} error={error}
       onCancel={() => onClose(false)} onSubmit={save}>
       <p className="pos-hint mb-0">{t('combo.hint')}</p>
       {rows.map((r, i) => (

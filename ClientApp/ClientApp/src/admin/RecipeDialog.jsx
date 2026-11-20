@@ -64,7 +64,7 @@ export default function RecipeDialog({ item, onClose }) {
   };
 
   return (
-    <FormDialog open title={t('recipe.title', { name: item.name })} submitLabel={t('recipe.save')} busy={busy || stock === null}
+    <FormDialog open size="wide" title={t('recipe.title', { name: item.name })} submitLabel={t('recipe.save')} busy={busy || stock === null}
       error={error === null ? undefined : (error || t('common.error'))} onCancel={onClose} onSubmit={save}>
       <p className="small text-body-secondary mb-0">{t('recipe.hint')}</p>
       {stock !== null && stock.length === 0 && error === null && <p className="mb-0">{t('recipe.noStock')} <a href="/stock">{t('nav.stock')}</a></p>}

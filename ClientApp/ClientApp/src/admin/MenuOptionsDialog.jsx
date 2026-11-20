@@ -104,7 +104,7 @@ export default function MenuOptionsDialog({ item, onClose }) {
   };
 
   return (
-    <FormDialog open title={t('options.title', { name: item.name })} submitLabel={t('staff.save')} busy={busy} error={error}
+    <FormDialog open size="wide" title={t('options.title', { name: item.name })} submitLabel={t('staff.save')} busy={busy} error={error}
       onCancel={() => onClose(false)} onSubmit={save}>
       <OptionRows kind="variant" title={t('options.sizes')} hint={t('options.sizesHint')} rows={variants} setRows={setVariants} />
       <OptionRows kind="addOn" title={t('options.extras')} hint={t('options.extrasHint')} rows={addOns} setRows={setAddOns} />
