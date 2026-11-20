@@ -70,7 +70,7 @@ jobs:
             echo "api<<EOF"; echo "$API_IMAGE:$version"; [ "$latest" = true ] && echo "$API_IMAGE:latest"; echo "EOF"
             echo "web<<EOF"; echo "$WEB_IMAGE:$version"; [ "$latest" = true ] && echo "$WEB_IMAGE:latest"; echo "EOF"
           } >> "$GITHUB_OUTPUT"
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         if: steps.v.outputs.rc == ''
         with:
           context: .
@@ -79,7 +79,7 @@ jobs:
           labels: org.opencontainers.image.source=https://github.com/srkneo/RestaurantPOS
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         if: steps.v.outputs.rc == ''
         with:
           context: ClientApp/ClientApp
