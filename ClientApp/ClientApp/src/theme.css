@@ -10,6 +10,12 @@
   --pos-border: #D9E0DC;
   --pos-border-strong: #B9C4BE;
   --pos-hover: #E8EDEA;
+  /* Form fields: white on the grey page, border at least 3:1 against white (WCAG 1.4.11). */
+  --pos-field-bg: #FFFFFF;
+  --pos-field-border: #84928C;
+  --pos-field-border-hover: #5F6D67;
+  --pos-field-disabled: #EEF1EF;
+  --pos-placeholder: #6B7872;
   --pos-danger: #B42318;
   --pos-new-bg: #CFF3E2;  --pos-new-text: #0B4F3A;
   --pos-wait-bg: #FFE7B8; --pos-wait-text: #5C3900;
@@ -52,7 +58,37 @@ h1, h2, h3, .pos-display { font-family: var(--pos-font-display); font-weight: 70
   --bs-btn-active-bg: #DDE4E0; --bs-btn-active-color: var(--pos-text); --bs-btn-active-border-color: var(--pos-border-strong);
   background: var(--pos-surface);
 }
-.form-control, .form-select { min-height: var(--pos-touch); border-color: var(--pos-border-strong); }
+/* Every text box, number, date, time and drop-down: white, a clear border, a darker border on hover,
+   the accent colour with a soft ring on focus, red when wrong, grey when it cannot be changed. */
+.form-control, .form-select {
+  min-height: var(--pos-touch);
+  background-color: var(--pos-field-bg);
+  border: 1px solid var(--pos-field-border);
+  border-radius: 10px;
+  color: var(--pos-text);
+  box-shadow: 0 1px 2px rgba(22, 33, 29, 0.06);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.form-control:hover:not(:disabled):not(:focus), .form-select:hover:not(:disabled):not(:focus) { border-color: var(--pos-field-border-hover); }
+.form-control:focus, .form-select:focus {
+  background-color: var(--pos-field-bg);
+  border-color: var(--pos-accent);
+  box-shadow: 0 0 0 3px rgba(15, 123, 90, 0.2);
+  color: var(--pos-text);
+}
+.form-control::placeholder { color: var(--pos-placeholder); opacity: 1; }
+.form-control:disabled, .form-select:disabled, .form-control[readonly] { background-color: var(--pos-field-disabled); color: var(--pos-muted); }
+.form-control.is-invalid, .form-select.is-invalid { border-color: var(--pos-danger); }
+/* Date and time pickers: the calendar/clock button looks like part of the field and shows it can be tapped. */
+input[type="date"].form-control, input[type="time"].form-control { cursor: pointer; }
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.55; padding: 4px; border-radius: 6px; }
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover { opacity: 0.9; background-color: var(--pos-hover); }
+/* Tick boxes and switches: white with the same border, accent colour when on. */
+.form-check-input { background-color: var(--pos-field-bg); border-color: var(--pos-field-border); }
+.form-check-input:checked { background-color: var(--pos-accent); border-color: var(--pos-accent); }
+.form-check-input:focus { border-color: var(--pos-accent); box-shadow: 0 0 0 3px rgba(15, 123, 90, 0.2); }
 .form-label { font-size: 13px; font-weight: 600; color: var(--pos-muted); margin-bottom: 6px; }
 
 /* App header */
