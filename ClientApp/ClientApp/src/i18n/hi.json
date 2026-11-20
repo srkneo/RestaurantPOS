@@ -171,6 +171,8 @@
   "bill.method.Cash": "नकद",
   "bill.method.Upi": "UPI",
   "bill.method.Card": "कार्ड",
+  "bill.method.Waived": "छुट्टे पैसे माफ़",
+  "bill.waive": "{amount} छुट्टे पैसे माफ़ करें",
   "bill.amount": "रकम",
   "bill.tendered": "मिले हुए नकद",
   "bill.change": "{amount} वापस दें",
