@@ -28,8 +28,9 @@ namespace POSSystem.Billing
     public record CreateBillRequest(decimal? DiscountPercent, decimal? DiscountAmount, string? ApproverPin = null);
     public record VoidBillRequest(string? Reason, int Version, string? ApproverPin = null);
     public record BillingSettingsDto(string TaxMode, bool PricesIncludeTax, string BillPrefix, string? UpiId = null, string? UpiName = null,
-        int PaperWidth = 80, string PrintLanguage = "en");
-    public record PrintSettingsDto(int PaperWidth, string PrintLanguage, bool UpiReady, bool ReviewReady = false, bool FeedbackReady = false, bool ReprintNeedsPin = true);
+        int PaperWidth = 80, string PrintLanguage = "en", decimal? SmallChangeLimit = null);
+    public record PrintSettingsDto(int PaperWidth, string PrintLanguage, bool UpiReady, bool ReviewReady = false, bool FeedbackReady = false, bool ReprintNeedsPin = true,
+        decimal SmallChangeLimit = 5m);
     public record AddPaymentRequest(string? Method, decimal Amount, decimal? Tendered, string? Reference, int Version);
     public record UpiLinkDto(string Link, decimal Amount, string UpiId);
 
@@ -361,13 +362,14 @@ namespace POSSystem.Billing
         public static BillingSettingsDto SettingsOf(Outlet outlet)
         {
             var s = outlet.GetSettings();
-            return new BillingSettingsDto(s.TaxMode.ToString(), s.PricesIncludeTax, s.BillPrefix, s.UpiId, s.UpiName, s.PaperWidth, s.PrintLanguage);
+            return new BillingSettingsDto(s.TaxMode.ToString(), s.PricesIncludeTax, s.BillPrefix, s.UpiId, s.UpiName, s.PaperWidth, s.PrintLanguage, s.SmallChangeLimit);
         }
 
         public static PrintSettingsDto PrintSettingsOf(Outlet outlet)
         {
             var s = outlet.GetSettings();
-            return new PrintSettingsDto(s.PaperWidth, s.PrintLanguage, !string.IsNullOrWhiteSpace(s.UpiId), !string.IsNullOrWhiteSpace(s.GoogleReviewUrl), s.FeedbackOnBill, s.ReprintNeedsPin);
+            return new PrintSettingsDto(s.PaperWidth, s.PrintLanguage, !string.IsNullOrWhiteSpace(s.UpiId), !string.IsNullOrWhiteSpace(s.GoogleReviewUrl), s.FeedbackOnBill, s.ReprintNeedsPin,
+                s.SmallChangeLimit);
         }
 
         // Counts prints; the second and later prints of a bill are marked DUPLICATE on paper.
@@ -394,6 +396,8 @@ namespace POSSystem.Billing
                 errors["paperwidth"] = new[] { "Choose 58 mm or 80 mm paper." };
             if (dto.PrintLanguage != "en" && dto.PrintLanguage != "gu" && dto.PrintLanguage != "hi")
                 errors["printlanguage"] = new[] { "Choose English (en), Gujarati (gu) or Hindi (hi)." };
+            if (dto.SmallChangeLimit is < 0m or > 20m)
+                errors["smallchangelimit"] = new[] { "Small change can be from 0 (off) to 20 rupees." };
             return errors;
         }
 
@@ -407,6 +411,8 @@ namespace POSSystem.Billing
             s.UpiName = string.IsNullOrWhiteSpace(dto.UpiName) ? null : dto.UpiName.Trim();
             s.PaperWidth = dto.PaperWidth;
             s.PrintLanguage = dto.PrintLanguage;
+            // Left out by older screens: keep what is saved.
+            if (dto.SmallChangeLimit is { } limit) s.SmallChangeLimit = Math.Round(limit, 0, MidpointRounding.AwayFromZero);
             outlet.Settings = s.ToJson();
         }
     }
