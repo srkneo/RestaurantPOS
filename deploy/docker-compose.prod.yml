@@ -12,6 +12,22 @@ services:
   db:
     image: postgres:17
     restart: unless-stopped
+    # OB6: slow queries (over 500 ms), lock waits over 1 s, temp files over 10 MB and slow autovacuum go to the
+    # database log (docker logs pos-db-1). Values sent with a query are never logged (no phones or names).
+    command:
+      - postgres
+      - -c
+      - log_min_duration_statement=500
+      - -c
+      - log_parameter_max_length=0
+      - -c
+      - log_parameter_max_length_on_error=0
+      - -c
+      - log_lock_waits=on
+      - -c
+      - log_temp_files=10240
+      - -c
+      - log_autovacuum_min_duration=10000
     environment:
       POSTGRES_DB: restaurant_pos
       POSTGRES_USER: pos
