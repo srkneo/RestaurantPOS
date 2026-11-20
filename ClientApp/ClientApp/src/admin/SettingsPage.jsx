@@ -11,6 +11,15 @@ export default function SettingsPage() {
     const { showToast } = useToast();
 
     const PRESETS = ['dine-in', 'cafe', 'takeaway-counter'];
+    // What each quick setup turns on (same as OutletSettings.WithPreset on the server), to show which one is in use.
+    const PRESET_VALUES = {
+        'dine-in': { dineInEnabled: true, takeawayEnabled: true, defaultOrderType: 'DineIn', takeawayNeedsName: true, kitchenScreenEnabled: true },
+        cafe: { dineInEnabled: true, takeawayEnabled: true, defaultOrderType: 'Takeaway', takeawayNeedsName: true, kitchenScreenEnabled: true },
+        'takeaway-counter': { dineInEnabled: false, takeawayEnabled: true, defaultOrderType: 'Takeaway', takeawayNeedsName: false, kitchenScreenEnabled: true },
+    };
+    const currentPreset = (form) => (form
+        ? PRESETS.find((p) => Object.entries(PRESET_VALUES[p]).every(([k, v]) => form[k] === v)) ?? null
+        : null);
 
     const [form, setForm] = useState(null);
     const [loadState, setLoadState] = useState('loading');
@@ -96,12 +105,18 @@ export default function SettingsPage() {
                     <section className="pos-card p-3 d-flex flex-column gap-2">
                         <h2 className="h5 mb-0">{t('settings.presets')}</h2>
                         <p className="pos-hint mb-0">{t('settings.presetsHint')}</p>
+                        <p className="mb-0 fw-semibold" role="status">
+                            {currentPreset(form)
+                                ? t('settings.presetCurrent', { name: t(`settings.preset.${currentPreset(form)}`) })
+                                : t('settings.presetCustom')}
+                        </p>
                         <div className="d-flex flex-wrap gap-2">
                             {PRESETS.map(preset => (
                                 <button
                                     key={preset}
                                     type="button"
-                                    className="btn btn-outline-secondary px-3"
+                                    className={`btn ${currentPreset(form) === preset ? 'btn-primary' : 'btn-outline-secondary'} px-3`}
+                                    aria-pressed={currentPreset(form) === preset}
                                     onClick={() => applyPreset(preset)}
                                 >
                                     {t(`settings.preset.${preset}`)}

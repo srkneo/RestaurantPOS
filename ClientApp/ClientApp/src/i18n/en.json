@@ -230,6 +230,8 @@
   "settings.title": "Settings",
   "settings.presets": "Quick setup",
   "settings.presetsHint": "Pick your type of outlet. You can still change each setting below.",
+  "settings.presetCurrent": "Current setup: {name}",
+  "settings.presetCustom": "Current setup: custom (changed by hand)",
   "settings.preset.dine-in": "Restaurant with tables",
   "settings.preset.cafe": "Cafe",
   "settings.preset.takeaway-counter": "Takeaway counter",
