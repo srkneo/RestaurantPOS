@@ -155,6 +155,7 @@ namespace POSSystem.Data
             ConfigureRecipes(modelBuilder);
             ConfigureReservations(modelBuilder);
             ConfigureLoyalty(modelBuilder);
+            ConfigureSecurityEvents(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
 
