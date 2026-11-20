@@ -24,6 +24,11 @@ jobs:
           sed -i 's/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=x/; s/^PLATFORM_EMAIL=.*/PLATFORM_EMAIL=a@b.c/; s/^PLATFORM_PASSWORD=.*/PLATFORM_PASSWORD=x/' .env
           echo "POS_VERSION=0.0.0" > version.env
           docker compose --env-file .env --env-file version.env -f docker-compose.prod.yml config --quiet
+          # OB5: the log agent's settings are valid too.
+          docker compose --env-file .env --env-file version.env -f docker-compose.prod.yml --profile monitoring config --quiet
+          docker compose --env-file .env --env-file version.env -f docker-compose.prod.yml --profile monitoring config --format json | jq -r '.configs.alloy_config.content' > /tmp/config.alloy
+          test -s /tmp/config.alloy
+          docker run --rm -v /tmp/config.alloy:/tmp/config.alloy:ro grafana/alloy:latest fmt /tmp/config.alloy > /dev/null
       - name: Caddyfile is valid
         run: docker run --rm -e SITE_ADDRESS=example.sslip.io -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
       - name: deploy.sh has no syntax errors

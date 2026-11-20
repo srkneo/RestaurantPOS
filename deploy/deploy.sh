@@ -17,6 +17,8 @@ if [ ! -f .env ]; then
 fi
 
 env_value() { grep -E "^$1=" .env | tail -n 1 | cut -d= -f2- || true; }
+# OB5: log shipping to Grafana Cloud only when GRAFANA_LOKI_URL is set in .env.
+if [ -n "$(env_value GRAFANA_LOKI_URL)" ]; then COMPOSE+=(--profile monitoring); fi
 notify() {
   local token chat
   token="$(env_value TELEGRAM_TOKEN)"; chat="$(env_value TELEGRAM_CHAT_ID)"
