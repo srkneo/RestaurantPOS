@@ -24,6 +24,7 @@ namespace POSSystem.Billing
         public const string CgstLedger = "Output CGST";
         public const string SgstLedger = "Output SGST";
         public const string RoundOffLedger = "Round Off";
+        public const string LoyaltyLedger = "Loyalty Points Redeemed";
 
         public static async Task<string> Xml(AppDbContext db, DateOnly from, DateOnly to)
         {
@@ -65,7 +66,9 @@ namespace POSSystem.Billing
             var card = PaidBy(PaymentMethod.Card);
             // Small change let go is booked like a round off (a debit), never as unpaid.
             var waived = PaidBy(PaymentMethod.Waived);
-            var unpaid = total - cash - upi - card - waived;
+            // Points spent by guests are booked like a discount (a debit), never as unpaid.
+            var points = PaidBy(PaymentMethod.Points);
+            var unpaid = total - cash - upi - card - waived - points;
             var sales = total - cgst - sgst - roundOff;
 
             var first = bills.Min(b => b.InvoiceNumber);
@@ -95,6 +98,7 @@ namespace POSSystem.Billing
             Entry(SgstLedger, sgst);
             Entry(RoundOffLedger, roundOff);
             Entry(RoundOffLedger, -waived);
+            Entry(LoyaltyLedger, -points);
             return voucher;
         }
 

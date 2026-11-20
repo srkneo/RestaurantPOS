@@ -68,6 +68,58 @@ namespace POSSystem.Loyalty
         public static int PointsFor(decimal total, decimal rupeesPerPoint) =>
             rupeesPerPoint <= 0 || total <= 0 ? 0 : (int)Math.Floor(total / rupeesPerPoint);
 
+        // Money part of a bill: what was paid with points earns no new points.
+        public static decimal MoneyOf(Bill bill) =>
+            bill.Total - bill.Payments.Where(p => p.Method == PaymentMethod.Points).Sum(p => p.Amount);
+
+        // The guest pays this many rupees of the bill with points. Returns the points used; the caller adds the payment.
+        public static async Task<int> RedeemAsync(AppDbContext db, Bill bill, decimal amount)
+        {
+            var phone = NormalizePhone(bill.CustomerPhone)
+                ?? throw new ArgumentException("Add the guest's mobile number to the order to use loyalty points.");
+            var outlet = await db.Outlets.FirstOrDefaultAsync(o => o.Id == bill.OutletId);
+            var settings = outlet?.GetSettings();
+            if (settings is not { LoyaltyEnabled: true } || settings.LoyaltyPointValue <= 0)
+                throw new ArgumentException("Loyalty points are turned off for this outlet.");
+            var customer = await db.Customers.FirstOrDefaultAsync(c => c.Phone == phone)
+                ?? throw new ArgumentException("This mobile number is not a loyalty guest.");
+            var exact = amount / settings.LoyaltyPointValue;
+            var points = (int)decimal.Round(exact);
+            if (points <= 0 || points != exact)
+                throw new ArgumentException($"Use whole points: one point is worth {settings.LoyaltyPointValue:0.##} rupees.");
+            if (points > customer.Points) throw new ArgumentException($"The guest has only {customer.Points} points.");
+            var now = DateTime.UtcNow;
+            customer.Points -= points;
+            customer.UpdatedAt = now;
+            db.LoyaltyMoves.Add(new LoyaltyMove
+            {
+                CustomerId = customer.Id, BillId = bill.Id, Kind = LoyaltyKind.Redeem, Points = -points, BalanceAfter = customer.Points,
+                At = now, By = db.CurrentUserId, Note = bill.InvoiceNumber
+            });
+            return points;
+        }
+
+        // A bill is voided or cancelled by a credit note: points earned on it are taken back and points spent on it are given back.
+        public static async Task ReverseAsync(AppDbContext db, Bill bill)
+        {
+            var moves = await db.LoyaltyMoves.Where(m => m.BillId == bill.Id).ToListAsync();
+            if (moves.Count == 0 || moves.Any(m => m.Kind == LoyaltyKind.Reverse)) return;
+            var net = moves.Sum(m => m.Points);
+            var customerId = moves[0].CustomerId;
+            var customer = await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId);
+            if (customer == null || net == 0) return;
+            var change = -net;
+            if (customer.Points + change < 0) change = -customer.Points;
+            var now = DateTime.UtcNow;
+            customer.Points += change;
+            customer.UpdatedAt = now;
+            db.LoyaltyMoves.Add(new LoyaltyMove
+            {
+                CustomerId = customer.Id, BillId = bill.Id, Kind = LoyaltyKind.Reverse, Points = change, BalanceAfter = customer.Points,
+                At = now, By = db.CurrentUserId, Note = bill.InvoiceNumber
+            });
+        }
+
         // Called when a bill becomes paid: a guest who agreed to loyalty gets a visit and points. Saved together with the bill.
         public static async Task EarnAsync(AppDbContext db, Bill bill)
         {
@@ -83,7 +135,7 @@ namespace POSSystem.Loyalty
             customer.Spent += bill.Total;
             customer.LastVisitAt = now;
             customer.UpdatedAt = now;
-            var points = PointsFor(bill.Total, settings.LoyaltyRupeesPerPoint);
+            var points = PointsFor(MoneyOf(bill), settings.LoyaltyRupeesPerPoint);
             if (points <= 0) return;
             customer.Points += points;
             db.LoyaltyMoves.Add(new LoyaltyMove

@@ -199,6 +199,7 @@ namespace POSSystem.Billing
             bill.VoidReason = reason;
             bill.VoidApprovedBy = approvedBy;
             bill.VoidedAt = DateTime.UtcNow;
+            await global::POSSystem.Loyalty.LoyaltyRules.ReverseAsync(_db, bill);
             bill.Version++;
             await _db.SaveChangesAsync();
             return bill;
@@ -241,6 +242,7 @@ namespace POSSystem.Billing
             var reference = request.Reference?.Trim();
             if (reference is { Length: > 40 }) throw new ArgumentException("The reference can be at most 40 characters.");
 
+            var pointsUsed = method == PaymentMethod.Points ? await global::POSSystem.Loyalty.LoyaltyRules.RedeemAsync(_db, bill, amount) : 0;
             decimal? tendered = null, change = null;
             if (method == PaymentMethod.Cash && request.Tendered.HasValue)
             {
@@ -256,7 +258,7 @@ namespace POSSystem.Billing
                 Amount = amount,
                 Tendered = tendered,
                 Change = change,
-                Reference = string.IsNullOrEmpty(reference) ? null : reference,
+                Reference = pointsUsed > 0 ? $"{pointsUsed} points" : string.IsNullOrEmpty(reference) ? null : reference,
                 ReceivedAt = DateTime.UtcNow,
                 ReceivedBy = _db.CurrentUserId
             });
