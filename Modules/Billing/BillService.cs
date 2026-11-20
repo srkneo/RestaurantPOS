@@ -264,6 +264,7 @@ namespace POSSystem.Billing
             {
                 bill.Status = BillStatus.Paid;
                 bill.PaidAt = DateTime.UtcNow;
+                await global::POSSystem.Loyalty.LoyaltyRules.EarnAsync(_db, bill);
             }
             bill.Version++;
             await _db.SaveChangesAsync();
