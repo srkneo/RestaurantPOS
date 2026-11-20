@@ -29,6 +29,7 @@ import ReportsPage from './admin/ReportsPage';
 import FeedbackListPage from './admin/FeedbackListPage';
 import ExpensesPage from './components/ExpensesPage';
 import StockPage from './components/StockPage';
+import StockReportPage from './components/StockReportPage';
 import ReservationsPage from './components/ReservationsPage';
 import OfflineBanner from './offline/OfflineBanner';
 import LicenceBanner from './licence/LicenceBanner';
@@ -141,6 +142,7 @@ function Layout() {
         <Route path="/admin/feedback" element={<RequireRole roles={MENU_ROLES}><FeedbackListPage /></RequireRole>} />
         <Route path="/expenses" element={<RequireRole roles={POS_ROLES}><ExpensesPage /></RequireRole>} />
         <Route path="/stock" element={<RequireRole roles={STOCK_ROLES}><StockPage /></RequireRole>} />
+        <Route path="/stock/report" element={<RequireRole roles={MENU_ROLES}><StockReportPage /></RequireRole>} />
         <Route path="/reservations" element={<RequireRole roles={CAPTAIN_ROLES}><ReservationsPage /></RequireRole>} />
         <Route path="/kitchen" element={<RequireRole roles={KITCHEN_ROLES}><KitchenDisplay /></RequireRole>} />
         <Route path="/tokens" element={<RequireRole roles={KITCHEN_ROLES}><TokenDisplay /></RequireRole>} />

@@ -12,7 +12,7 @@ import './OrderHistory.css';
 export const STOCK_UNITS = ['kg', 'g', 'l', 'ml', 'pcs', 'pack', 'box', 'dozen'];
 export const STOCK_KINDS = ['Purchase', 'Used', 'Waste', 'Count'];
 const BLANK_ITEM = { name: '', unit: 'kg', lowLevel: '', quantity: '' };
-const BLANK_MOVE = { kind: 'Purchase', quantity: '', cost: '', note: '' };
+const BLANK_MOVE = { kind: 'Purchase', quantity: '', cost: '', note: '', supplier: '' };
 const qty = (n) => Number(n ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 3 });
 const num = (v) => {
   const s = String(v ?? '').replace(/,/g, '').trim();
@@ -107,6 +107,7 @@ export default function StockPage() {
     try {
       const res = await send(`/api/stock/${moving.id}/moves`, 'POST', {
         kind: moveForm.kind, quantity, cost: Number.isNaN(cost) ? null : cost, note: moveForm.note.trim() || null,
+        supplier: moveForm.kind === 'Purchase' ? (moveForm.supplier.trim() || null) : null,
       });
       if (!res.ok) { setErrors(await readErrors(res)); return; }
       setMoving(null);
@@ -144,7 +145,12 @@ export default function StockPage() {
     <main className="pos-page">
       <div className="pos-page-head">
         <h1>{t('stock.title')}</h1>
-        {manager && <button type="button" className="btn btn-primary px-3" onClick={() => openItem(null)}>{t('stock.add')}</button>}
+        {manager && (
+          <div className="d-flex gap-2">
+            <a href="/stock/report" className="btn btn-outline-secondary px-3">{t('stock.report')}</a>
+            <button type="button" className="btn btn-primary px-3" onClick={() => openItem(null)}>{t('stock.add')}</button>
+          </div>
+        )}
       </div>
       {lowCount > 0 && <p className="alert alert-warning" role="status">{t('stock.lowCount', { count: lowCount })}</p>}
       <div className="d-flex flex-wrap gap-3 align-items-center mb-3">
@@ -226,6 +232,11 @@ export default function StockPage() {
         {moveForm.kind === 'Purchase' && (
           <Field id="stock-move-cost" label={t('stock.totalCost')} error={errors.cost}>
             <input id="stock-move-cost" className="form-control" inputMode="decimal" autoComplete="off" value={moveForm.cost} onChange={setMove('cost')} />
+          </Field>
+        )}
+        {moveForm.kind === 'Purchase' && (
+          <Field id="stock-move-supplier" label={t('stock.supplier')} error={errors.supplier}>
+            <input id="stock-move-supplier" className="form-control" maxLength={60} autoComplete="off" value={moveForm.supplier} onChange={setMove('supplier')} />
           </Field>
         )}
         <Field id="stock-move-note" label={t('stock.note')} error={errors.note}>

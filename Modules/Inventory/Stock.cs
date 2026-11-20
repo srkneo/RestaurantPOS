@@ -37,14 +37,20 @@ namespace POSSystem.Inventory
         public decimal QuantityAfter { get; set; }
         public decimal? Cost { get; set; }
         [MaxLength(100)] public string? Note { get; set; }
+        [MaxLength(60)] public string? Supplier { get; set; }
         public DateTime At { get; set; } = DateTime.UtcNow;
         public string? By { get; set; }
     }
 
     public record StockItemRequest(string? Name, string? Unit, decimal? LowLevel, decimal? Quantity);
-    public record StockMoveRequest(string? Kind, decimal? Quantity, decimal? Cost, string? Note);
+    public record StockMoveRequest(string? Kind, decimal? Quantity, decimal? Cost, string? Note, string? Supplier = null);
     public record StockItemDto(int Id, string Name, string Unit, decimal Quantity, decimal LowLevel, decimal? CostPerUnit, bool IsLow);
-    public record StockMoveDto(int Id, string Kind, decimal Change, decimal QuantityAfter, decimal? Cost, string? Note, DateTime At, string? By);
+    public record StockMoveDto(int Id, string Kind, decimal Change, decimal QuantityAfter, decimal? Cost, string? Note, DateTime At, string? By, string? Supplier = null);
+    public record StockReportLine(int Id, string Name, string Unit, decimal Bought, decimal BoughtCost, decimal Used, decimal Wasted,
+        decimal Quantity, decimal? CostPerUnit, decimal? Value);
+    public record SupplierTotalDto(string Supplier, int Purchases, decimal Cost);
+    public record StockReportDto(DateOnly From, DateOnly To, decimal PurchaseCost, decimal WasteValue, decimal StockValue,
+        IReadOnlyList<StockReportLine> Items, IReadOnlyList<SupplierTotalDto> Suppliers);
 
     public class StockException : Exception
     {
@@ -69,7 +75,47 @@ namespace POSSystem.Inventory
         public static StockItemDto ToDto(StockItem s) =>
             new(s.Id, s.Name, s.Unit, s.Quantity, s.LowLevel, s.CostPerUnit, s.LowLevel > 0 && s.Quantity <= s.LowLevel);
 
-        public static StockMoveDto ToDto(StockMove m) => new(m.Id, m.Kind.ToString(), m.Change, m.QuantityAfter, m.Cost, m.Note, m.At, m.By);
+        public static StockMoveDto ToDto(StockMove m) => new(m.Id, m.Kind.ToString(), m.Change, m.QuantityAfter, m.Cost, m.Note, m.At, m.By, m.Supplier);
+
+        public const int MaxReportDays = 92;
+
+        private async Task<TimeZoneInfo> Zone()
+        {
+            var tz = await _db.Outlets.Where(o => o.Id == _db.CurrentOutletId).Select(o => o.TimeZone).FirstOrDefaultAsync();
+            return BusinessClock.FindZone(tz);
+        }
+
+        public async Task<DateOnly> LocalToday() => DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, await Zone()));
+
+        // Days are calendar days of the outlet's time zone. Value uses each item's last purchase price.
+        public async Task<StockReportDto> Report(DateOnly from, DateOnly to)
+        {
+            var zone = await Zone();
+            DateTime Utc(DateOnly d) => TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(d.ToDateTime(TimeOnly.MinValue), DateTimeKind.Unspecified), zone);
+            var start = Utc(from);
+            var end = Utc(to.AddDays(1));
+            var items = await _db.StockItems.Where(s => s.OutletId == _db.CurrentOutletId).ToListAsync();
+            var moves = await _db.StockMoves.Where(m => m.OutletId == _db.CurrentOutletId && m.At >= start && m.At < end).ToListAsync();
+
+            var lines = items.Where(i => !i.IsDeleted || moves.Any(m => m.StockItemId == i.Id)).OrderBy(i => i.Name).Select(i =>
+            {
+                var mine = moves.Where(m => m.StockItemId == i.Id).ToList();
+                var bought = mine.Where(m => m.Kind == StockMoveKind.Purchase).Sum(m => m.Change);
+                var boughtCost = mine.Where(m => m.Kind == StockMoveKind.Purchase).Sum(m => m.Cost ?? 0m);
+                var used = -mine.Where(m => m.Kind == StockMoveKind.Used).Sum(m => m.Change);
+                var wasted = -mine.Where(m => m.Kind == StockMoveKind.Waste).Sum(m => m.Change);
+                decimal? value = i.CostPerUnit is { } c && !i.IsDeleted
+                    ? Math.Round(Math.Max(i.Quantity, 0m) * c, 2, MidpointRounding.AwayFromZero) : null;
+                return new StockReportLine(i.Id, i.Name, i.Unit, bought, boughtCost, used, wasted, i.Quantity, i.CostPerUnit, value);
+            }).ToList();
+
+            var wasteValue = Math.Round(lines.Sum(l => l.Wasted * (l.CostPerUnit ?? 0m)), 2, MidpointRounding.AwayFromZero);
+            var suppliers = moves.Where(m => m.Kind == StockMoveKind.Purchase)
+                .GroupBy(m => string.IsNullOrWhiteSpace(m.Supplier) ? "" : m.Supplier!)
+                .Select(g => new SupplierTotalDto(g.Key, g.Count(), g.Sum(m => m.Cost ?? 0m)))
+                .OrderByDescending(s => s.Cost).ThenBy(s => s.Supplier).ToList();
+            return new StockReportDto(from, to, lines.Sum(l => l.BoughtCost), wasteValue, lines.Sum(l => l.Value ?? 0m), lines, suppliers);
+        }
 
         private static decimal Qty(decimal value) => Math.Round(value, 3, MidpointRounding.AwayFromZero);
 
@@ -141,6 +187,8 @@ namespace POSSystem.Inventory
             if (cost != null && kind != StockMoveKind.Purchase) cost = null;
             var note = r.Note?.Trim();
             if (note is { Length: > 100 }) throw new StockException("note", "The note can be at most 100 characters.");
+            var supplier = kind == StockMoveKind.Purchase ? r.Supplier?.Trim() : null;
+            if (supplier is { Length: > 60 }) throw new StockException("supplier", "The supplier name can be at most 60 characters.");
 
             var gate = Locks.GetOrAdd(_db.CurrentOutletId, _ => new SemaphoreSlim(1, 1));
             await gate.WaitAsync();
@@ -162,7 +210,8 @@ namespace POSSystem.Inventory
                 _db.StockMoves.Add(new StockMove
                 {
                     StockItemId = item.Id, Kind = kind, Change = change, QuantityAfter = after, Cost = cost,
-                    Note = string.IsNullOrEmpty(note) ? null : note, At = DateTime.UtcNow, By = _db.CurrentUserId
+                    Note = string.IsNullOrEmpty(note) ? null : note, At = DateTime.UtcNow, By = _db.CurrentUserId,
+                    Supplier = string.IsNullOrEmpty(supplier) ? null : supplier
                 });
                 await _db.SaveChangesAsync();
                 return ToDto(item);
@@ -238,6 +287,21 @@ namespace POSSystem.Inventory
             })
                 .RequireAuthorization(p => p.RequireRole(Staff))
                 .WithName("AddStockMove").WithSummary("Record a purchase, use, waste or a stock count");
+
+            group.MapGet("/report", async (string? from, string? to, StockService stock) =>
+            {
+                var today = await stock.LocalToday();
+                DateOnly start = today, end = today;
+                if (!string.IsNullOrWhiteSpace(from) && !DateOnly.TryParseExact(from, "yyyy-MM-dd", out start)) return Results.BadRequest(new { message = "Use from=YYYY-MM-DD." });
+                if (!string.IsNullOrWhiteSpace(to) && !DateOnly.TryParseExact(to, "yyyy-MM-dd", out end)) return Results.BadRequest(new { message = "Use to=YYYY-MM-DD." });
+                if (string.IsNullOrWhiteSpace(to)) end = string.IsNullOrWhiteSpace(from) ? today : start;
+                if (string.IsNullOrWhiteSpace(from)) start = end;
+                if (end < start) return Results.BadRequest(new { message = "The end date is before the start date." });
+                if (end.DayNumber - start.DayNumber + 1 > StockService.MaxReportDays) return Results.BadRequest(new { message = $"Choose at most {StockService.MaxReportDays} days." });
+                return Results.Ok(await stock.Report(start, end));
+            })
+                .RequireAuthorization(p => p.RequireRole(Managers))
+                .WithName("GetStockReport").WithSummary("Bought, used and wasted per item for a range of days, stock value now and supplier totals");
 
             group.MapGet("/{id:int}/moves", async (int id, int? take, StockService stock) =>
             {

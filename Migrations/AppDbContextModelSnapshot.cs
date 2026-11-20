@@ -482,6 +482,10 @@ namespace RestaurantPOS.Migrations
                     b.Property<int>("StockItemId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Supplier")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
                     b.Property<int>("TenantId")
                         .HasColumnType("integer");
 
