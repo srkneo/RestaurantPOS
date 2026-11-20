@@ -23,7 +23,9 @@ namespace POSSystem.Models
     {
         Cash,
         Upi,
-        Card
+        Card,
+        // Small change the restaurant let go (guest a few rupees short, no coins): closes the bill, the invoice stays as it is.
+        Waived
     }
 
     // A bill (invoice) for one order. Never deleted: a void bill keeps its number and shows as void.

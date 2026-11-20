@@ -46,7 +46,7 @@ namespace POSSystem.Billing
             PaymentMethod? refundMethod = null;
             if (paid > 0)
             {
-                if (!Enum.TryParse<PaymentMethod>(request.RefundMethod, true, out var method) || int.TryParse(request.RefundMethod, out _))
+                if (!Enum.TryParse<PaymentMethod>(request.RefundMethod, true, out var method) || int.TryParse(request.RefundMethod, out _) || method == PaymentMethod.Waived)
                     throw new ArgumentException("Choose how the money is given back: Cash, UPI or Card.");
                 refundMethod = method;
             }

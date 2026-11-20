@@ -177,6 +177,7 @@ namespace POSSystem.Billing
             var payments = bills.SelectMany(b => b.Payments).ToList();
             var byMethod = Enum.GetValues<PaymentMethod>()
                 .Select(m => new PaymentTotalDto(m.ToString(), payments.Count(p => p.Method == m), payments.Where(p => p.Method == m).Sum(p => p.Amount)))
+                .Where(p => p.Method != nameof(PaymentMethod.Waived) || p.Count > 0)
                 .ToList();
             var unpaid = bills.Where(b => b.Status != BillStatus.Paid).ToList();
             var items = bills.SelectMany(b => b.Lines)

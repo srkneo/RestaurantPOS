@@ -215,6 +215,21 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
     });
   };
 
+  // Guest a few rupees short and no coins: close the bill by waiving what is left (the server checks the outlet's limit).
+  const waive = () => run(async () => {
+    const { res, data } = await postJson(`/api/bills/${bill.id}/payments`, { method: 'Waived', amount: due, tendered: null, reference: null, version: bill.version });
+    if (res.ok) {
+      showBill(data);
+      onChanged?.();
+      if (data.status === 'Paid') showToast(t('bill.paidToast', { number: data.invoiceNumber }));
+    } else if (res.status === 409) {
+      setError(t('pos.conflict'));
+      await load();
+    } else {
+      setError(data.message || t('common.error'));
+    }
+  });
+
   const confirmVoid = () => {
     if (!voidReason.trim()) { setError(t('bill.voidReasonRequired')); return; }
     if (!isApprover && !pin.trim()) { setError(t('approval.pinRequired')); return; }
@@ -324,6 +339,11 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
             )}
 
             {bill.status === 'Paid' && <p className="pos-bill-paid" role="status">{t('bill.paid')}</p>}
+            {bill.status === 'Unpaid' && due > 0 && due <= 20 && (bill.payments ?? []).some((p) => p.method !== 'Waived') && (
+              <button type="button" className="btn btn-outline-secondary align-self-start" disabled={busy} onClick={waive}>
+                {t('bill.waive', { amount: formatMoney(due) })}
+              </button>
+            )}
 
             {bill.status !== 'Void' && (tipOpen ? (
               <div className="pos-bill-tip d-flex flex-column gap-2">

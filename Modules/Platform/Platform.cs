@@ -67,6 +67,9 @@ namespace POSSystem.Models
 
         public int MaxItemQuantity { get; set; } = 99;
 
+        // Up to this many rupees still due after a payment can be waived as small change (0 = never).
+        public decimal SmallChangeLimit { get; set; } = 5m;
+
         // First token of each business day.
         public int FirstToken { get; set; } = 1;
 

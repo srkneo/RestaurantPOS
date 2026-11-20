@@ -464,6 +464,8 @@
   "bill.method.Cash": "રોકડ",
   "bill.method.Upi": "UPI",
   "bill.method.Card": "કાર્ડ",
+  "bill.method.Waived": "છૂટા પૈસા માફ",
+  "bill.waive": "{amount} છૂટા પૈસા માફ કરો",
   "bill.amount": "રકમ",
   "bill.tendered": "મળેલ રોકડ",
   "bill.change": "પરત આપો {amount}",

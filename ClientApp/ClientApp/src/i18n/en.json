@@ -464,6 +464,8 @@
   "bill.method.Cash": "Cash",
   "bill.method.Upi": "UPI",
   "bill.method.Card": "Card",
+  "bill.method.Waived": "Small change waived",
+  "bill.waive": "Waive {amount} small change",
   "bill.amount": "Amount",
   "bill.tendered": "Cash received",
   "bill.change": "Give back {amount}",
