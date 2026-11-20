@@ -4,6 +4,7 @@ import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
 import FormDialog from '../ui/FormDialog';
+import Icon from '../ui/Icon';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import { readErrors, send, Field } from '../ui/forms';
 import { formatMoney, parseServerDate } from '../ui/format';
@@ -180,7 +181,7 @@ export default function StockPage() {
             <tbody>
               {shown.map((i) => (
                 <tr key={i.id}>
-                  <td>{i.name} {i.isLow && <span className="badge text-bg-warning">{t('stock.low')}</span>}</td>
+                  <td>{i.name} {i.isLow && <span className="badge text-bg-warning"><Icon name="triangle-exclamation" className="me-1" />{t('stock.low')}</span>}</td>
                   <td className="text-end fw-semibold text-nowrap">{qty(i.quantity)} {i.unit}</td>
                   <td className="text-end text-nowrap">{i.lowLevel > 0 ? `${qty(i.lowLevel)} ${i.unit}` : '–'}</td>
                   <td className="text-end text-nowrap">{i.costPerUnit != null ? formatMoney(i.costPerUnit) : '–'}</td>

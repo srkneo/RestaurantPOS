@@ -3,6 +3,7 @@ import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
 import FormDialog from '../ui/FormDialog';
+import Icon from '../ui/Icon';
 import { readErrors, send, Field } from '../ui/forms';
 import './OrderHistory.css';
 
@@ -132,13 +133,13 @@ export default function ReservationsPage() {
                     <div className="d-flex flex-wrap gap-2">
                       {r.status === 'Booked' ? (
                         <>
-                          <button type="button" className="btn btn-sm btn-primary" aria-label={`${t('res.seat')} ${r.customerName}`} onClick={() => setStatus(r, 'Seated')}>{t('res.seat')}</button>
-                          <button type="button" className="btn btn-sm btn-outline-secondary" aria-label={`${t('res.editBtn')} ${r.customerName}`} onClick={() => open(r)}>{t('res.editBtn')}</button>
-                          <button type="button" className="btn btn-sm btn-outline-warning" aria-label={`${t('res.noShow')} ${r.customerName}`} onClick={() => setStatus(r, 'NoShow')}>{t('res.noShow')}</button>
-                          <button type="button" className="btn btn-sm btn-outline-danger" aria-label={`${t('res.cancel')} ${r.customerName}`} onClick={() => setStatus(r, 'Cancelled')}>{t('res.cancel')}</button>
+                          <button type="button" className="btn btn-sm btn-primary" aria-label={`${t('res.seat')} ${r.customerName}`} onClick={() => setStatus(r, 'Seated')}><Icon name="chair" className="me-1" />{t('res.seat')}</button>
+                          <button type="button" className="btn btn-sm btn-outline-secondary" aria-label={`${t('res.editBtn')} ${r.customerName}`} onClick={() => open(r)}><Icon name="pen" className="me-1" />{t('res.editBtn')}</button>
+                          <button type="button" className="btn btn-sm btn-outline-warning" aria-label={`${t('res.noShow')} ${r.customerName}`} onClick={() => setStatus(r, 'NoShow')}><Icon name="user-xmark" className="me-1" />{t('res.noShow')}</button>
+                          <button type="button" className="btn btn-sm btn-outline-danger" aria-label={`${t('res.cancel')} ${r.customerName}`} onClick={() => setStatus(r, 'Cancelled')}><Icon name="ban" className="me-1" />{t('res.cancel')}</button>
                         </>
                       ) : (
-                        <button type="button" className="btn btn-sm btn-outline-secondary" aria-label={`${t('res.undo')} ${r.customerName}`} onClick={() => setStatus(r, 'Booked')}>{t('res.undo')}</button>
+                        <button type="button" className="btn btn-sm btn-outline-secondary" aria-label={`${t('res.undo')} ${r.customerName}`} onClick={() => setStatus(r, 'Booked')}><Icon name="rotate-left" className="me-1" />{t('res.undo')}</button>
                       )}
                     </div>
                   </td>

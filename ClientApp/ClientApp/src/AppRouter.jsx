@@ -32,6 +32,7 @@ import StockPage from './components/StockPage';
 import StockReportPage from './components/StockReportPage';
 import ReservationsPage from './components/ReservationsPage';
 import NavGroup from './ui/NavGroup';
+import Icon from './ui/Icon';
 import OfflineBanner from './offline/OfflineBanner';
 import LicenceBanner from './licence/LicenceBanner';
 import BackupBanner from './licence/BackupBanner';
@@ -78,28 +79,28 @@ function AppHeader() {
     <header className="pos-header">
       <StoreBrand />
       <nav className="pos-nav" aria-label="Main">
-        {can(CAPTAIN_ROLES) && <NavLink to="/pos">{t('nav.pos')}</NavLink>}
+        {can(CAPTAIN_ROLES) && <NavLink to="/pos"><Icon name="cash-register" className="me-1" />{t('nav.pos')}</NavLink>}
         {/* Grouped so the menu fits on one line; a group with a single page for this user shows as a plain link. */}
-        <NavGroup label={t('nav.group.orders')} items={[
+        <NavGroup label={t('nav.group.orders')} icon="receipt" items={[
           can(POS_ROLES) && { to: '/orders', label: t('nav.orders') },
           can(CAPTAIN_ROLES) && { to: '/reservations', label: t('nav.reservations') },
           can(POS_ROLES) && { to: '/day-close', label: t('nav.dayClose') },
           can(POS_ROLES) && { to: '/expenses', label: t('nav.expenses') },
         ].filter(Boolean)} />
-        <NavGroup label={t('nav.group.kitchen')} items={[
+        <NavGroup label={t('nav.group.kitchen')} icon="utensils" items={[
           can(KITCHEN_ROLES) && { to: '/kitchen', label: t('nav.kitchen') },
           can(KITCHEN_ROLES) && { to: '/tokens', label: t('nav.tokens') },
         ].filter(Boolean)} />
-        <NavGroup label={t('nav.group.menu')} items={[
+        <NavGroup label={t('nav.group.menu')} icon="book-open" items={[
           can(MENU_ROLES) && { to: '/admin/menu', label: t('nav.menu') },
           can(STOCK_ROLES) && { to: '/stock', label: t('nav.stock') },
           can(MENU_ROLES) && { to: '/admin/tables', label: t('nav.tables') },
         ].filter(Boolean)} />
-        <NavGroup label={t('nav.group.reports')} items={[
+        <NavGroup label={t('nav.group.reports')} icon="chart-line" items={[
           can(MENU_ROLES) && { to: '/admin/reports', label: t('nav.reports') },
           can(MENU_ROLES) && { to: '/admin/feedback', label: t('nav.feedback') },
         ].filter(Boolean)} />
-        <NavGroup label={t('nav.group.admin')} items={[
+        <NavGroup label={t('nav.group.admin')} icon="gear" items={[
           can(ADMIN_ROLES) && { to: '/admin/setup', label: t('nav.setup') },
           can(ADMIN_ROLES) && { to: '/admin/staff', label: t('nav.staff') },
           can(ADMIN_ROLES) && { to: '/admin/store', label: t('nav.store') },
@@ -107,15 +108,15 @@ function AppHeader() {
           can(ADMIN_ROLES) && { to: '/admin/billing', label: t('nav.billing') },
           can(ADMIN_ROLES) && { to: '/admin/licence', label: t('nav.licence') },
         ].filter(Boolean)} />
-        {can(PLATFORM_ROLES) && <NavLink to="/platform" end>{t('nav.platform')}</NavLink>}
-        {can(PLATFORM_ROLES) && <NavLink to="/platform/licences">{t('nav.licences')}</NavLink>}
-        {can(PLATFORM_ROLES) && <NavLink to="/platform/support">{t('nav.support')}</NavLink>}
+        {can(PLATFORM_ROLES) && <NavLink to="/platform" end><Icon name="building" className="me-1" />{t('nav.platform')}</NavLink>}
+        {can(PLATFORM_ROLES) && <NavLink to="/platform/licences"><Icon name="key" className="me-1" />{t('nav.licences')}</NavLink>}
+        {can(PLATFORM_ROLES) && <NavLink to="/platform/support"><Icon name="headset" className="me-1" />{t('nav.support')}</NavLink>}
       </nav>
       <div className="pos-user">
         {mainRole && <span className="pos-role" title={user.email}>{t(`role.${mainRole}`)}</span>}
-        <NavLink to="/about" className="btn btn-outline-secondary btn-sm px-2" title={t('about.title')} aria-label={t('about.title')}>?</NavLink>
+        <NavLink to="/about" className="btn btn-outline-secondary btn-sm px-2" title={t('about.title')} aria-label={t('about.title')}><Icon name="circle-question" /></NavLink>
         <LanguageSwitch />
-        <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={logout}>{t('nav.signOut')}</button>
+        <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={logout}><Icon name="right-from-bracket" className="me-1" />{t('nav.signOut')}</button>
       </div>
     </header>
     {can(POS_ROLES) && <OfflineBanner />}

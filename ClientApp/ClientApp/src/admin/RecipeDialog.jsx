@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import FormDialog from '../ui/FormDialog';
+import Icon from '../ui/Icon';
 import { readErrors, send } from '../ui/forms';
 
 const blankRow = () => ({ stockItemId: '', quantity: '' });
@@ -80,7 +81,7 @@ export default function RecipeDialog({ item, onClose }) {
                 onChange={(e) => update(i, { quantity: e.target.value })} />
               <span className="text-body-secondary">{unitOf(r.stockItemId)}</span>
               <button type="button" className="btn btn-outline-danger btn-sm" aria-label={t('recipe.removeRow', { n: i + 1 })}
-                onClick={() => setRows(rows.filter((_, n) => n !== i))}>×</button>
+                onClick={() => setRows(rows.filter((_, n) => n !== i))}><Icon name="trash-can" /></button>
             </div>
           ))}
           <div>

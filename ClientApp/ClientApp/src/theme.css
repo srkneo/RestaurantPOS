@@ -70,6 +70,7 @@ h1, h2, h3, .pos-display { font-family: var(--pos-font-display); font-weight: 70
   border: 0; border-radius: 10px; background: transparent; font-weight: 600; color: var(--pos-text); white-space: nowrap;
 }
 .pos-nav-toggle:hover { background: var(--pos-hover); }
+.pos-nav-chevron { font-size: 0.75em; opacity: 0.7; }
 .pos-nav-toggle.active { background: var(--pos-accent); color: #FFFFFF; }
 .pos-nav-menu {
   position: absolute; top: calc(100% + 4px); left: 0; z-index: 1050; min-width: 200px; max-width: calc(100vw - 32px);
