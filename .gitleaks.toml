@@ -1,0 +1,19 @@
+# SEC4: gitleaks settings. The default rules, minus test data and generated files.
+# A false alarm in real code: add the finding's fingerprint to .gitleaksignore instead of widening these paths.
+title = "RestaurantPOS secret scan"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Test data, lock files and build output"
+paths = [
+  '''(^|/)RestaurantPOS\.Tests/''',
+  '''(^|/)e2e/''',
+  '''(^|/)loadtest/''',
+  '''package-lock\.json$''',
+  '''(^|/)node_modules/''',
+  '''(^|/)dist/''',
+  '''(^|/)\.git/''',
+  '''(^|/)(bin|obj)/''',
+]

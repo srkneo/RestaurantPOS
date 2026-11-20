@@ -1,0 +1,44 @@
+name: Security scans
+
+# SEC4: secret scan on every push and pull request; OWASP ZAP passive scan of the live site once a week.
+on:
+  push:
+    branches: [master, 'feature/**']
+  pull_request:
+  schedule:
+    - cron: '0 22 * * 0'   # Sunday 22:00 UTC = Monday 03:30 in India (no restaurant is open)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: No passwords, tokens or keys in the code (gitleaks)
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest \
+            dir /repo --config /repo/.gitleaks.toml --redact --no-banner --exit-code 1
+
+  zap:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: OWASP ZAP baseline scan of the live site (passive, report only)
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+        run: |
+          if [ -z "$SITE_URL" ]; then echo "SITE_URL is not set yet; nothing to scan."; exit 0; fi
+          mkdir -p zap && chmod 777 zap
+          # -I: warnings do not fail the job; read the report and decide.
+          docker run --rm -v "$PWD/zap:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t "$SITE_URL" -r zap-report.html -J zap-report.json -I -m 3
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: zap-report
+          path: zap/
+          if-no-files-found: ignore
