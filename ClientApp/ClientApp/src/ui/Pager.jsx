@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useT } from '../i18n/I18nContext';
+import Icon from './Icon';
 
 export const PAGE_SIZES = [10, 20, 50, 100];
 
@@ -59,7 +60,7 @@ export default function Pager({ page, pageCount, total, onPage, pageSize, onPage
         {pageCount > 1 && (
           <>
             <button type="button" className="btn btn-outline-secondary btn-sm px-3" disabled={page <= 1} onClick={() => onPage(page - 1)}>
-              {t('pager.prev')}
+              <Icon name="chevron-left" className="pos-nav-chevron" /> {t('pager.prev')}
             </button>
             <div className="d-flex align-items-center gap-1 pos-hint">
               <span aria-hidden="true">{t('pager.page')}</span>
@@ -70,7 +71,7 @@ export default function Pager({ page, pageCount, total, onPage, pageSize, onPage
               <span aria-hidden="true">{t('pager.of', { pages: pageCount })}</span>
             </div>
             <button type="button" className="btn btn-outline-secondary btn-sm px-3" disabled={page >= pageCount} onClick={() => onPage(page + 1)}>
-              {t('pager.next')}
+              {t('pager.next')} <Icon name="chevron-right" className="pos-nav-chevron" />
             </button>
           </>
         )}
