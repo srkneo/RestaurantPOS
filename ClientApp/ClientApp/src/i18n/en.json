@@ -1124,6 +1124,7 @@
   "setup.qrHint": "Print table QR codes so guests can see the menu and order from their phones.",
   "pos.tableGrid": "Tables",
   "pos.tileFree": "Free",
+  "pos.tileReserved": "Reserved {time} · {name}",
   "pos.tileBusy": "Token {token} · {minutes} min",
   "pos.tileBilled": "Bill printed",
   "pos.tilePaid": "Paid · {minutes} min",

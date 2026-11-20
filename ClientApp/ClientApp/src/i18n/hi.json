@@ -408,6 +408,7 @@
   "nav.setup": "सेटअप",
   "pos.tableGrid": "टेबल",
   "pos.tileFree": "खाली",
+  "pos.tileReserved": "रिज़र्व {time} · {name}",
   "pos.tileBusy": "टोकन {token} · {minutes} मिनट",
   "pos.tileBilled": "बिल प्रिंट हुआ",
   "pos.tilePaid": "भुगतान हुआ · {minutes} मिनट",
