@@ -15,7 +15,10 @@
 .tokens-ready h2 { color: #9FE3C4; }
 .tokens-ready li { background: #0F7B5A; color: #FFFFFF; }
 .tokens-empty { text-align: center; font-size: 24px; color: #C9D6D0; }
+/* Phone: Ready to collect first (what guests look for), and each list scrolls inside its box so both stay on screen. */
 @media (max-width: 700px) {
   .tokens-board { grid-template-columns: 1fr; }
+  .tokens-ready { order: -1; }
+  .tokens-col { max-height: 36vh; overflow-y: auto; }
   .tokens-col li { min-width: 90px; font-size: 40px; }
 }
