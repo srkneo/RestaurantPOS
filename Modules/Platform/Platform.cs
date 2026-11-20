@@ -73,6 +73,12 @@ namespace POSSystem.Models
         // Up to this many rupees still due after a payment can be waived as small change (0 = never).
         public decimal SmallChangeLimit { get; set; } = 5m;
 
+        // Loyalty points (v2.2), off until the owner turns it on: a guest earns 1 point for every this many rupees of a paid bill,
+        // and a point is worth this many rupees when spent.
+        public bool LoyaltyEnabled { get; set; }
+        public decimal LoyaltyRupeesPerPoint { get; set; } = 100m;
+        public decimal LoyaltyPointValue { get; set; } = 1m;
+
         // First token of each business day.
         public int FirstToken { get; set; } = 1;
 
