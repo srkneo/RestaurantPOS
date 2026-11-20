@@ -31,6 +31,7 @@ import ExpensesPage from './components/ExpensesPage';
 import StockPage from './components/StockPage';
 import StockReportPage from './components/StockReportPage';
 import ReservationsPage from './components/ReservationsPage';
+import CustomersPage from './components/CustomersPage';
 import NavGroup from './ui/NavGroup';
 import Icon from './ui/Icon';
 import OfflineBanner from './offline/OfflineBanner';
@@ -84,6 +85,7 @@ function AppHeader() {
         <NavGroup label={t('nav.group.orders')} icon="receipt" items={[
           can(POS_ROLES) && { to: '/orders', label: t('nav.orders') },
           can(CAPTAIN_ROLES) && { to: '/reservations', label: t('nav.reservations') },
+          can(POS_ROLES) && { to: '/customers', label: t('nav.customers') },
           can(POS_ROLES) && { to: '/day-close', label: t('nav.dayClose') },
           can(POS_ROLES) && { to: '/expenses', label: t('nav.expenses') },
         ].filter(Boolean)} />
@@ -157,6 +159,7 @@ function Layout() {
         <Route path="/stock" element={<RequireRole roles={STOCK_ROLES}><StockPage /></RequireRole>} />
         <Route path="/stock/report" element={<RequireRole roles={MENU_ROLES}><StockReportPage /></RequireRole>} />
         <Route path="/reservations" element={<RequireRole roles={CAPTAIN_ROLES}><ReservationsPage /></RequireRole>} />
+        <Route path="/customers" element={<RequireRole roles={POS_ROLES}><CustomersPage /></RequireRole>} />
         <Route path="/kitchen" element={<RequireRole roles={KITCHEN_ROLES}><KitchenDisplay /></RequireRole>} />
         <Route path="/tokens" element={<RequireRole roles={KITCHEN_ROLES}><TokenDisplay /></RequireRole>} />
         <Route path="/admin/menu" element={<RequireRole roles={MENU_ROLES}><MenuPage /></RequireRole>} />
