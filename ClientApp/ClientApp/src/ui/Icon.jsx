@@ -1,7 +1,7 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faBan, faBookOpen, faBuilding, faCashRegister, faChair, faChartLine, faChevronDown, faCircleQuestion, faGear, faHeadset,
+  faBan, faBookOpen, faBuilding, faCashRegister, faChair, faChartLine, faChevronDown, faChevronLeft, faChevronRight, faCircleQuestion, faGear, faHeadset,
   faKey, faPen, faReceipt, faRightFromBracket, faRotateLeft, faTrashCan, faTriangleExclamation, faUserXmark, faUtensils, faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -14,6 +14,8 @@ const ICONS = {
   chair: faChair,
   'chart-line': faChartLine,
   'chevron-down': faChevronDown,
+  'chevron-left': faChevronLeft,
+  'chevron-right': faChevronRight,
   'circle-question': faCircleQuestion,
   gear: faGear,
   headset: faHeadset,
