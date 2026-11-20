@@ -31,6 +31,10 @@ namespace POSSystem.Orders
         public const int MaxQuantityPerOrder = 30;
         public const string TakenBy = "QR (guest)";
 
+        // One at a time: the QR sheet loads all pictures together, and two loads must never give a table two different codes
+        // (a printed code would then stop working).
+        private static readonly System.Threading.SemaphoreSlim TokenGate = new(1, 1);
+
         public static string NewToken() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(16))
             .TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
@@ -140,10 +144,17 @@ namespace POSSystem.Orders
 
             admin.MapGet("/qr", async (AppDbContext db) =>
             {
-                var tables = await db.RestaurantTables.Where(t => t.OutletId == db.CurrentOutletId && t.IsActive)
-                    .OrderBy(t => t.SortOrder).ThenBy(t => t.Id).ToListAsync();
-                foreach (var t in tables.Where(t => string.IsNullOrEmpty(t.OrderToken))) t.OrderToken = NewToken();
-                await db.SaveChangesAsync();
+                List<RestaurantTable> tables;
+                await TokenGate.WaitAsync();
+                try
+                {
+                    tables = await db.RestaurantTables.Where(t => t.OutletId == db.CurrentOutletId && t.IsActive)
+                        .OrderBy(t => t.SortOrder).ThenBy(t => t.Id).ToListAsync();
+                    var missing = tables.Where(t => string.IsNullOrEmpty(t.OrderToken)).ToList();
+                    foreach (var t in missing) t.OrderToken = NewToken();
+                    if (missing.Count > 0) await db.SaveChangesAsync();
+                }
+                finally { TokenGate.Release(); }
                 return Results.Ok(tables.Select(t => new QrTableDto(t.Id, t.TableNumber, t.OrderToken!)).ToList());
             }).WithName("GetTableQrCodes").WithSummary("QR tokens of the tables in use, for the printable QR sheet");
 
@@ -165,8 +176,18 @@ namespace POSSystem.Orders
                 if (table == null) return Results.NotFound();
                 if (string.IsNullOrEmpty(table.OrderToken))
                 {
-                    table.OrderToken = NewToken();
-                    await db.SaveChangesAsync();
+                    await TokenGate.WaitAsync();
+                    try
+                    {
+                        // Another picture may have made the code a moment ago: use that one.
+                        await db.Entry(table).ReloadAsync();
+                        if (string.IsNullOrEmpty(table.OrderToken))
+                        {
+                            table.OrderToken = NewToken();
+                            await db.SaveChangesAsync();
+                        }
+                    }
+                    finally { TokenGate.Release(); }
                 }
                 var link = $"{site.GetLeftPart(UriPartial.Authority)}/t/{table.OrderToken}";
                 using var generator = new QRCoder.QRCodeGenerator();
