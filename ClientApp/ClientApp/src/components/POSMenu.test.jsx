@@ -228,6 +228,9 @@ describe('POS screen', () => {
           { id: 3, tableNumber: '3', status: 'Billed', orderId: 43, tokenNumber: 10 },
         ] };
       }
+      if (url === '/api/reservations/upcoming') {
+        return { ok: true, json: async () => [{ id: 1, tableId: 2, time: '20:30', customerName: 'Patel', status: 'Booked' }] };
+      }
       return { ok: false, status: 404, json: async () => ({}) };
     }));
     renderPos();
@@ -235,6 +238,7 @@ describe('POS screen', () => {
     const grid = screen.getByRole('dialog', { name: 'Tables' });
     expect(within(grid).getByText('Token 9 · 20 min')).toBeInTheDocument();
     expect(within(grid).getByText('Bill printed')).toBeInTheDocument();
+    expect(await within(grid).findByText('Reserved 20:30 · Patel')).toBeInTheDocument();
     fireEvent.click(within(grid).getByRole('button', { name: 'Table 1' }));
 
     expect(screen.queryByRole('dialog', { name: 'Tables' })).not.toBeInTheDocument();

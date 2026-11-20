@@ -18,6 +18,7 @@
 .pos-table-tile[aria-pressed="true"] { border-color: #0F7B5A; }
 .pos-tile-number { font-family: 'Space Grotesk', sans-serif; font-size: 26px; line-height: 1; }
 .pos-tile-status { font-size: 13px; }
+.pos-tile-reserved { font-size: 12px; font-weight: 600; color: var(--bs-warning-text-emphasis, #997404); }
 .pos-tile-free { background: #E3F5EC; color: #0B5C43; }
 .pos-tile-occupied { background: #FFF1D6; color: #7A4B00; }
 .pos-tile-billed { background: #FDE8E4; color: #8A2A1A; }

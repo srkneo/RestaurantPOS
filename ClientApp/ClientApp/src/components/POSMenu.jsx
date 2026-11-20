@@ -47,6 +47,8 @@ const POSMenu = () => {
   const [orderType, setOrderType] = useState('DineIn');
   const [selectedTable, setSelectedTable] = useState('');
   const [tableGrid, setTableGrid] = useState(false);
+  // Table id -> the next booking for it (from 30 minutes ago to the next two hours).
+  const [reserved, setReserved] = useState({});
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [noteOpen, setNoteOpen] = useState(null);
@@ -76,6 +78,22 @@ const POSMenu = () => {
   useEffect(() => {
     tRef.current = t;
   }, [t]);
+
+  // Bookings coming up show on their table tiles; loaded each time the table grid opens.
+  useEffect(() => {
+    if (!tableGrid) return undefined;
+    let alive = true;
+    fetch('/api/reservations/upcoming')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((list) => {
+        if (!alive || !Array.isArray(list)) return;
+        const map = {};
+        list.forEach((r) => { if (r.tableId && !map[r.tableId]) map[r.tableId] = r; });
+        setReserved(map);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [tableGrid]);
 
   // Customer left: a paid table is free again.
   const clearTable = async (tb) => {
@@ -578,6 +596,9 @@ const POSMenu = () => {
                           : status === 'Billed' ? t('pos.tileBilled')
                             : status === 'Paid' ? t('pos.tilePaid', { minutes: minutes ?? 0 }) : t('pos.tileFree')}
                       </span>
+                      {reserved[tb.id] && (
+                        <span className="pos-tile-reserved">{t('pos.tileReserved', { time: reserved[tb.id].time, name: reserved[tb.id].customerName })}</span>
+                      )}
                     </button>
                     {status === 'Paid' && (
                       <button type="button" className="btn btn-outline-secondary btn-sm w-100 mt-1"
