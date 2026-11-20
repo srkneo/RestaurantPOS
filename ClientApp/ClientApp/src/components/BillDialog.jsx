@@ -7,6 +7,7 @@ import { formatMoney } from '../ui/format';
 import './BillDialog.css';
 import CreditNoteForm from './CreditNoteForm';
 import { billWhatsAppUrl } from './billShare';
+import LoyaltyPanel from './LoyaltyPanel';
 
 export const METHODS = ['Cash', 'Upi', 'Card'];
 const VOID_ROLES = ['manager', 'admin'];
@@ -232,6 +233,21 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
     }
   });
 
+  // The guest pays part of the bill with loyalty points (rupees worth of whole points; the server checks the balance).
+  const payWithPoints = (value) => run(async () => {
+    const { res, data } = await postJson(`/api/bills/${bill.id}/payments`, { method: 'Points', amount: value, tendered: null, reference: null, version: bill.version });
+    if (res.ok) {
+      showBill(data);
+      onChanged?.();
+      if (data.status === 'Paid') showToast(t('bill.paidToast', { number: data.invoiceNumber }));
+    } else if (res.status === 409) {
+      setError(t('pos.conflict'));
+      await load();
+    } else {
+      setError(data.message || t('common.error'));
+    }
+  });
+
   const confirmVoid = () => {
     if (!voidReason.trim()) { setError(t('bill.voidReasonRequired')); return; }
     if (!isApprover && !pin.trim()) { setError(t('approval.pinRequired')); return; }
@@ -345,6 +361,11 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
               <button type="button" className="btn btn-outline-secondary align-self-start" disabled={busy} onClick={waive}>
                 {t('bill.waive', { amount: formatMoney(due) })}
               </button>
+            )}
+
+            {bill.status !== 'Void' && bill.customerPhone && (
+              <LoyaltyPanel phone={bill.customerPhone} name={bill.customerName} due={due} canUse={bill.status === 'Unpaid' && due > 0}
+                busy={busy} refreshKey={bill.version} onUse={payWithPoints} />
             )}
 
             {bill.status !== 'Void' && (tipOpen ? (
