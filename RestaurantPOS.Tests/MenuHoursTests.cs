@@ -88,12 +88,14 @@ namespace RestaurantPOS.Tests
         {
             using var f = Build(out var tableId);
             var admin = As(f, "admin");
+            // Worked out once: calling IndiaIn again a moment later can land in the next minute.
+            var from = IndiaIn(2);
             var created = await admin.PostAsync("/api/admin/menu/categories",
-                Json(new { name = "Breakfast", sortOrder = 1, isActive = true, availableFrom = IndiaIn(2), availableTo = IndiaIn(3) }));
+                Json(new { name = "Breakfast", sortOrder = 1, isActive = true, availableFrom = from, availableTo = IndiaIn(3) }));
             Assert.Equal(HttpStatusCode.Created, created.StatusCode);
             var category = await Read(created);
             var categoryId = category.GetProperty("id").GetInt32();
-            Assert.Equal(IndiaIn(2), category.GetProperty("availableFrom").GetString());
+            Assert.Equal(from, category.GetProperty("availableFrom").GetString());
 
             var item = await admin.PostAsync("/api/admin/menu/items", Json(new
             {
