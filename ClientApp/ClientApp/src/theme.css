@@ -43,7 +43,13 @@ h1, h2, h3, .pos-display { font-family: var(--pos-font-display); font-weight: 70
 :focus-visible { outline: 3px solid rgba(15, 123, 90, 0.5); outline-offset: 2px; }
 
 /* Buttons and form fields: 48px touch targets */
-.btn { min-height: var(--pos-touch); font-weight: 600; border-radius: 10px; }
+/* inline-flex centres the words in the 48px height for links styled as buttons too (a plain <a> does not centre by itself);
+   gap keeps an icon and its words apart. */
+.btn {
+  min-height: var(--pos-touch); font-weight: 600; border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; line-height: 1.2;
+}
+.btn.w-100 { display: flex; }
 .btn-sm { min-height: 40px; }
 .btn-primary {
   --bs-btn-bg: var(--pos-accent); --bs-btn-border-color: var(--pos-accent);
