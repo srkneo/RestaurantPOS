@@ -11,6 +11,22 @@ export default function SettingsPage() {
     const { showToast } = useToast();
 
     const PRESETS = ['dine-in', 'cafe', 'takeaway-counter'];
+    // Common time zones for the outlets we sell to, India first. A saved zone that is not listed is still shown.
+    const TIME_ZONES = [
+        ['Asia/Kolkata', 'India (UTC+05:30)'],
+        ['Asia/Kathmandu', 'Nepal (UTC+05:45)'],
+        ['Asia/Colombo', 'Sri Lanka (UTC+05:30)'],
+        ['Asia/Dhaka', 'Bangladesh (UTC+06:00)'],
+        ['Asia/Karachi', 'Pakistan (UTC+05:00)'],
+        ['Asia/Dubai', 'UAE (UTC+04:00)'],
+        ['Asia/Riyadh', 'Saudi Arabia (UTC+03:00)'],
+        ['Asia/Singapore', 'Singapore (UTC+08:00)'],
+        ['Africa/Nairobi', 'Kenya (UTC+03:00)'],
+        ['Europe/London', 'United Kingdom (UTC+00:00 / +01:00)'],
+        ['America/New_York', 'USA East (UTC−05:00 / −04:00)'],
+        ['America/Los_Angeles', 'USA West (UTC−08:00 / −07:00)'],
+        ['Australia/Sydney', 'Australia, Sydney (UTC+10:00 / +11:00)'],
+    ];
     // What each quick setup turns on (same as OutletSettings.WithPreset on the server), to show which one is in use.
     const PRESET_VALUES = {
         'dine-in': { dineInEnabled: true, takeawayEnabled: true, defaultOrderType: 'DineIn', takeawayNeedsName: true, kitchenScreenEnabled: true },
@@ -208,12 +224,15 @@ export default function SettingsPage() {
                             label={t('settings.timeZone')}
                             error={errors.timezone}
                         >
-                            <input
+                            <select
                                 id="set-zone"
-                                className="form-control"
+                                className="form-select"
                                 value={form.timeZone}
                                 onChange={text('timeZone')}
-                            />
+                            >
+                                {!TIME_ZONES.some(([id]) => id === form.timeZone) && <option value={form.timeZone}>{form.timeZone}</option>}
+                                {TIME_ZONES.map(([id, label]) => <option key={id} value={id}>{label} – {id}</option>)}
+                            </select>
                         </Field>
                         {errors.general !== undefined && (
                             <p className="text-danger mb-0" role="alert">{errors.general || t('common.error')}</p>
