@@ -144,6 +144,7 @@
   "orders.type": "ઓર્ડર",
   "orders.edit": "બદલો",
   "orders.cancel": "ઓર્ડર રદ કરો",
+  "orders.more": "વધુ",
   "orders.served": "ભોજન આપી દીધું",
   "orders.collected": "સોંપી દીધું",
   "orders.doneToast": "ટોકન {token} પૂર્ણ.",

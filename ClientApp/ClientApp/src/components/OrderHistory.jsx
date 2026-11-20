@@ -6,6 +6,7 @@ import FormDialog from '../ui/FormDialog';
 import BillDialog from './BillDialog';
 import StateMessage from '../ui/StateMessage';
 import Pager, { usePaged } from '../ui/Pager';
+import RowMenu from '../ui/RowMenu';
 import { formatMoney, parseServerDate } from '../ui/format';
 import './OrderHistory.css';
 
@@ -291,34 +292,39 @@ const OrderHistory = () => {
                     <td>{items.map((i) => `${i.quantity} x ${i.name}${i.note ? ` (${i.note})` : ''}`).join(', ')}</td>
                     <td className="text-end fw-semibold text-nowrap">{formatMoney(total)}</td>
                     <td>
-                      {order.status !== 'Cancelled' && (
-                        <div className="pos-row-actions mb-1">
-                          <button type="button" className="btn btn-primary btn-sm px-3" onClick={() => setBillOrderId(order.id)}>{t('bill.bill')}</button>
-                          <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => window.open(`/print/kot/${order.id}?auto=1`, '_blank', 'noopener')}>{t('bill.kot')}</button>
-                        </div>
-                      )}
-                      {order.status === 'Received' && (
-                        <div className="pos-row-actions">
-                          <Link className="btn btn-outline-secondary btn-sm px-3" to={`/pos?edit=${order.id}`}>{t('orders.edit')}</Link>
-                          <button type="button" className="btn btn-outline-danger btn-sm px-3" onClick={() => openCancel(order)}>{t('orders.cancel')}</button>
-                        </div>
-                      )}
-                      {CAN_FINISH.includes(order.status) && (
-                        <div className="pos-row-actions mb-1">
+                      {/* One short row: the daily buttons, then More for edit, cancel, move, merge and split. */}
+                      <div className="pos-row-actions">
+                        {order.status !== 'Cancelled' && (
+                          <>
+                            <button type="button" className="btn btn-primary btn-sm px-3" onClick={() => setBillOrderId(order.id)}>{t('bill.bill')}</button>
+                            <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => window.open(`/print/kot/${order.id}?auto=1`, '_blank', 'noopener')}>{t('bill.kot')}</button>
+                          </>
+                        )}
+                        {CAN_FINISH.includes(order.status) && (
                           <button type="button" className="btn btn-success btn-sm px-3" onClick={() => markDone(order)}>
                             {order.orderType === 'DineIn' ? t('orders.served') : t('orders.collected')}
                           </button>
-                        </div>
-                      )}
-                      {order.orderType !== 'Takeaway' && OPEN.includes(order.status) && (
-                        <div className="pos-row-actions mt-1">
-                          <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openMove(order)}>{t('orders.move')}</button>
-                          <button type="button" className="btn btn-outline-secondary btn-sm px-3"
-                            onClick={() => { setMerging(order); setMergeFrom(''); setActionError(null); }}>{t('orders.merge')}</button>
-                          <button type="button" className="btn btn-outline-secondary btn-sm px-3"
-                            onClick={() => { setSplitting(order); setSplitQty({}); setActionError(null); }}>{t('orders.split')}</button>
-                        </div>
-                      )}
+                        )}
+                        {(order.status === 'Received' || (order.orderType !== 'Takeaway' && OPEN.includes(order.status))) && (
+                          <RowMenu label={t('orders.more')}>
+                            {order.status === 'Received' && (
+                              <>
+                                <Link className="pos-more-item" to={`/pos?edit=${order.id}`}>{t('orders.edit')}</Link>
+                                <button type="button" className="pos-more-item text-danger" onClick={() => openCancel(order)}>{t('orders.cancel')}</button>
+                              </>
+                            )}
+                            {order.orderType !== 'Takeaway' && OPEN.includes(order.status) && (
+                              <>
+                                <button type="button" className="pos-more-item" onClick={() => openMove(order)}>{t('orders.move')}</button>
+                                <button type="button" className="pos-more-item"
+                                  onClick={() => { setMerging(order); setMergeFrom(''); setActionError(null); }}>{t('orders.merge')}</button>
+                                <button type="button" className="pos-more-item"
+                                  onClick={() => { setSplitting(order); setSplitQty({}); setActionError(null); }}>{t('orders.split')}</button>
+                              </>
+                            )}
+                          </RowMenu>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

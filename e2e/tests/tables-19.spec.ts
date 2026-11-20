@@ -74,6 +74,7 @@ test('C3 move, merge and split from the Orders page', async ({ browser }) => {
 
   await pos.goto('/orders');
   // Move: M1 -> M3
+  await orderRow(pos, first).getByRole('button', { name: 'More' }).click();
   await orderRow(pos, first).getByRole('button', { name: 'Move table' }).click();
   let dialog = pos.getByRole('dialog');
   await dialog.getByLabel('Move to').selectOption({ label: `Table M3${id}` });
@@ -81,6 +82,7 @@ test('C3 move, merge and split from the Orders page', async ({ browser }) => {
   await expect(pos.getByText(`Token ${first} moved to Table M3${id}.`)).toBeVisible();
 
   // Merge: the first order (now on M3) into the second (M2)
+  await orderRow(pos, second).getByRole('button', { name: 'More' }).click();
   await orderRow(pos, second).getByRole('button', { name: 'Merge table' }).click();
   dialog = pos.getByRole('dialog');
   await dialog.getByLabel('Merge in').selectOption({ label: `Token ${first} · Table M3${id}` });
@@ -89,6 +91,7 @@ test('C3 move, merge and split from the Orders page', async ({ browser }) => {
   await expect(orderRow(pos, second)).toContainText('1 x Fries');
 
   // Split: one Coke to a bill of its own
+  await orderRow(pos, second).getByRole('button', { name: 'More' }).click();
   await orderRow(pos, second).getByRole('button', { name: 'Split bill' }).click();
   dialog = pos.getByRole('dialog');
   await dialog.getByLabel('2 x Coke').fill('1');

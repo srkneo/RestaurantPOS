@@ -114,6 +114,7 @@
   "orders.type": "ऑर्डर",
   "orders.edit": "बदलें",
   "orders.cancel": "ऑर्डर रद्द करें",
+  "orders.more": "और",
   "orders.served": "खाना दे दिया",
   "orders.collected": "सौंप दिया",
   "orders.doneToast": "टोकन {token} पूरा।",

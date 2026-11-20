@@ -144,6 +144,7 @@
   "orders.type": "Order",
   "orders.edit": "Edit",
   "orders.cancel": "Cancel order",
+  "orders.more": "More",
   "orders.served": "Food delivered",
   "orders.collected": "Handed over",
   "orders.doneToast": "Token {token} done.",

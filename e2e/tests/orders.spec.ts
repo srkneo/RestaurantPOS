@@ -40,6 +40,7 @@ test('takeaway order shows the customer name in the kitchen and can be cancelled
 
   await pos.goto('/orders');
   const row = pos.getByRole('row').filter({ hasText: 'Takeaway · Ravi' }).filter({ has: pos.getByRole('cell', { name: token, exact: true }) });
+  await row.getByRole('button', { name: 'More' }).click();
   await row.getByRole('button', { name: 'Cancel order' }).click();
   const dialog = pos.getByRole('dialog');
   await dialog.getByLabel('Reason').selectOption({ label: 'Customer left' });
@@ -59,6 +60,7 @@ test('an order can be changed before cooking, not after', async ({ page }) => {
 
   await page.goto('/orders');
   const row = page.getByRole('row').filter({ has: page.getByRole('cell', { name: token, exact: true }) });
+  await row.getByRole('button', { name: 'More' }).click();
   await row.getByRole('link', { name: 'Edit' }).click();
   await expect(page.getByText(`Editing token ${token}`)).toBeVisible();
   await page.getByRole('button', { name: 'One more Fries' }).click();

@@ -113,6 +113,20 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover { opacity: 0.9; back
 }
 .pos-nav-toggle:hover { background: var(--pos-hover); }
 .pos-nav-chevron { font-size: 0.75em; opacity: 0.7; }
+
+/* Row "More" menu (Orders page): a small list fixed on screen under its button. */
+.pos-row-menu { display: inline-block; }
+.pos-more-menu {
+  display: none; position: fixed; z-index: 1100; min-width: 200px; flex-direction: column; gap: 2px; padding: 6px;
+  background: var(--pos-surface); border: 1px solid var(--pos-border-strong); border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+.pos-more-menu.open { display: flex; }
+.pos-more-item {
+  display: flex; align-items: center; min-height: 44px; padding: 0 14px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--pos-text); font-weight: 600; text-align: left; text-decoration: none; white-space: nowrap;
+}
+.pos-more-item:hover { background: var(--pos-hover); color: var(--pos-text); }
+.pos-more-item.text-danger:hover { color: var(--pos-danger); }
 .pos-nav-toggle.active { background: var(--pos-accent); color: #FFFFFF; }
 .pos-nav-menu {
   position: absolute; top: calc(100% + 4px); left: 0; z-index: 1050; min-width: 200px; max-width: calc(100vw - 32px);
