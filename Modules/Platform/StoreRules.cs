@@ -9,7 +9,7 @@ namespace POSSystem.Platform
     public record StoreProfileRequest(string? RestaurantName, string? OutletName, string? Address, string? Phone, string? Gstin, string? Fssai, string? ReceiptFooter);
     public record StoreSummaryDto(string RestaurantName, string OutletName, bool HasLogo);
     public record OutletSettingsDto(string TimeZone, int BusinessDayStartHour, bool DineInEnabled, bool TakeawayEnabled, OrderType DefaultOrderType,
-        bool TakeawayNeedsName, int MaxItemQuantity, int FirstToken, bool KitchenScreenEnabled);
+        bool TakeawayNeedsName, int MaxItemQuantity, int FirstToken, bool KitchenScreenEnabled, string? MenuTextSize = null);
     public record PresetRequest(string? Preset);
 
     // Validation and mapping for the store profile and outlet settings. Endpoints only load, call these, and save.
@@ -66,6 +66,8 @@ namespace POSSystem.Platform
                 errors["defaultordertype"] = new[] { "The default order type must be turned on." };
             if (dto.MaxItemQuantity is < 1 or > 999) errors["maxitemquantity"] = new[] { "The quantity limit must be from 1 to 999." };
             if (dto.FirstToken is < 1 or > 9999) errors["firsttoken"] = new[] { "The first token must be from 1 to 9999." };
+            if (dto.MenuTextSize != null && dto.MenuTextSize is not ("small" or "normal" or "large"))
+                errors["menutextsize"] = new[] { "Choose small, normal or large." };
             return errors;
         }
 
@@ -73,7 +75,7 @@ namespace POSSystem.Platform
         {
             var s = outlet.GetSettings();
             return new OutletSettingsDto(outlet.TimeZone, outlet.BusinessDayStartHour, s.DineInEnabled, s.TakeawayEnabled, s.DefaultOrderType,
-                s.TakeawayNeedsName, s.MaxItemQuantity, s.FirstToken, s.KitchenScreenEnabled);
+                s.TakeawayNeedsName, s.MaxItemQuantity, s.FirstToken, s.KitchenScreenEnabled, s.MenuTextSize);
         }
 
         public static void Apply(Outlet outlet, OutletSettingsDto dto)
@@ -86,6 +88,8 @@ namespace POSSystem.Platform
             s.MaxItemQuantity = dto.MaxItemQuantity;
             s.FirstToken = dto.FirstToken;
             s.KitchenScreenEnabled = dto.KitchenScreenEnabled;
+            // Left out by older screens: keep what is saved.
+            if (dto.MenuTextSize != null) s.MenuTextSize = dto.MenuTextSize;
             outlet.Settings = s.ToJson();
             outlet.TimeZone = dto.TimeZone.Trim();
             outlet.BusinessDayStartHour = dto.BusinessDayStartHour;

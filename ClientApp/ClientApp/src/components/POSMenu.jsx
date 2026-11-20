@@ -471,7 +471,7 @@ const POSMenu = () => {
             {visibleItems.length === 0 ? (
               <StateMessage kind="empty" message={t('pos.noItems')} />
             ) : (
-              <div className="pos-items">
+              <div className={`pos-items pos-text-${orderSettings?.menuTextSize ?? 'normal'}`}>
                 {visibleItems.map((item) => {
                   const qty = qtyOf(item.id);
                   return (
