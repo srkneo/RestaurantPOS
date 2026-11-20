@@ -718,6 +718,8 @@
   "settings.title": "सेटिंग्स",
   "settings.presets": "जल्दी सेटअप",
   "settings.presetsHint": "अपने आउटलेट का प्रकार चुनें। नीचे हर सेटिंग फिर भी बदल सकते हैं।",
+  "settings.presetCurrent": "मौजूदा सेटअप: {name}",
+  "settings.presetCustom": "मौजूदा सेटअप: कस्टम (हाथ से बदला)",
   "settings.preset.dine-in": "टेबल वाला रेस्टोरेंट",
   "settings.preset.cafe": "कैफ़े",
   "settings.preset.takeaway-counter": "पार्सल काउंटर",

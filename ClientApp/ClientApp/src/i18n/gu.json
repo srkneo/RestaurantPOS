@@ -230,6 +230,8 @@
   "settings.title": "સેટિંગ્સ",
   "settings.presets": "ઝડપી સેટઅપ",
   "settings.presetsHint": "તમારા આઉટલેટનો પ્રકાર પસંદ કરો. નીચેની દરેક સેટિંગ પછી પણ બદલી શકાય છે.",
+  "settings.presetCurrent": "હાલનું સેટઅપ: {name}",
+  "settings.presetCustom": "હાલનું સેટઅપ: કસ્ટમ (હાથે બદલેલું)",
   "settings.preset.dine-in": "ટેબલવાળું રેસ્ટોરન્ટ",
   "settings.preset.cafe": "કાફે",
   "settings.preset.takeaway-counter": "પાર્સલ કાઉન્ટર",
