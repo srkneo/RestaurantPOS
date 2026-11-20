@@ -42,11 +42,12 @@ namespace POSSystem.Billing
             if (string.IsNullOrEmpty(reason)) throw new ArgumentException("Give a reason for the credit note.");
             if (reason.Length > 200) throw new ArgumentException("The reason can be at most 200 characters.");
 
-            var paid = BillService.PaidOf(bill);
+            // Points spent on the bill go back to the guest; only money is refunded.
+            var paid = BillService.PaidOf(bill) - bill.Payments.Where(p => p.Method == PaymentMethod.Points).Sum(p => p.Amount);
             PaymentMethod? refundMethod = null;
             if (paid > 0)
             {
-                if (!Enum.TryParse<PaymentMethod>(request.RefundMethod, true, out var method) || int.TryParse(request.RefundMethod, out _) || method == PaymentMethod.Waived)
+                if (!Enum.TryParse<PaymentMethod>(request.RefundMethod, true, out var method) || int.TryParse(request.RefundMethod, out _) || method is PaymentMethod.Waived or PaymentMethod.Points)
                     throw new ArgumentException("Choose how the money is given back: Cash, UPI or Card.");
                 refundMethod = method;
             }
@@ -70,6 +71,7 @@ namespace POSSystem.Billing
                 ApprovedBy = approvedBy
             };
             bill.CreditedAt = now;
+            await global::POSSystem.Loyalty.LoyaltyRules.ReverseAsync(_db, bill);
             bill.Version++;
 
             var shift = refundMethod == PaymentMethod.Cash

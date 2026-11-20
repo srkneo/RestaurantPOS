@@ -25,7 +25,9 @@ namespace POSSystem.Models
         Upi,
         Card,
         // Small change the restaurant let go (guest a few rupees short, no coins): closes the bill, the invoice stays as it is.
-        Waived
+        Waived,
+        // Loyalty points the guest spent on this bill (v2.2); the reference says how many points.
+        Points
     }
 
     // A bill (invoice) for one order. Never deleted: a void bill keeps its number and shows as void.
