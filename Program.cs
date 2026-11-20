@@ -34,6 +34,8 @@ try
     builder.Host.UseNLog();
     // OB3: errors to Sentry only when SENTRY_DSN is set (production server).
     builder.AddPosSentry();
+    // OB4: traces and metrics to Grafana Cloud only when OTEL_EXPORTER_OTLP_ENDPOINT is set.
+    builder.AddPosTelemetry();
 
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
