@@ -507,6 +507,8 @@
   "billing.paper.80": "80 mm",
   "billing.paper.58": "58 mm",
   "billing.printLanguage": "બિલ અને KOT ની ભાષા",
+  "billing.smallChange": "કેશિયર માફ કરી શકે તેટલા છૂટા પૈસા (₹)",
+  "billing.smallChangeHint": "ચુકવણી પછી મહેમાન પાસે થોડા રૂપિયા ઓછા હોય તો કેશિયર બિલ બંધ કરી શકે. 0 એટલે બંધ.",
   "billing.lang.en": "English",
   "billing.lang.gu": "ગુજરાતી",
   "billing.lang.hi": "હિન્દી",

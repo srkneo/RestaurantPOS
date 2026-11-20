@@ -36,6 +36,7 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
   const [stage, setStage] = useState('loading'); // loading | create | pay | error
   const [bill, setBill] = useState(null);
   const [upiReady, setUpiReady] = useState(false);
+  const [smallChangeLimit, setSmallChangeLimit] = useState(5);
   const [feedbackReady, setFeedbackReady] = useState(false);
   const [reprintNeedsPin, setReprintNeedsPin] = useState(true);
   const [feedbackLink, setFeedbackLink] = useState(null);
@@ -75,6 +76,7 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
       const [billRes, settingsRes] = await Promise.all([fetch(`/api/orders/${orderId}/bill`), fetch('/api/print-settings')]);
       const settings = settingsRes.ok ? await settingsRes.json() : {};
       setUpiReady(!!settings.upiReady);
+      setSmallChangeLimit(Number(settings.smallChangeLimit ?? 5));
       setFeedbackReady(!!settings.feedbackReady);
       setReprintNeedsPin(settings.reprintNeedsPin !== false);
       if (billRes.status === 404) {
@@ -339,7 +341,7 @@ export default function BillDialog({ orderId, onClose, onChanged }) {
             )}
 
             {bill.status === 'Paid' && <p className="pos-bill-paid" role="status">{t('bill.paid')}</p>}
-            {bill.status === 'Unpaid' && due > 0 && due <= 20 && (bill.payments ?? []).some((p) => p.method !== 'Waived') && (
+            {bill.status === 'Unpaid' && due > 0 && due <= smallChangeLimit && (bill.payments ?? []).some((p) => p.method !== 'Waived') && (
               <button type="button" className="btn btn-outline-secondary align-self-start" disabled={busy} onClick={waive}>
                 {t('bill.waive', { amount: formatMoney(due) })}
               </button>

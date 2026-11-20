@@ -507,6 +507,8 @@
   "billing.paper.80": "80 mm",
   "billing.paper.58": "58 mm",
   "billing.printLanguage": "Bill and KOT language",
+  "billing.smallChange": "Small change a cashier may waive (₹)",
+  "billing.smallChangeHint": "When a guest is a few rupees short after paying, the cashier can close the bill. 0 turns it off.",
   "billing.lang.en": "English",
   "billing.lang.gu": "Gujarati",
   "billing.lang.hi": "Hindi",

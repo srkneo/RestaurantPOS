@@ -31,7 +31,8 @@ export default function BillingSettingsPage() {
                     upiId: data.upiId ?? '',
                     upiName: data.upiName ?? '',
                     paperWidth: String(data.paperWidth),
-                    printLanguage: data.printLanguage
+                    printLanguage: data.printLanguage,
+                    smallChangeLimit: data.smallChangeLimit == null ? '' : String(data.smallChangeLimit)
                 });
                 setLoadState('ready');
             } else {
@@ -58,6 +59,7 @@ export default function BillingSettingsPage() {
             upiName: form.upiName.trim() === '' ? null : form.upiName.trim(),
             paperWidth: Number(form.paperWidth),
             printLanguage: form.printLanguage,
+            ...(form.smallChangeLimit !== '' && form.smallChangeLimit != null ? { smallChangeLimit: Number(form.smallChangeLimit) } : {}),
         };
         setBusy(true);
         try {
@@ -186,6 +188,12 @@ export default function BillingSettingsPage() {
                             <option value="hi">{t('billing.lang.hi')}</option>
                         </select>
                     </Field>
+                    {form.smallChangeLimit !== '' && form.smallChangeLimit != null && (
+                        <Field id="billing-small-change" label={t('billing.smallChange')} hint={t('billing.smallChangeHint')} error={errors.smallchangelimit}>
+                            <input id="billing-small-change" type="number" min={0} max={20} step={1} className="form-control"
+                                value={form.smallChangeLimit} onChange={setField('smallChangeLimit')} />
+                        </Field>
+                    )}
                     {errors.general !== undefined && (
                         <p className="text-danger mb-0" role="alert">
                             {errors.general || t('common.error')}
