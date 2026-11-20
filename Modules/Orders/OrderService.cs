@@ -31,7 +31,8 @@ namespace POSSystem.Services
             [OrderStatus.Cancelled] = Array.Empty<OrderStatus>()
         };
 
-        private static readonly Regex PhonePattern = new(@"^\+?[0-9 ]{6,20}$");
+        // Digits with spaces or dashes as people type them (98250 12345, 98250-12345, +91 98250 12345); at least 6 digits.
+        private static readonly Regex PhonePattern = new(@"^\+?(?=(?:\D*\d){6})[0-9 -]{6,20}$");
 
         public OrderService(IOrderRepository orderRepository, AppDbContext context, IHubContext<OrderHub> hubContext)
         {
