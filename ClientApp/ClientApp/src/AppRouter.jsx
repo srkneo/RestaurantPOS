@@ -31,6 +31,7 @@ import ExpensesPage from './components/ExpensesPage';
 import StockPage from './components/StockPage';
 import StockReportPage from './components/StockReportPage';
 import ReservationsPage from './components/ReservationsPage';
+import NavGroup from './ui/NavGroup';
 import OfflineBanner from './offline/OfflineBanner';
 import LicenceBanner from './licence/LicenceBanner';
 import BackupBanner from './licence/BackupBanner';
@@ -78,23 +79,34 @@ function AppHeader() {
       <StoreBrand />
       <nav className="pos-nav" aria-label="Main">
         {can(CAPTAIN_ROLES) && <NavLink to="/pos">{t('nav.pos')}</NavLink>}
-        {can(POS_ROLES) && <NavLink to="/orders">{t('nav.orders')}</NavLink>}
-        {can(POS_ROLES) && <NavLink to="/day-close">{t('nav.dayClose')}</NavLink>}
-        {can(POS_ROLES) && <NavLink to="/expenses">{t('nav.expenses')}</NavLink>}
-        {can(STOCK_ROLES) && <NavLink to="/stock">{t('nav.stock')}</NavLink>}
-        {can(CAPTAIN_ROLES) && <NavLink to="/reservations">{t('nav.reservations')}</NavLink>}
-        {can(KITCHEN_ROLES) && <NavLink to="/kitchen">{t('nav.kitchen')}</NavLink>}
-        {can(KITCHEN_ROLES) && <NavLink to="/tokens">{t('nav.tokens')}</NavLink>}
-        {can(MENU_ROLES) && <NavLink to="/admin/menu">{t('nav.menu')}</NavLink>}
-        {can(MENU_ROLES) && <NavLink to="/admin/tables">{t('nav.tables')}</NavLink>}
-        {can(MENU_ROLES) && <NavLink to="/admin/reports">{t('nav.reports')}</NavLink>}
-        {can(MENU_ROLES) && <NavLink to="/admin/feedback">{t('nav.feedback')}</NavLink>}
-        {can(ADMIN_ROLES) && <NavLink to="/admin/staff">{t('nav.staff')}</NavLink>}
-        {can(ADMIN_ROLES) && <NavLink to="/admin/setup">{t('nav.setup')}</NavLink>}
-        {can(ADMIN_ROLES) && <NavLink to="/admin/store">{t('nav.store')}</NavLink>}
-        {can(ADMIN_ROLES) && <NavLink to="/admin/settings">{t('nav.settings')}</NavLink>}
-        {can(ADMIN_ROLES) && <NavLink to="/admin/billing">{t('nav.billing')}</NavLink>}
-        {can(ADMIN_ROLES) && <NavLink to="/admin/licence">{t('nav.licence')}</NavLink>}
+        {/* Grouped so the menu fits on one line; a group with a single page for this user shows as a plain link. */}
+        <NavGroup label={t('nav.group.orders')} items={[
+          can(POS_ROLES) && { to: '/orders', label: t('nav.orders') },
+          can(CAPTAIN_ROLES) && { to: '/reservations', label: t('nav.reservations') },
+          can(POS_ROLES) && { to: '/day-close', label: t('nav.dayClose') },
+          can(POS_ROLES) && { to: '/expenses', label: t('nav.expenses') },
+        ].filter(Boolean)} />
+        <NavGroup label={t('nav.group.kitchen')} items={[
+          can(KITCHEN_ROLES) && { to: '/kitchen', label: t('nav.kitchen') },
+          can(KITCHEN_ROLES) && { to: '/tokens', label: t('nav.tokens') },
+        ].filter(Boolean)} />
+        <NavGroup label={t('nav.group.menu')} items={[
+          can(MENU_ROLES) && { to: '/admin/menu', label: t('nav.menu') },
+          can(STOCK_ROLES) && { to: '/stock', label: t('nav.stock') },
+          can(MENU_ROLES) && { to: '/admin/tables', label: t('nav.tables') },
+        ].filter(Boolean)} />
+        <NavGroup label={t('nav.group.reports')} items={[
+          can(MENU_ROLES) && { to: '/admin/reports', label: t('nav.reports') },
+          can(MENU_ROLES) && { to: '/admin/feedback', label: t('nav.feedback') },
+        ].filter(Boolean)} />
+        <NavGroup label={t('nav.group.admin')} items={[
+          can(ADMIN_ROLES) && { to: '/admin/setup', label: t('nav.setup') },
+          can(ADMIN_ROLES) && { to: '/admin/staff', label: t('nav.staff') },
+          can(ADMIN_ROLES) && { to: '/admin/store', label: t('nav.store') },
+          can(ADMIN_ROLES) && { to: '/admin/settings', label: t('nav.settings') },
+          can(ADMIN_ROLES) && { to: '/admin/billing', label: t('nav.billing') },
+          can(ADMIN_ROLES) && { to: '/admin/licence', label: t('nav.licence') },
+        ].filter(Boolean)} />
         {can(PLATFORM_ROLES) && <NavLink to="/platform" end>{t('nav.platform')}</NavLink>}
         {can(PLATFORM_ROLES) && <NavLink to="/platform/licences">{t('nav.licences')}</NavLink>}
         {can(PLATFORM_ROLES) && <NavLink to="/platform/support">{t('nav.support')}</NavLink>}

@@ -17,6 +17,7 @@ test('owner adds a cashier who can sign in, then deactivates them', async ({ bro
   const owner = await (await browser.newContext()).newPage();
   await signIn(owner, ownerEmail, ownerPassword);
   await owner.waitForURL((url) => !url.pathname.startsWith('/login'));
+  await owner.getByRole('button', { name: 'Admin', exact: true }).click();
   await owner.getByRole('link', { name: 'Staff', exact: true }).click();
   await expect(owner.getByRole('heading', { name: 'Staff', exact: true })).toBeVisible();
 

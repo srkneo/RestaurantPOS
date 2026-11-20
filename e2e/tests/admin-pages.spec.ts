@@ -15,6 +15,7 @@ test('owner names the store and adds a table the POS can use', async ({ page }) 
   await signIn(page);
   const suffix = Date.now() % 100000;
 
+  await page.getByRole('button', { name: 'Admin', exact: true }).click();
   await page.getByRole('link', { name: 'Store', exact: true }).click();
   const name = `E2E Dining ${suffix}`;
   await page.getByLabel('Restaurant name').fill(name);
@@ -24,6 +25,7 @@ test('owner names the store and adds a table the POS can use', async ({ page }) 
   await expect(page.locator('.pos-store-name')).toHaveText(name);
 
   const table = `E2E ${suffix}`;
+  await page.getByRole('button', { name: 'Menu & stock', exact: true }).click();
   await page.getByRole('link', { name: 'Tables', exact: true }).click();
   await page.getByRole('button', { name: 'Add table' }).click();
   await page.getByRole('dialog').getByLabel('Table number or name').fill(table);

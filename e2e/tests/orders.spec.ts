@@ -78,6 +78,7 @@ test('an order can be changed before cooking, not after', async ({ page }) => {
 
 test('a sold-out item disappears from the POS', async ({ page }) => {
   await signIn(page);
+  await page.getByRole('button', { name: 'Menu & stock', exact: true }).click();
   await page.getByRole('link', { name: 'Menu', exact: true }).click();
   await page.getByRole('switch', { name: 'Coke: Available' }).click();
   await expect(page.getByText('Coke: Sold out')).toBeVisible();
