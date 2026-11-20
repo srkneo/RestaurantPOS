@@ -63,6 +63,7 @@ try
     builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+    builder.Services.AddHostedService<SecurityEventCleanup>();
     builder.Services.AddScoped<IOrderService, OrderService>();
     builder.Services.AddScoped<BillService>();
     builder.Services.AddScoped<DayCloseService>();
@@ -115,6 +116,7 @@ try
     app.MapLicenceServerEndpoints();
     app.MapAboutEndpoints();
     app.MapClientErrorEndpoints();
+    app.MapSecurityEventEndpoints();
 
     // OB1: request ID first, so every later log line and error response carries it.
     app.UseRequestIds();
@@ -132,6 +134,8 @@ try
     app.UseExceptionHandler();
     app.UsePosAuth();
     app.UseRequestUserInLogs();
+    // OB8: sign-ins, password, staff and platform changes go to the security event log.
+    app.UseSecurityEvents();
     app.UseRateLimiter();
     app.UseMiddleware<LicenceGate>();
 

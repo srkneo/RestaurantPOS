@@ -147,6 +147,8 @@ namespace POSSystem.Data
                 if (user is null || !user.IsActive) return Results.Unauthorized();
                 if (!user.IsPlatformAdmin && await db.Tenants.AnyAsync(t => t.Id == user.TenantId && !t.IsActive)) return Results.Unauthorized();
 
+                // OB8: the security log ties this attempt (right or wrong password) to the account.
+                http.Items[POSSystem.Logging.SecurityEvents.UserItem] = user.Id;
                 var check = await signInManager.CheckPasswordSignInAsync(user, req.Password, lockoutOnFailure: true);
                 if (!check.Succeeded) return Results.Unauthorized();
 
