@@ -183,6 +183,10 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover { opacity: 0.9; back
   .pos-dialog-wide { width: min(100%, 1040px); }
 }
 .pos-dialog .table { margin-bottom: 0; }
+
+/* Cards that hold a form or text keep their fields away from the card edge; cards that hold a table stay edge to edge. */
+form.pos-card, details.pos-card { padding: 24px; }
+@media (max-width: 575.98px) { form.pos-card, details.pos-card { padding: 16px; } }
 .pos-dialog h2 { margin: 0 0 8px; font-size: 22px; }
 .pos-dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: 20px; }
 

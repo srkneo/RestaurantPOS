@@ -65,7 +65,7 @@ export default function AboutPage() {
       {loadState === 'error' && <StateMessage kind="error" onRetry={load} />}
       {loadState === 'ready' && (
         <div className="d-flex flex-column gap-3" style={{ maxWidth: 640 }}>
-          <div className="pos-card">
+          <div className="pos-card p-3 p-md-4">
             <h2 className="h5 mb-1">{about.productName}</h2>
             <p className="text-body-secondary mb-3">{t('about.madeBy', { company: about.companyName })}</p>
             <dl className="row mb-0">
