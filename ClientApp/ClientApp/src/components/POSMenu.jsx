@@ -7,6 +7,7 @@ import ConfirmDialog from '../ui/ConfirmDialog';
 import BillDialog from './BillDialog';
 import ItemOptionsDialog from './ItemOptionsDialog';
 import StateMessage from '../ui/StateMessage';
+import Icon from '../ui/Icon';
 import { formatMoney, minutesSince, newClientId } from '../ui/format';
 import './POSMenu.css';
 import { useAuth } from '../AuthContext';
@@ -579,7 +580,8 @@ const POSMenu = () => {
           <div className="pos-table-grid" role="dialog" aria-modal="true" aria-label={t('pos.tableGrid')} onClick={(e) => e.stopPropagation()}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <h2 className="h5 mb-0">{t('pos.tableGrid')}</h2>
-              <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => setTableGrid(false)}>{t('common.close')}</button>
+              <button type="button" className="btn btn-outline-secondary btn-sm px-3" aria-label={t('common.close')} title={t('common.close')}
+                onClick={() => setTableGrid(false)}><Icon name="xmark" /></button>
             </div>
             <div className="pos-table-tiles">
               {tables.map((tb) => {

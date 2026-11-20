@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import FormDialog from '../ui/FormDialog';
+import Icon from '../ui/Icon';
 import { readErrors, send } from '../ui/forms';
 
 const blankRow = () => ({ id: null, name: '', price: '', isAvailable: true });
@@ -32,7 +33,7 @@ function OptionRows({ kind, title, hint, rows, setRows }) {
             <label className="form-check-label" htmlFor={`opt-${kind}-${i}`}>{t('menu.available')}</label>
           </div>
           <button type="button" className="btn btn-outline-danger btn-sm" aria-label={t('options.removeRow', { kind: title, n: i + 1 })}
-            onClick={() => setRows(rows.filter((_, n) => n !== i))}>×</button>
+            onClick={() => setRows(rows.filter((_, n) => n !== i))}><Icon name="trash-can" /></button>
         </div>
       ))}
       <div>

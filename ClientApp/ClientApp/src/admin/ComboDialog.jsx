@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import FormDialog from '../ui/FormDialog';
+import Icon from '../ui/Icon';
 import { readErrors, send } from '../ui/forms';
 
 // Owner and manager: the items a combo includes. The bill shows one line at the combo's own price;
@@ -75,7 +76,7 @@ export default function ComboDialog({ item, items, onClose }) {
           <input className="form-control" style={{ width: '5rem' }} inputMode="numeric" aria-label={t('combo.quantity', { n: i + 1 })}
             value={r.quantity} onChange={(e) => update(i, { quantity: e.target.value })} />
           <button type="button" className="btn btn-outline-danger btn-sm" aria-label={t('combo.remove', { n: i + 1 })}
-            onClick={() => setRows(rows.filter((_, n) => n !== i))}>×</button>
+            onClick={() => setRows(rows.filter((_, n) => n !== i))}><Icon name="trash-can" /></button>
         </div>
       ))}
       <div>
