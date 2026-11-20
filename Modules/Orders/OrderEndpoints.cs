@@ -64,6 +64,7 @@ namespace POSSystem.Orders
             {
                 try
                 {
+                    if (await orderService.GetOrder(id) == null) return Results.NotFound();
                     await orderService.UpdateOrderStatus(id, statusRequest.Status, statusRequest.Version);
                     logger.LogInformation("Order status updated: OrderId={OrderId}, NewStatus={NewStatus}", id, statusRequest.Status);
                     return Results.Ok();
