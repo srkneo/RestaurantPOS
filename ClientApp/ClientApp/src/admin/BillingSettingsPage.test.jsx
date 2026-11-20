@@ -52,6 +52,8 @@ describe('Billing settings page', () => {
     fireEvent.change(screen.getByLabelText('Receipt paper'), { target: { value: '58' } });
     fireEvent.change(screen.getByLabelText('Bill and KOT language'), { target: { value: 'gu' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(calls.some((c) => c.options?.method === 'PUT')).toBe(false);
+    fireEvent.click(await screen.findByRole('button', { name: 'Change GST' }));
 
     expect(await screen.findByText('Billing settings saved.')).toBeInTheDocument();
     const put = calls.find((c) => c.options?.method === 'PUT');

@@ -5,6 +5,7 @@ import { useAuth } from '../AuthContext';
 import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
 import { send } from '../ui/forms';
+import ConfirmDialog from '../ui/ConfirmDialog';
 import { formatMoney } from '../ui/format';
 import './OrderHistory.css';
 import './DayClosePage.css';
@@ -113,9 +114,16 @@ export default function DayClosePage() {
     });
   };
 
+  // Closing is final (a closed shift cannot be opened again), so ask first.
+  const [askClose, setAskClose] = useState(false);
   const closeShift = (e) => {
     e.preventDefault();
     if (!isAmount(counted)) { setError(t('dayClose.enterAmount')); return; }
+    setAskClose(true);
+  };
+
+  const doCloseShift = () => {
+    setAskClose(false);
     post('/api/shifts/current/close', { countedCash: Number(counted), note: note.trim() || null, version: shift.version }, (s) => {
       setClosed(s);
       setShift(null);
@@ -209,6 +217,9 @@ export default function DayClosePage() {
           </form>
         </>
       )}
+      <ConfirmDialog open={askClose} danger title={t('confirm.closeShiftTitle')}
+        message={t('confirm.closeShiftText', { amount: formatMoney(Number(counted) || 0) })} confirmLabel={t('confirm.closeShiftYes')}
+        onCancel={() => setAskClose(false)} onConfirm={doCloseShift} />
     </main>
   );
 }

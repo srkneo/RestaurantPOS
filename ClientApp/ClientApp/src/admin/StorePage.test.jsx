@@ -77,6 +77,8 @@ describe('Store profile page', () => {
     expect(screen.getByRole('img', { name: 'Logo' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Remove logo' }));
+    expect(calls.some((c) => c.url === '/api/admin/store/logo' && c.options?.method === 'DELETE')).toBe(false);
+    fireEvent.click(await screen.findByRole('button', { name: 'Yes, remove' }));
     expect(await screen.findByText('Logo removed.')).toBeInTheDocument();
     expect(calls.some((c) => c.url === '/api/admin/store/logo' && c.options?.method === 'DELETE')).toBe(true);
     expect(screen.queryByRole('img', { name: 'Logo' })).not.toBeInTheDocument();

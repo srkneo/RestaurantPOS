@@ -3,6 +3,7 @@ import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
 import { readErrors, send, Field } from '../ui/forms';
+import ConfirmDialog from '../ui/ConfirmDialog';
 import '../components/OrderHistory.css';
 import './StaffPage.css';
 
@@ -70,7 +71,12 @@ export default function SettingsPage() {
         </div>
     );
 
-    const applyPreset = async (preset) => {
+    // A quick setup changes several settings at once, so ask first.
+    const [askPreset, setAskPreset] = useState(null);
+    const applyPreset = (preset) => setAskPreset(preset);
+
+    const doApplyPreset = async (preset) => {
+        setAskPreset(null);
         const res = await fetch('/api/admin/settings/preset', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -247,6 +253,9 @@ export default function SettingsPage() {
                     </form>
                 </>
             )}
+            <ConfirmDialog open={askPreset !== null} title={t('confirm.presetTitle', { name: askPreset ? t(`settings.preset.${askPreset}`) : '' })}
+                message={t('confirm.presetText')} confirmLabel={t('confirm.presetYes')}
+                onCancel={() => setAskPreset(null)} onConfirm={() => doApplyPreset(askPreset)} />
         </main>
     );
 }

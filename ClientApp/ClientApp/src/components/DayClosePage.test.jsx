@@ -75,6 +75,8 @@ describe('Day close page', () => {
     fireEvent.change(screen.getByLabelText('Counted cash'), { target: { value: '1350' } });
     expect(screen.getByTestId('day-preview')).toHaveTextContent('Short by ₹33.00');
     fireEvent.click(screen.getByRole('button', { name: 'Close shift' }));
+    expect(await screen.findByText('Counted cash ₹1350.00. A closed shift cannot be opened again.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, close the shift' }));
 
     expect(await screen.findByRole('heading', { name: 'Shift closed' })).toBeInTheDocument();
     expect(screen.getByText('Short by ₹33.00')).toBeInTheDocument();
