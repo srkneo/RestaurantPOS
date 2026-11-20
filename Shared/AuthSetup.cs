@@ -52,6 +52,7 @@ namespace POSSystem.Data
                     o.Lockout.MaxFailedAccessAttempts = 5;
                 })
                 .AddEntityFrameworkStores<AppDbContext>()
+                .AddDefaultTokenProviders()
                 .AddClaimsPrincipalFactory<AppUserClaimsFactory>();
 
             services.ConfigureApplicationCookie(o =>
@@ -76,6 +77,7 @@ namespace POSSystem.Data
             services.AddHttpClient("telegram-otp");
             services.AddSingleton<IOtpSender, TelegramOtpSender>();
             services.AddSingleton<PlatformOtp>();
+            services.AddSingleton<AppTwoFactor>();
             services.AddSingleton<SubscriptionGate>();
 
             services.AddAuthorizationBuilder()
@@ -137,7 +139,7 @@ namespace POSSystem.Data
         public static WebApplication MapPosAuth(this WebApplication app)
         {
             app.MapPost("/api/auth/login", async (LoginRequest req, SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, AppDbContext db,
-                PlatformOtp otp, HttpContext http) =>
+                PlatformOtp otp, AppTwoFactor appCodes, HttpContext http) =>
             {
                 if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrEmpty(req.Password)) return Results.Unauthorized();
 
@@ -147,6 +149,10 @@ namespace POSSystem.Data
 
                 var check = await signInManager.CheckPasswordSignInAsync(user, req.Password, lockoutOnFailure: true);
                 if (!check.Succeeded) return Results.Unauthorized();
+
+                // Owners and managers who turned on an authenticator app: a second step with the app's 6-digit code.
+                if (user.TwoFactorEnabled && !user.IsDevice)
+                    return Results.Ok(new { twoStep = true, challenge = appCodes.Start(user), method = "app" });
 
                 // Platform owner: a second step, a one-time code sent to Telegram (when the server has its bot set up).
                 if (user.IsPlatformAdmin && otp.Required)
@@ -163,8 +169,15 @@ namespace POSSystem.Data
                 return Results.Ok();
             }).AllowAnonymous().RequireRateLimiting(RateLimits.Login).WithName("Login").WithSummary("Sign in");
 
-            app.MapPost("/api/auth/login/code", async (LoginCodeRequest req, PlatformOtp otp, SignInManager<AppUser> signInManager, UserManager<AppUser> userManager) =>
+            app.MapPost("/api/auth/login/code", async (LoginCodeRequest req, PlatformOtp otp, AppTwoFactor appCodes, SignInManager<AppUser> signInManager, UserManager<AppUser> userManager) =>
             {
+                if (appCodes.Has(req.Challenge))
+                {
+                    var appUser = await appCodes.VerifyAsync(req.Challenge, req.Code, userManager);
+                    if (appUser is null) return Results.Unauthorized();
+                    await signInManager.SignInAsync(appUser, new AuthenticationProperties { IsPersistent = false });
+                    return Results.Ok();
+                }
                 var userId = otp.Verify(req.Challenge, req.Code);
                 if (userId == null) return Results.Unauthorized();
                 var user = await userManager.FindByIdAsync(userId);
