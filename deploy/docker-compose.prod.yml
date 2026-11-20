@@ -53,6 +53,11 @@ services:
       # Error tracking (Sentry free plan). Empty = off (shop PCs, load-test server).
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
+      # Traces and metrics (Grafana Cloud, OpenTelemetry). Empty endpoint = off. Headers: Authorization=Basic%20<base64 id:token>
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
+      TELEMETRY_TRACE_RATIO: ${TELEMETRY_TRACE_RATIO:-}
       # Shop PC licence. Empty = no licence needed (the cloud version). The installer sets these on a shop PC.
       Licence__Required: ${LICENCE_REQUIRED:-}
       Licence__PublicKey: ${LICENCE_PUBLIC_KEY:-}
