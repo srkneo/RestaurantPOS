@@ -245,7 +245,7 @@ export default function StockPage() {
         </Field>
       </FormDialog>
 
-      <FormDialog open={history !== null} title={history ? t('stock.historyTitle', { name: history.item.name }) : ''} submitLabel={t('common.close')}
+      <FormDialog open={history !== null} size="wide" hideCancel title={history ? t('stock.historyTitle', { name: history.item.name }) : ''} submitLabel={t('common.close')}
         onCancel={() => setHistory(null)} onSubmit={() => setHistory(null)}>
         {history?.moves === null && <StateMessage kind="loading" />}
         {history?.moves?.length === 0 && <p className="mb-0">{t('stock.noHistory')}</p>}

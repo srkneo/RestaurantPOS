@@ -164,10 +164,25 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover { opacity: 0.9; back
   position: fixed; inset: 0; z-index: 1200; padding: 16px;
   display: flex; align-items: center; justify-content: center; background: rgba(22, 33, 29, 0.45);
 }
+/* Pop-ups grow with the screen: phone full width, tablet 520px, big monitor 560px. Wide pop-ups (tables, row editors)
+   use most of a tablet and up to 1040px on a big monitor. Long content scrolls inside the pop-up. */
 .pos-dialog {
-  width: min(100%, 420px); padding: 24px; border-radius: 16px;
+  width: min(100%, 420px); max-height: calc(100vh - 32px); overflow-y: auto; padding: 24px; border-radius: 16px;
   background: var(--pos-surface); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
 }
+.pos-dialog-wide { width: 100%; }
+@media (min-width: 768px) {
+  .pos-dialog { width: min(100%, 520px); }
+  .pos-dialog-wide { width: min(100%, 760px); }
+}
+@media (min-width: 1200px) {
+  .pos-dialog-wide { width: min(100%, 900px); padding: 28px; }
+}
+@media (min-width: 1600px) {
+  .pos-dialog { width: min(100%, 560px); }
+  .pos-dialog-wide { width: min(100%, 1040px); }
+}
+.pos-dialog .table { margin-bottom: 0; }
 .pos-dialog h2 { margin: 0 0 8px; font-size: 22px; }
 .pos-dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: 20px; }
 
