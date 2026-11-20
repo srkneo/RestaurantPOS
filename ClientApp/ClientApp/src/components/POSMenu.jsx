@@ -248,7 +248,8 @@ const POSMenu = () => {
 
   const tableInfo = orderType === 'DineIn' ? tables.find((tb) => String(tb.id) === selectedTable) : null;
   // Running tab: the table already has an open order, so these items become its next round.
-  const tab = !editing && tableInfo?.status === 'Occupied' && tableInfo.orderId ? tableInfo : null;
+  // A printed but unpaid bill (Billed) is a running tab too: new items join the same token and the bill is worked out again.
+  const tab = !editing && (tableInfo?.status === 'Occupied' || tableInfo?.status === 'Billed') && tableInfo.orderId ? tableInfo : null;
 
   const addRound = async (open) => {
     try {
@@ -268,7 +269,7 @@ const POSMenu = () => {
         return;
       }
       const round = Math.max(1, ...(data.items ?? []).map((i) => i.round ?? 1));
-      showToast(t('pos.roundAdded', { token: open.tokenNumber }));
+      showToast(t(open.status === 'Billed' ? 'pos.roundAddedBill' : 'pos.roundAdded', { token: open.tokenNumber }));
       setLastPlaced({ id: open.orderId, tokenNumber: open.tokenNumber, round });
       resetOrder();
       refreshTables();
@@ -278,10 +279,7 @@ const POSMenu = () => {
   };
 
   const placeOrder = async () => {
-    if (!editing && tableInfo?.status === 'Billed') {
-      showToast(t('pos.tabBilled', { number: tableInfo.tableNumber }), 'error');
-      return;
-    }
+    // A table with a printed, unpaid bill takes more items on the same token (see tab above).
     if (!editing && orderType === 'DineIn' && !selectedTable) {
       showToast(t('pos.needTable'), 'error');
       return;
@@ -410,9 +408,9 @@ const POSMenu = () => {
                     : tableInfo.status === 'Billed' ? t('pos.tableBilled', { number: tableInfo.tableNumber })
                       : t('pos.tableName', { number: tableInfo.tableNumber })}
               </button>
-              {tab && <div className="pos-hint pos-tab-hint" role="status">{t('pos.tabOpen', { number: tab.tableNumber, token: tab.tokenNumber })}</div>}
-              {!editing && tableInfo?.status === 'Billed' && (
-                <div className="pos-hint text-danger" role="status">{t('pos.tabBilled', { number: tableInfo.tableNumber })}</div>
+              {tab && tab.status !== 'Billed' && <div className="pos-hint pos-tab-hint" role="status">{t('pos.tabOpen', { number: tab.tableNumber, token: tab.tokenNumber })}</div>}
+              {tab && tab.status === 'Billed' && (
+                <div className="pos-hint pos-tab-hint text-warning-emphasis" role="status">{t('pos.tabBilledAdd', { number: tab.tableNumber, token: tab.tokenNumber })}</div>
               )}
             </div>
           ) : (
