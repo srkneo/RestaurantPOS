@@ -231,7 +231,8 @@ const OrderHistory = () => {
     ? sorted.filter((o) => [String(o.tokenNumber), o.customerName, o.customerPhone, o.table?.tableNumber, ...(o.items ?? []).map((i) => i.itemName)]
       .some((v) => v != null && String(v).toLowerCase().includes(query)))
     : sorted;
-  const { page, pageCount, pageItems, setPage, total } = usePaged(filtered, 50);
+  const { page, pageCount, pageItems, setPage, total, pageSize, setPageSize } = usePaged(filtered, 20, 'orders');
+  const pager = <Pager page={page} pageCount={pageCount} total={total} onPage={setPage} pageSize={pageSize} onPageSize={setPageSize} />;
 
   return (
     <main className="pos-page">
@@ -255,6 +256,7 @@ const OrderHistory = () => {
       {loadState === 'error' && <StateMessage kind="error" onRetry={load} />}
       {loadState === 'ready' && sorted.length === 0 && <StateMessage kind="empty" message={t('orders.empty')} />}
       {loadState === 'ready' && sorted.length > 0 && filtered.length === 0 && <StateMessage kind="empty" message={t('orders.noMatch')} />}
+      {loadState === 'ready' && pager}
       {loadState === 'ready' && filtered.length > 0 && (
         <div className="pos-card table-responsive">
           <table className="table align-middle">
@@ -325,7 +327,7 @@ const OrderHistory = () => {
           </table>
         </div>
       )}
-      {loadState === 'ready' && <Pager page={page} pageCount={pageCount} total={total} onPage={setPage} />}
+      {loadState === 'ready' && pageCount > 1 && pager}
 
       <FormDialog open={!!cancelling} title={t('orders.cancelTitle', { token: cancelling?.tokenNumber ?? '' })} submitLabel={t('orders.cancelConfirm')}
         busy={busy} error={cancelError} onCancel={() => setCancelling(null)} onSubmit={confirmCancel}>
