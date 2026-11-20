@@ -99,9 +99,75 @@ services:
       - web
     logging: *logging
 
+  # OB5: ships the API's JSON log file to Grafana Cloud Loki. Started only when GRAFANA_LOKI_URL is set in .env
+  # (deploy.sh then adds --profile monitoring). Reads the log volume read-only; at most 200 MB of memory.
+  alloy:
+    image: grafana/alloy:latest
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    command: ["run", "--storage.path=/var/lib/alloy/data", "/etc/alloy/config.alloy"]
+    environment:
+      GRAFANA_LOKI_URL: ${GRAFANA_LOKI_URL:-}
+      GRAFANA_LOKI_USER: ${GRAFANA_LOKI_USER:-}
+      GRAFANA_LOKI_TOKEN: ${GRAFANA_LOKI_TOKEN:-}
+      GOMEMLIMIT: 150MiB
+    mem_limit: 200m
+    configs:
+      - source: alloy_config
+        target: /etc/alloy/config.alloy
+    volumes:
+      - applogs:/var/log/pos:ro
+      - alloy_data:/var/lib/alloy/data
+    depends_on:
+      - api
+    logging: *logging
+
+configs:
+  alloy_config:
+    content: |
+      // OB5: the API writes one JSON object per line to logs/log.json (see nlog.config).
+      local.file_match "pos" {
+        path_targets = [{"__path__" = "/var/log/pos/log.json", "job" = "restaurantpos-api", "service_name" = "restaurantpos-api"}]
+      }
+
+      loki.source.file "pos" {
+        targets    = local.file_match.pos.targets
+        forward_to = [loki.process.pos.receiver]
+      }
+
+      // Only the level becomes a label (few values); request ID, restaurant and user stay searchable inside the line.
+      loki.process "pos" {
+        stage.json {
+          expressions = { level = "", time = "" }
+        }
+
+        stage.timestamp {
+          source = "time"
+          format = "RFC3339Nano"
+        }
+
+        stage.labels {
+          values = { level = "" }
+        }
+
+        forward_to = [loki.write.grafana.receiver]
+      }
+
+      loki.write "grafana" {
+        endpoint {
+          url = sys.env("GRAFANA_LOKI_URL")
+
+          basic_auth {
+            username = sys.env("GRAFANA_LOKI_USER")
+            password = sys.env("GRAFANA_LOKI_TOKEN")
+          }
+        }
+      }
+
 volumes:
   pgdata:
   keys:
   applogs:
   caddy_data:
   caddy_config:
+  alloy_data:
