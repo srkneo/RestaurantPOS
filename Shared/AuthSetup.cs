@@ -57,6 +57,11 @@ namespace POSSystem.Data
             services.ConfigureApplicationCookie(o =>
             {
                 o.Cookie.Name = "pos.auth";
+                // Not readable by page scripts, not sent from other sites' forms, and Secure whenever the visit is https
+                // (behind Caddy the forwarded https is trusted: ASPNETCORE_FORWARDEDHEADERS_ENABLED).
+                o.Cookie.HttpOnly = true;
+                o.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+                o.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
                 o.ExpireTimeSpan = TimeSpan.FromHours(12);
                 o.SlidingExpiration = true;
                 o.Events.OnRedirectToLogin = ctx => { ctx.Response.StatusCode = 401; return Task.CompletedTask; };
