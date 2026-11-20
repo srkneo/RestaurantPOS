@@ -97,6 +97,9 @@ namespace POSSystem.Orders
                             }
                             else
                             {
+                                // Guests cannot add to a printed bill from the QR menu; staff can (the bill is then worked out again).
+                                if (await db.Bills.AnyAsync(b => b.KitchenOrderId == open.Id && b.Status != BillStatus.Void))
+                                    throw new POSSystem.Billing.BilledOrderException();
                                 order = await orders.AddItems(open.Id, items, open.Version);
                             }
                             return Results.Ok(new QrOrderResult(order.TokenNumber, order.Items.Count == 0 ? 1 : order.Items.Max(i => i.Round)));

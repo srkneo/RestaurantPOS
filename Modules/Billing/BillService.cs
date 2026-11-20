@@ -144,6 +144,46 @@ namespace POSSystem.Billing
             return bill;
         }
 
+        // New items on an order whose bill is printed but not paid: the same bill (same invoice number) is worked out
+        // again with its tax mode and discount, and its version goes up so screens print it again. The audit log keeps
+        // the old and new totals. Bills with any payment are never changed this way.
+        public static async Task RefreshUnpaid(AppDbContext db, Bill bill, KitchenOrder order)
+        {
+            if (bill.Status != BillStatus.Unpaid || bill.Payments.Count > 0)
+                throw new InvalidOperationException("Only an unpaid bill without payments can take more items.");
+            var menuIds = order.Items.Select(i => i.MenuItemId).Distinct().ToList();
+            var rates = await db.MenuItems.Where(m => menuIds.Contains(m.Id)).ToDictionaryAsync(m => m.Id, m => m.TaxRate);
+            var inputs = order.Items.OrderBy(i => i.Id == 0 ? int.MaxValue : i.Id)
+                .Select(i => new BillLineInput(POSSystem.Menu.MenuOptions.BillName(i), i.Quantity, i.UnitPrice,
+                    bill.TaxMode == TaxMode.Regular ? rates.GetValueOrDefault(i.MenuItemId, 5m) : 0m))
+                .ToList();
+            var itemsTotal = inputs.Sum(i => BillCalculator.Paise(i.Quantity * i.UnitPrice));
+            var totals = BillCalculator.Calculate(inputs, bill.TaxMode, bill.PricesIncludeTax, Math.Min(bill.Discount, itemsTotal));
+
+            db.BillLines.RemoveRange(bill.Lines);
+            bill.Lines = totals.Lines.Select(l => new BillLine
+            {
+                TenantId = bill.TenantId,
+                ItemName = l.Name,
+                Quantity = l.Quantity,
+                UnitPrice = l.UnitPrice,
+                TaxRate = l.TaxRate,
+                Amount = l.Amount,
+                Discount = l.Discount,
+                TaxableValue = l.TaxableValue,
+                Cgst = l.Cgst,
+                Sgst = l.Sgst
+            }).ToList();
+            bill.ItemsTotal = totals.ItemsTotal;
+            bill.Discount = totals.Discount;
+            bill.TaxableValue = totals.TaxableValue;
+            bill.Cgst = totals.Cgst;
+            bill.Sgst = totals.Sgst;
+            bill.RoundOff = totals.RoundOff;
+            bill.Total = totals.Total;
+            bill.Version++;
+        }
+
         public async Task<Bill> VoidBill(int id, VoidBillRequest request, string? approvedBy = null)
         {
             var bill = await Load(id) ?? throw new KeyNotFoundException("Bill not found.");

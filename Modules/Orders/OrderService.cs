@@ -283,7 +283,11 @@ namespace POSSystem.Services
             if (order.Version != version) throw new OrderConflictException("This order was changed on another screen.");
             if (order.Status is OrderStatus.Completed or OrderStatus.Cancelled)
                 throw new OrderStateException("This order is closed. Place a new order instead.");
-            if (await _context.Bills.AnyAsync(b => b.KitchenOrderId == id && b.Status != BillStatus.Void))
+            // A printed bill that is not paid yet takes the new round too: same token, same bill number, new total.
+            // Once any money is received the bill is fixed; more items then need a new order.
+            var bill = await _context.Bills.Include(b => b.Lines).Include(b => b.Payments)
+                .FirstOrDefaultAsync(b => b.KitchenOrderId == id && b.Status != BillStatus.Void);
+            if (bill != null && (bill.Status != BillStatus.Unpaid || bill.Payments.Count > 0))
                 throw new POSSystem.Billing.BilledOrderException();
 
             var outlet = await CurrentOutlet();
@@ -299,6 +303,7 @@ namespace POSSystem.Services
                 order.Status = OrderStatus.Received;
                 order.ReadyAt = null;
             }
+            if (bill != null) await POSSystem.Billing.BillService.RefreshUnpaid(_context, bill, order);
             order.Version++;
             await SaveChecked();
 
