@@ -45,6 +45,8 @@ describe('Settings page', () => {
     const calls = mockApi();
     renderPage();
     fireEvent.click(await screen.findByRole('button', { name: 'Takeaway counter' }));
+    expect(calls.some((c) => c.url === '/api/admin/settings/preset')).toBe(false);
+    fireEvent.click(await screen.findByRole('button', { name: 'Yes, apply' }));
     expect(await screen.findByText('Setup applied.')).toBeInTheDocument();
     expect(JSON.parse(calls.find((c) => c.url === '/api/admin/settings/preset').options.body)).toEqual({ preset: 'takeaway-counter' });
     expect(screen.getByLabelText('Dine-in orders')).not.toBeChecked();

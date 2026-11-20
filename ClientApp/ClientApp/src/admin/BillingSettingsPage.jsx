@@ -5,6 +5,7 @@ import StateMessage from '../ui/StateMessage';
 import DiscountLimitCard from './DiscountLimitCard';
 import ApprovalRulesCard from './ApprovalRulesCard';
 import { readErrors, send, Field } from '../ui/forms';
+import ConfirmDialog from '../ui/ConfirmDialog';
 import '../components/OrderHistory.css';
 import './StaffPage.css';
 
@@ -18,6 +19,9 @@ export default function BillingSettingsPage() {
     const [loadState, setLoadState] = useState('loading');
     const [errors, setErrors] = useState({});
     const [busy, setBusy] = useState(false);
+    // GST changes every bill from now on, so a change of the GST mode is asked first.
+    const [savedTaxMode, setSavedTaxMode] = useState(null);
+    const [askTax, setAskTax] = useState(false);
 
     const load = useCallback(async () => {
         setLoadState('loading');
@@ -25,6 +29,7 @@ export default function BillingSettingsPage() {
             const res = await fetch('/api/admin/billing-settings');
             if (res.ok) {
                 const data = await res.json();
+                setSavedTaxMode(data.taxMode);
                 setForm({
                     ...data,
                     billPrefix: data.billPrefix ?? '',
@@ -49,8 +54,14 @@ export default function BillingSettingsPage() {
 
     const setField = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
-    const save = async (e) => {
+    const save = (e) => {
         e.preventDefault();
+        if (savedTaxMode !== null && form.taxMode !== savedTaxMode) { setAskTax(true); return; }
+        doSave();
+    };
+
+    const doSave = async () => {
+        setAskTax(false);
         const body = {
             taxMode: form.taxMode,
             pricesIncludeTax: !!form.pricesIncludeTax,
@@ -66,6 +77,7 @@ export default function BillingSettingsPage() {
             const res = await send('/api/admin/billing-settings', 'PUT', body);
             if (res.ok) {
                 setErrors({});
+                setSavedTaxMode(body.taxMode);
                 showToast(t('billing.saved'));
             } else {
                 setErrors(await readErrors(res));
@@ -212,6 +224,8 @@ export default function BillingSettingsPage() {
             )}
             {loadState === 'ready' && <DiscountLimitCard />}
             {loadState === 'ready' && <ApprovalRulesCard />}
+            <ConfirmDialog open={askTax} title={t('confirm.taxTitle')} message={t('confirm.taxText')} confirmLabel={t('confirm.taxYes')}
+                onCancel={() => setAskTax(false)} onConfirm={doSave} />
         </main>
     );
 }

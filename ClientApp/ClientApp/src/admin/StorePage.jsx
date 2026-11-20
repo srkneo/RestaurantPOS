@@ -5,6 +5,7 @@ import StateMessage from '../ui/StateMessage';
 import ReviewLinkCard from './ReviewLinkCard';
 import FeedbackSettingCard from './FeedbackSettingCard';
 import { readErrors, send, Field } from '../ui/forms';
+import ConfirmDialog from '../ui/ConfirmDialog';
 import '../components/OrderHistory.css';
 import './StaffPage.css';
 
@@ -36,6 +37,7 @@ export default function StorePage() {
     const [loadState, setLoadState] = useState('loading');
     const [errors, setErrors] = useState({});
     const [busy, setBusy] = useState(false);
+    const [askLogo, setAskLogo] = useState(false);
 
     const load = useCallback(async () => {
         try {
@@ -124,6 +126,7 @@ export default function StorePage() {
     };
 
     const removeLogo = async () => {
+        setAskLogo(false);
         try {
             const res = await fetch('/api/admin/store/logo', {
                 method: 'DELETE'
@@ -175,7 +178,7 @@ export default function StorePage() {
                                     alt={t('store.logo')}
                                     style={{ maxHeight: 96, maxWidth: 240, objectFit: 'contain' }}
                                 />
-                                <button type="button" className="btn btn-outline-danger btn-sm px-3 align-self-start" onClick={removeLogo}>{t('store.removeLogo')}</button>
+                                <button type="button" className="btn btn-outline-danger btn-sm px-3 align-self-start" onClick={() => setAskLogo(true)}>{t('store.removeLogo')}</button>
                             </>
                         )}
                         <label htmlFor="store-logo" className="form-label mb-0">{t('store.uploadLogo')}</label>
@@ -187,6 +190,8 @@ export default function StorePage() {
                     <FeedbackSettingCard />
                 </>
             )}
+            <ConfirmDialog open={askLogo} danger title={t('confirm.logoTitle')} message={t('confirm.logoText')} confirmLabel={t('confirm.logoYes')}
+                onCancel={() => setAskLogo(false)} onConfirm={removeLogo} />
         </main>
     );
 }
