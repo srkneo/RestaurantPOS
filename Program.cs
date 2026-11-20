@@ -20,6 +20,7 @@ using NLog.Web;
 using System.IO;
 using System.Text.Json.Serialization;
 using Scalar.AspNetCore;
+using POSSystem.Logging;
 
 // Setup NLog for Dependency injection
 var logger = NLog.LogManager.Setup().LoadConfigurationFromFile("nlog.config").GetCurrentClassLogger();
@@ -46,7 +47,7 @@ try
 
     builder.Services.AddOpenApi();
     builder.Services.AddSignalR().AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-    builder.Services.AddProblemDetails();
+    builder.Services.AddProblemDetails(o => o.CustomizeProblemDetails = RequestIds.AddToProblem);
     builder.Services.AddPosAuth();
     builder.Services.AddPosKeyStorage();
     builder.Services.AddMenuScan();
@@ -110,6 +111,9 @@ try
     app.MapLicenceServerEndpoints();
     app.MapAboutEndpoints();
 
+    // OB1: request ID first, so every later log line and error response carries it.
+    app.UseRequestIds();
+
     // Requests slower than 1 second go to the log with their path, so load tests show where time is spent.
     app.Use(async (context, next) =>
     {
@@ -122,6 +126,7 @@ try
 
     app.UseExceptionHandler();
     app.UsePosAuth();
+    app.UseRequestUserInLogs();
     app.UseRateLimiter();
     app.UseMiddleware<LicenceGate>();
 
