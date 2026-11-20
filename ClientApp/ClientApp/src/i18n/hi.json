@@ -531,6 +531,8 @@
   "billing.paper.80": "80 mm",
   "billing.paper.58": "58 mm",
   "billing.printLanguage": "बिल और KOT की भाषा",
+  "billing.smallChange": "कैशियर जितने छुट्टे पैसे माफ़ कर सकता है (₹)",
+  "billing.smallChangeHint": "भुगतान के बाद मेहमान के पास कुछ रुपये कम हों तो कैशियर बिल बंद कर सकता है। 0 का मतलब बंद।",
   "billing.lang.en": "English",
   "billing.lang.gu": "ગુજરાતી",
   "billing.save": "सेव करें",
