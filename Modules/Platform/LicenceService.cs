@@ -121,6 +121,10 @@ namespace POSSystem.Platform
             }, ct);
         }
 
+        // The stored licence key and this PC's id (the menu sync proves who it is with them, like renewal does).
+        public Task<(string? Key, string DeviceId)> StoredKey(CancellationToken ct) =>
+            InRecord((_, record, _) => Task.FromResult<(string? Key, string DeviceId)>((record.LicenceKey, record.DeviceId)), ct);
+
         // A short code for this PC, so support can tell shop PCs apart on the phone.
         public Task<string> DeviceCode(CancellationToken ct) =>
             InRecord((_, record, _) => Task.FromResult(record.DeviceId.Length > 8 ? record.DeviceId[..8].ToUpperInvariant() : record.DeviceId.ToUpperInvariant()), ct);

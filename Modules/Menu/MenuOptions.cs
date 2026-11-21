@@ -6,6 +6,9 @@ namespace POSSystem.Models
     // When an item has sizes, the cashier must pick one and its price replaces the item's price.
     public class ItemVariant : TenantEntity
     {
+        // v1.7 menu sync: id of the cloud row this was copied from (empty = made on this PC).
+        public int? CloudId { get; set; }
+
         [Key]
         public int Id { get; set; }
         public int MenuItemId { get; set; }
@@ -21,6 +24,9 @@ namespace POSSystem.Models
     // An extra that can be added to a menu item for a price, e.g. Extra cheese (+30). Its price is added to the line.
     public class ItemAddOn : TenantEntity
     {
+        // v1.7 menu sync: id of the cloud row this was copied from (empty = made on this PC).
+        public int? CloudId { get; set; }
+
         [Key]
         public int Id { get; set; }
         public int MenuItemId { get; set; }

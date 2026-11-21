@@ -4,6 +4,9 @@ namespace POSSystem.Models
 {
     public class MenuItem : TenantEntity
     {
+        // v1.7 menu sync: id of the cloud row this was copied from (empty = made on this PC).
+        public int? CloudId { get; set; }
+
         [Key]
         public int Id { get; set; }
 
@@ -38,6 +41,9 @@ namespace POSSystem.Models
 
     public class MenuCategory : TenantEntity
     {
+        // v1.7 menu sync: id of the cloud row this was copied from (empty = made on this PC).
+        public int? CloudId { get; set; }
+
         [Key]
         public int Id { get; set; }
 

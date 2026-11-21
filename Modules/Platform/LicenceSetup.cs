@@ -19,6 +19,7 @@ namespace POSSystem.Platform
             services.AddSingleton<ShopUpdates>();
             services.AddSingleton<ShopBackups>();
             services.AddHostedService<LicenceRenewalWorker>();
+            services.AddPosMenuSync();
             return services;
         }
     }

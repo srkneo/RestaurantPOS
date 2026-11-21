@@ -6,6 +6,9 @@ namespace POSSystem.Models
     // have its own kitchen screen and its own KOT. Items without a station go to the main kitchen.
     public class KitchenStation : TenantEntity
     {
+        // v1.7 menu sync: id of the cloud row this was copied from (empty = made on this PC).
+        public int? CloudId { get; set; }
+
         [Key]
         public int Id { get; set; }
 

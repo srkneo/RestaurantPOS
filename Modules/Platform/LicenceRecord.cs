@@ -18,5 +18,10 @@ namespace POSSystem.Models
         public string? OwnerResetHash { get; set; }
         public DateTime? OwnerResetExpires { get; set; }
         public string? OwnerResetUsedHash { get; set; }
+        // v1.7 menu sync: the menu comes from the linked cloud restaurant (read-only here), which version was applied, and when.
+        public bool MenuFromCloud { get; set; }
+        public string? MenuVersion { get; set; }
+        public DateTime? MenuSyncedUtc { get; set; }
+        public string? MenuSyncError { get; set; }
     }
 }
