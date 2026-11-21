@@ -2,6 +2,27 @@ import React from 'react';
 
 // Shared helpers for owner forms.
 
+// ERR1: the request ID the server put on its answer (body requestId or the X-Request-ID header), if it looks safe.
+export function errorId(res, data) {
+  const fromBody = data && typeof data.requestId === 'string' ? data.requestId : null;
+  let fromHeader = null;
+  try {
+    fromHeader = res?.headers?.get?.('X-Request-ID') ?? null;
+  } catch {
+    fromHeader = null;
+  }
+  const id = fromBody || fromHeader;
+  return id && /^[A-Za-z0-9._-]{1,64}$/.test(id) ? id : null;
+}
+
+// Only server failures (500 and up) get the ID; a form mistake needs no support call.
+function withErrorId(text, res, data) {
+  if (!res || !(res.status >= 500)) return text;
+  const id = errorId(res, data);
+  if (!id) return text;
+  return text ? `${text} [ID: ${id}]` : `[ID: ${id}]`;
+}
+
 // Turns a ValidationProblem response into { field: message } with lower-case field names.
 export async function readErrors(res) {
   try {
@@ -9,9 +30,9 @@ export async function readErrors(res) {
     if (data?.errors) {
       return Object.fromEntries(Object.entries(data.errors).map(([k, v]) => [k.toLowerCase(), Array.isArray(v) ? v.join(' ') : String(v)]));
     }
-    return { general: data?.message || data?.title || '' };
+    return { general: withErrorId(data?.message || data?.title || '', res, data) };
   } catch {
-    return { general: '' };
+    return { general: withErrorId('', res, null) };
   }
 }
 
