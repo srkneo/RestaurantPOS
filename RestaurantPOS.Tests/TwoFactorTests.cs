@@ -186,6 +186,8 @@ namespace RestaurantPOS.Tests
             Assert.Equal(HttpStatusCode.Forbidden, (await As(f, "cashier").GetAsync("/api/auth/2fa")).StatusCode);
             Assert.Equal(HttpStatusCode.Forbidden, (await As(f, "kitchen").PostAsync("/api/auth/2fa/setup", Json(new { }))).StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, (await As(f, "manager").GetAsync("/api/auth/2fa")).StatusCode);
+            // The platform owner may use the app too (NotFound only because this test user has no account row).
+            Assert.Equal(HttpStatusCode.NotFound, (await As(f, "platform").GetAsync("/api/auth/2fa")).StatusCode);
             var device = await CreateStaff(f, "kds@test.local", "kitchen", isDevice: true);
             Assert.Equal(HttpStatusCode.BadRequest, (await As(f, "manager", device).PostAsync("/api/auth/2fa/setup", Json(new { }))).StatusCode);
         }
