@@ -114,6 +114,7 @@ try
     app.MapApprovalEndpoints();
     app.MapLicenceEndpoints();
     app.MapLicenceServerEndpoints();
+    app.MapMenuSyncServerEndpoints();
     app.MapAboutEndpoints();
     app.MapClientErrorEndpoints();
     app.MapSecurityEventEndpoints();

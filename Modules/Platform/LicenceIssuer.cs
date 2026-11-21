@@ -12,7 +12,7 @@ using POSSystem.Models;
 namespace POSSystem.Platform
 {
     public record ShopLicenceDto(int Id, string Key, string Customer, string Plan, string State, DateTime PaidUntil, bool Revoked,
-        bool DeviceBound, DateTime? LastSeenAt, string? LastVersion, DateTime CreatedAt, string UpdateMode, string? PinnedVersion);
+        bool DeviceBound, DateTime? LastSeenAt, string? LastVersion, DateTime CreatedAt, string UpdateMode, string? PinnedVersion, int? TenantId = null);
 
     public record ShopLicenceUpdatesRequest(string? Mode, string? Version);
 
@@ -66,7 +66,7 @@ namespace POSSystem.Platform
             var now = Now;
             var state = l.Revoked ? "Revoked" : now > l.PaidUntil ? "Expired" : l.Plan == "trial" ? "Trial" : "Active";
             return new ShopLicenceDto(l.Id, l.Key, l.Customer, l.Plan, state, l.PaidUntil, l.Revoked, l.DeviceId is not null, l.LastSeenAt, l.LastVersion, l.CreatedAt,
-                UpdateModeOf(l), l.PinnedVersion);
+                UpdateModeOf(l), l.PinnedVersion, l.TenantId);
         }
 
         public async Task<List<ShopLicenceDto>> List(CancellationToken ct) =>

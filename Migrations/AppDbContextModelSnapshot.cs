@@ -2207,6 +2207,9 @@ namespace RestaurantPOS.Migrations
                     b.Property<bool>("Revoked")
                         .HasColumnType("boolean");
 
+                    b.Property<int?>("TenantId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("UpdateMode")
                         .IsRequired()
                         .HasMaxLength(10)
