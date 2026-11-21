@@ -137,6 +137,7 @@ try
     app.UseExceptionHandler();
     app.UsePosAuth();
     app.UseRequestUserInLogs();
+    app.UseMenuSyncGuard();
     // OB8: sign-ins, password, staff and platform changes go to the security event log.
     app.UseSecurityEvents();
     app.UseRateLimiter();
