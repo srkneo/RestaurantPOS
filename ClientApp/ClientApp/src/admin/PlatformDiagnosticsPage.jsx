@@ -54,7 +54,7 @@ export default function PlatformDiagnosticsPage() {
       {state === 'error' && <StateMessage kind="error" onRetry={load} />}
       {data && state !== 'error' && (
         <div className="d-flex flex-column gap-3">
-          <section className="pos-card" style={{ maxWidth: 640 }}>
+          <section className="pos-card p-3 p-md-4" style={{ maxWidth: 640 }}>
             <Row label={t('diag.version')}>{data.version}</Row>
             <Row label={t('diag.uptime')}>{t('diag.uptimeValue', { hours, minutes })}</Row>
             <Row label={t('diag.database')}>
@@ -67,7 +67,7 @@ export default function PlatformDiagnosticsPage() {
               <span className={data.failedSignIns24h > 20 ? 'text-danger' : undefined}>{data.failedSignIns24h}</span>
             </Row>
           </section>
-          <section className="pos-card">
+          <section className="pos-card p-3 p-md-4">
             <h2 className="h5">{t('diag.recent')}</h2>
             {data.recentEvents.length === 0 ? (
               <p className="text-body-secondary mb-0">{t('diag.noEvents')}</p>
