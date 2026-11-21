@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import CloudMenuBanner from './CloudMenuBanner';
 import { Link } from 'react-router-dom';
 import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
@@ -204,6 +205,7 @@ export default function MenuPage() {
           <button type="button" className="btn btn-primary px-3" disabled={categories.length === 0} onClick={() => openItem(null)}>{t('menu.addItem')}</button>
         </div>
       </div>
+      <CloudMenuBanner onSynced={load} />
 
       {loadState === 'loading' && <StateMessage kind="loading" />}
       {loadState === 'error' && <StateMessage kind="error" onRetry={load} />}

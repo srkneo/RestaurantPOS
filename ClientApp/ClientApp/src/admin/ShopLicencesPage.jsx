@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import LicenceMenuLink from './LicenceMenuLink';
 import { useT } from '../i18n/I18nContext';
 import { useToast } from '../ui/ToastContext';
 import StateMessage from '../ui/StateMessage';
@@ -245,6 +246,7 @@ export default function ShopLicencesPage() {
                     <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openExtend(licence)}>{t('licences.extend')}</button>
                     <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openUpdates(licence)}>{t('licences.updates')}</button>
                     <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => makeOwnerReset(licence)}>{t('licences.ownerReset')}</button>
+                    <LicenceMenuLink licence={licence} onSaved={load} />
                     {licence.revoked
                       ? <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => act(licence, 'restore', 'licences.restored')}>{t('licences.restore')}</button>
                       : <button type="button" className="btn btn-outline-danger btn-sm px-3" onClick={() => setConfirmStop(licence)}>{t('licences.stop')}</button>}
