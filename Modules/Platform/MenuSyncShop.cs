@@ -136,6 +136,20 @@ namespace POSSystem.Platform
             }
             foreach (var row in addOns.Where(x => !keptAddOns.Contains(x))) row.IsAvailable = false;
 
+            // Store profile and outlet settings: this PC's first outlet takes over the cloud's values.
+            if (s.Store is { } store)
+            {
+                var localTenant = await db.Tenants.FirstOrDefaultAsync(x => x.Id == tenant, ct);
+                if (localTenant is not null) localTenant.Name = store.RestaurantName;
+                var outlet = await db.Outlets.IgnoreQueryFilters().Where(o => o.TenantId == tenant).OrderBy(o => o.Id).FirstOrDefaultAsync(ct);
+                if (outlet is not null)
+                {
+                    outlet.Name = store.OutletName; outlet.TimeZone = store.TimeZone; outlet.BusinessDayStartHour = store.BusinessDayStartHour;
+                    outlet.Settings = store.Settings; outlet.Address = store.Address; outlet.Phone = store.Phone;
+                    outlet.Gstin = store.Gstin; outlet.Fssai = store.Fssai; outlet.ReceiptFooter = store.ReceiptFooter;
+                }
+            }
+
             // Combo contents are only settings (orders copy them when placed), so they are simply rebuilt.
             db.ComboParts.RemoveRange(await db.ComboParts.IgnoreQueryFilters().Where(x => x.TenantId == tenant).ToListAsync(ct));
             foreach (var c in s.ComboParts.Where(p => itemIds.ContainsKey(p.ComboItemId) && itemIds.ContainsKey(p.PartItemId)))
