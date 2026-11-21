@@ -23,5 +23,7 @@ namespace POSSystem.Models
         public string? OwnerResetHash { get; set; }
         public DateTime? OwnerResetExpires { get; set; }
         public DateTime CreatedAt { get; set; }
+        // Cloud restaurant whose menu this shop PC copies (the cloud is the boss); empty = the shop edits its own menu.
+        public int? TenantId { get; set; }
     }
 }
