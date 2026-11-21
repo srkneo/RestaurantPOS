@@ -9,12 +9,13 @@ namespace POSSystem.Platform
     // (it would be overwritten at the next sync). Marking an item sold out stays allowed: that is the shop's decision.
     public static class MenuSyncGuard
     {
-        public const string Message = "This menu is managed in the cloud. Change it there; this PC copies it within 5 minutes.";
+        public const string Message = "This menu and these settings are managed in the cloud. Change them there; this PC copies them within 5 minutes.";
 
         public static bool IsMenuChange(HttpRequest request)
         {
             if (HttpMethods.IsGet(request.Method) || HttpMethods.IsHead(request.Method) || HttpMethods.IsOptions(request.Method)) return false;
             var path = request.Path;
+            if (path.StartsWithSegments("/api/admin/settings") || path.StartsWithSegments("/api/admin/store")) return true;
             if (!path.StartsWithSegments("/api/admin/menu") || path.StartsWithSegments("/api/admin/menu/sync")) return false;
             return !(path.Value ?? "").EndsWith("/availability", StringComparison.OrdinalIgnoreCase);
         }

@@ -30,7 +30,11 @@ namespace POSSystem.Platform
 
     // The whole menu of one restaurant. Version changes whenever anything in it changes, so a shop applies it only once.
     public record MenuSnapshot(bool Linked, string? Version, List<SyncCategory> Categories, List<SyncStation> Stations, List<SyncItem> Items,
-        List<SyncOption> Variants, List<SyncOption> AddOns, List<SyncComboPart> ComboParts);
+        List<SyncOption> Variants, List<SyncOption> AddOns, List<SyncComboPart> ComboParts, SyncStore? Store = null);
+
+    // The restaurant's name, its first outlet's store profile (printed on bills) and its outlet settings (tax mode, tokens, ...).
+    public record SyncStore(string RestaurantName, string OutletName, string TimeZone, int BusinessDayStartHour, string Settings,
+        string? Address, string? Phone, string? Gstin, string? Fssai, string? ReceiptFooter);
 
     public static class MenuSyncServer
     {
@@ -58,9 +62,14 @@ namespace POSSystem.Platform
                 .Where(x => itemIds.Contains(x.ComboItemId) && itemIds.Contains(x.PartItemId))
                 .Select(x => new SyncComboPart(x.ComboItemId, x.PartItemId, x.Quantity)).ToList();
 
-            var content = JsonSerializer.Serialize(new { categories, stations, items, variants, addOns, combos });
+            var tenant = await db.Tenants.AsNoTracking().FirstOrDefaultAsync(t => t.Id == tenantId, ct);
+            var outlet = await db.Outlets.IgnoreQueryFilters().AsNoTracking().Where(o => o.TenantId == tenantId).OrderBy(o => o.Id).FirstOrDefaultAsync(ct);
+            var store = tenant is null || outlet is null ? null : new SyncStore(tenant.Name, outlet.Name, outlet.TimeZone, outlet.BusinessDayStartHour,
+                outlet.Settings, outlet.Address, outlet.Phone, outlet.Gstin, outlet.Fssai, outlet.ReceiptFooter);
+
+            var content = JsonSerializer.Serialize(new { categories, stations, items, variants, addOns, combos, store });
             var version = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(content)))[..32].ToLowerInvariant();
-            return new MenuSnapshot(true, version, categories, stations, items, variants, addOns, combos);
+            return new MenuSnapshot(true, version, categories, stations, items, variants, addOns, combos, store);
         }
 
         public static WebApplication MapMenuSyncServerEndpoints(this WebApplication app)
