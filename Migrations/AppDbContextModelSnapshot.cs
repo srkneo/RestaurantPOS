@@ -1450,6 +1450,9 @@ namespace RestaurantPOS.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CloudId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1504,6 +1507,9 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CloudId")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1670,6 +1676,9 @@ namespace RestaurantPOS.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CloudId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1734,6 +1743,18 @@ namespace RestaurantPOS.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<bool>("MenuFromCloud")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MenuSyncError")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("MenuSyncedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("MenuVersion")
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("OwnerResetExpires")
                         .HasColumnType("timestamp with time zone");
 
@@ -1769,6 +1790,9 @@ namespace RestaurantPOS.Migrations
 
                     b.Property<TimeOnly?>("AvailableTo")
                         .HasColumnType("time without time zone");
+
+                    b.Property<int?>("CloudId")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -1827,6 +1851,9 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("text");
 
                     b.Property<int?>("CategoryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CloudId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
