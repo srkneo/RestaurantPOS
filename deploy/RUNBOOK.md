@@ -49,6 +49,13 @@ Never release during restaurant peak hours (lunch 12-15, dinner 19-23). Releases
 - Update failed: it rolls back by itself; the status is on the About page. Pause updates for that shop from /platform if needed.
 - Backup copy warning (USB/NAS): plug the disk back in; the next copy runs that night.
 
+## Platform sign-in code does not arrive
+
+1. Normal case: the authenticator app is on for the platform account (/account/security), so sign-in asks for the app code, not Telegram.
+2. Phone lost: type one of the printed backup codes instead of the app code (each works once). Then turn the app off and on again to get new codes.
+3. No app and no backup codes: on the server, put a `#` in front of `TELEGRAM_TOKEN` in `~/pos/.env` and run `./deploy.sh <current version>`.
+   Sign-in then needs only the password. Sign in, turn on the app, remove the `#` and run deploy.sh again.
+
 ## Support contacts and hours
 
 Shown on the About page and set from /platform. Support hours: 8-10 AM and 7-10 PM.

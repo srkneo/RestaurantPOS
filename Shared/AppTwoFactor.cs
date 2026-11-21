@@ -77,7 +77,8 @@ namespace POSSystem.Data
     public static class AppTwoFactorEndpoints
     {
         public const string Issuer = "Restaurant POS";
-        private static readonly string[] Roles = { "admin", "manager" };
+        // The platform owner too: with the app on, sign-in no longer depends on the Telegram code arriving.
+        private static readonly string[] Roles = { "admin", "manager", "platform" };
 
         private static IResult Invalid(string message) =>
             Results.ValidationProblem(new Dictionary<string, string[]> { ["code"] = new[] { message } });
