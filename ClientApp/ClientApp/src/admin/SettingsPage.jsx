@@ -11,7 +11,7 @@ export default function SettingsPage() {
     const t = useT();
     const { showToast } = useToast();
 
-    const PRESETS = ['dine-in', 'cafe', 'takeaway-counter', 'bakery'];
+    const PRESETS = ['dine-in', 'cafe', 'takeaway-counter', 'bakery', 'dairy'];
     // Common time zones for the outlets we sell to, India first. A saved zone that is not listed is still shown.
     const TIME_ZONES = [
         ['Asia/Kolkata', 'India (UTC+05:30)'],
@@ -34,6 +34,7 @@ export default function SettingsPage() {
         cafe: { dineInEnabled: true, takeawayEnabled: true, defaultOrderType: 'Takeaway', takeawayNeedsName: true, kitchenScreenEnabled: true, simpleCounter: false },
         'takeaway-counter': { dineInEnabled: false, takeawayEnabled: true, defaultOrderType: 'Takeaway', takeawayNeedsName: false, kitchenScreenEnabled: true, simpleCounter: false },
         bakery: { dineInEnabled: true, takeawayEnabled: true, defaultOrderType: 'Takeaway', takeawayNeedsName: false, kitchenScreenEnabled: true, simpleCounter: true },
+        dairy: { dineInEnabled: false, takeawayEnabled: true, defaultOrderType: 'Takeaway', takeawayNeedsName: false, kitchenScreenEnabled: true, simpleCounter: true },
     };
     const currentPreset = (form) => (form
         ? PRESETS.find((p) => Object.entries(PRESET_VALUES[p]).every(([k, v]) => form[k] === v)) ?? null

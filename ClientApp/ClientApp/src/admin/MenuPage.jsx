@@ -93,8 +93,8 @@ export default function MenuPage() {
     setCurrent(item);
     setErrors({});
     setForm(item
-      ? { name: item.name, categoryId: String(item.categoryId ?? ''), price: String(item.price), taxRate: String(item.taxRate), description: item.description ?? '', isVeg: item.isVeg, isAvailable: item.isAvailable, sortOrder: String(item.sortOrder), stationId: String(item.stationId ?? '') }
-      : { name: '', categoryId: String(categories[0]?.id ?? ''), price: '', taxRate: '5', description: '', isVeg: true, isAvailable: true, sortOrder: '0', stationId: '' });
+      ? { name: item.name, categoryId: String(item.categoryId ?? ''), price: String(item.price), taxRate: String(item.taxRate), description: item.description ?? '', isVeg: item.isVeg, isAvailable: item.isAvailable, sortOrder: String(item.sortOrder), stationId: String(item.stationId ?? ''), sellUnit: item.sellUnit ?? 'piece' }
+      : { name: '', categoryId: String(categories[0]?.id ?? ''), price: '', taxRate: '5', description: '', isVeg: true, isAvailable: true, sortOrder: '0', stationId: '', sellUnit: 'piece' });
     setDialog('item');
   };
 
@@ -136,6 +136,7 @@ export default function MenuPage() {
           name: form.name.trim(), price: Number(form.price), categoryId: Number(form.categoryId), description: form.description.trim() || null,
           isVeg: form.isVeg, isAvailable: form.isAvailable, taxRate: Number(form.taxRate), sortOrder: Number(form.sortOrder) || 0,
           stationId: form.stationId ? Number(form.stationId) : null,
+          sellUnit: form.sellUnit || 'piece',
         };
         res = current ? await send(`${API}/items/${current.id}`, 'PUT', body) : await send(`${API}/items`, 'POST', body);
       } else if (dialog === 'station') {
@@ -334,6 +335,13 @@ export default function MenuPage() {
             <Field id="item-price" label={t('menu.price')} error={errors.price}>
               <input id="item-price" type="number" inputMode="decimal" min="0" step="0.5" className={`form-control${errors.price ? ' is-invalid' : ''}`}
                 value={form.price ?? ''} onChange={set('price')} />
+            </Field>
+            <Field id="item-sellunit" label={t('menu.sellBy')}>
+              <select id="item-sellunit" className="form-select" value={form.sellUnit ?? 'piece'} onChange={set('sellUnit')}>
+                <option value="piece">{t('menu.sellBy.piece')}</option>
+                <option value="kg">{t('menu.sellBy.kg')}</option>
+                <option value="litre">{t('menu.sellBy.litre')}</option>
+              </select>
             </Field>
           </div>
           <div className="flex-grow-1">

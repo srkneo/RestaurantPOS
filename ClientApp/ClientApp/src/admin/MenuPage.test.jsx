@@ -76,7 +76,7 @@ describe('Menu page', () => {
     const post = calls.find((c) => c.options?.method === 'POST');
     expect(post.url).toBe('/api/admin/menu/items');
     expect(JSON.parse(post.options.body)).toEqual({
-      name: 'Khaman', price: 40, categoryId: 1, description: null, isVeg: true, isAvailable: true, taxRate: 18, sortOrder: 0, stationId: null,
+      name: 'Khaman', price: 40, categoryId: 1, description: null, isVeg: true, isAvailable: true, taxRate: 18, sortOrder: 0, stationId: null, sellUnit: 'piece',
     });
   });
 
