@@ -92,6 +92,9 @@ namespace POSSystem.Models
         // Simple counter (bakery, sweet shop): dine-in needs no table, takeaway needs no name, and the bill opens as soon as the order is placed.
         public bool SimpleCounter { get; set; }
 
+        // The platform owner may open this restaurant as Support to help (payments, refunds and passwords stay blocked).
+        public bool AllowSupportAccess { get; set; } = true;
+
         // QR table ordering: guests order from the table's QR code (off until the owner turns it on).
         public bool QrOrderingEnabled { get; set; }
 

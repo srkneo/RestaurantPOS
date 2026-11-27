@@ -20,6 +20,8 @@ namespace POSSystem.Models
 
         // The POS owner (super admin): manages restaurants at /platform, sees no restaurant data.
         public bool IsPlatformAdmin { get; set; }
+        // The hidden Support user of a restaurant, used when the platform owner opens it to help (no password; 2-hour sessions).
+        public bool IsSupport { get; set; }
 
         // Hashed approval PIN of a manager or the owner (null: no PIN). Never shown or written to the audit log.
         public string? PinHash { get; set; }
