@@ -18,7 +18,7 @@ namespace POSSystem.Platform
     public class SupportService
     {
         // Shown until the platform owner saves the details on /platform/support.
-        public static readonly SupportInfoDto Default = new("Vyom Solutions", "RestaurantPOS", null, null, null, null, null);
+        public static readonly SupportInfoDto Default = new("Vyom Solutions", "AllInOne POS", null, null, null, null, null);
 
         private readonly AppDbContext _db;
         private readonly TimeProvider _time;

@@ -63,7 +63,7 @@ namespace RestaurantPOS.Tests
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             var about = await Read(res);
             Assert.Equal("Vyom Solutions", about.GetProperty("companyName").GetString());
-            Assert.Equal("RestaurantPOS", about.GetProperty("productName").GetString());
+            Assert.Equal("AllInOne POS", about.GetProperty("productName").GetString());
             Assert.Equal("9.8.7", about.GetProperty("version").GetString());
             Assert.False(about.GetProperty("shopPc").GetBoolean());
             Assert.Equal(JsonValueKind.Null, about.GetProperty("phone").ValueKind);
