@@ -11,7 +11,7 @@ export default function SettingsPage() {
     const t = useT();
     const { showToast } = useToast();
 
-    const PRESETS = ['dine-in', 'cafe', 'takeaway-counter'];
+    const PRESETS = ['dine-in', 'cafe', 'takeaway-counter', 'bakery'];
     // Common time zones for the outlets we sell to, India first. A saved zone that is not listed is still shown.
     const TIME_ZONES = [
         ['Asia/Kolkata', 'India (UTC+05:30)'],
@@ -30,9 +30,10 @@ export default function SettingsPage() {
     ];
     // What each quick setup turns on (same as OutletSettings.WithPreset on the server), to show which one is in use.
     const PRESET_VALUES = {
-        'dine-in': { dineInEnabled: true, takeawayEnabled: true, defaultOrderType: 'DineIn', takeawayNeedsName: true, kitchenScreenEnabled: true },
-        cafe: { dineInEnabled: true, takeawayEnabled: true, defaultOrderType: 'Takeaway', takeawayNeedsName: true, kitchenScreenEnabled: true },
-        'takeaway-counter': { dineInEnabled: false, takeawayEnabled: true, defaultOrderType: 'Takeaway', takeawayNeedsName: false, kitchenScreenEnabled: true },
+        'dine-in': { dineInEnabled: true, takeawayEnabled: true, defaultOrderType: 'DineIn', takeawayNeedsName: true, kitchenScreenEnabled: true, simpleCounter: false },
+        cafe: { dineInEnabled: true, takeawayEnabled: true, defaultOrderType: 'Takeaway', takeawayNeedsName: true, kitchenScreenEnabled: true, simpleCounter: false },
+        'takeaway-counter': { dineInEnabled: false, takeawayEnabled: true, defaultOrderType: 'Takeaway', takeawayNeedsName: false, kitchenScreenEnabled: true, simpleCounter: false },
+        bakery: { dineInEnabled: true, takeawayEnabled: true, defaultOrderType: 'Takeaway', takeawayNeedsName: false, kitchenScreenEnabled: true, simpleCounter: true },
     };
     const currentPreset = (form) => (form
         ? PRESETS.find((p) => Object.entries(PRESET_VALUES[p]).every(([k, v]) => form[k] === v)) ?? null
@@ -168,6 +169,7 @@ export default function SettingsPage() {
                         </Field>
                         {checkbox('takeawayNeedsName', 'set-needname', 'settings.takeawayNeedsName')}
                         {checkbox('kitchenScreenEnabled', 'set-kitchen', 'settings.kitchenScreenEnabled')}
+                        {checkbox('simpleCounter', 'set-simple', 'settings.simpleCounter')}
                         <h2 className="h5 mb-0">{t('settings.tokens')}</h2>
                         <Field
                             id="set-firsttoken"

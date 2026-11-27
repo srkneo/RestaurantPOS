@@ -9,7 +9,7 @@ import SettingsPage from './SettingsPage';
 
 const CAFE = {
   timeZone: 'Asia/Kolkata', businessDayStartHour: 4, dineInEnabled: true, takeawayEnabled: true, defaultOrderType: 'Takeaway',
-  takeawayNeedsName: true, maxItemQuantity: 99, firstToken: 1, kitchenScreenEnabled: true,
+  takeawayNeedsName: true, maxItemQuantity: 99, firstToken: 1, kitchenScreenEnabled: true, simpleCounter: false,
 };
 
 afterEach(() => {

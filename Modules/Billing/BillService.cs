@@ -109,7 +109,7 @@ namespace POSSystem.Billing
                 Sgst = totals.Sgst,
                 RoundOff = totals.RoundOff,
                 Total = totals.Total,
-                OrderLabel = order.OrderType == OrderType.DineIn && order.Table != null ? $"Table {order.Table.TableNumber}" : "Takeaway",
+                OrderLabel = order.OrderType == OrderType.DineIn ? (order.Table != null ? $"Table {order.Table.TableNumber}" : "Dine-in") : "Takeaway",
                 TokenNumber = order.TokenNumber,
                 CustomerName = order.CustomerName,
                 CustomerPhone = order.CustomerPhone,
