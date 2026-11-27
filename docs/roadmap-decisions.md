@@ -1,5 +1,48 @@
 # Roadmap, Decisions and Workflow (current)
 
+## Current status and roadmap (27 Nov 2026)
+
+The product is becoming **AllInOne POS**: one system for restaurants, bakeries, dairies, grocery (kirana), supermarkets (DMart style), pharmacies and more. The design and the phase plan are in [architecture.md](architecture.md). Notion is no longer used: all project information lives in this docs folder.
+
+### Done since 17 Nov
+
+- v2.3.0 and v2.3.1 released (live on AWS Lightsail).
+- Monitoring: Sentry for errors; Grafana Cloud for metrics and logs (Alloy ships the logs) with 5 alert rules to Telegram.
+- Load test (k6, local Docker with production-like limits): 100 restaurants, about 37,000 bills in 35 minutes, order p95 31 ms, no order seen by another restaurant. The 12 USD Lightsail server is enough for about 50-100 restaurants at real load.
+- Platform sign-in: authenticator app and 10 backup codes for the platform account, plus a runbook switch for when Telegram is down.
+- Cloud menu sync ("cloud is the boss"): a shop PC linked to a cloud restaurant takes its menu and store settings from the cloud every 5 minutes; menu editing on the shop PC is locked while linked (sold-out still works).
+- Bakery quick setup: simple counter, no table or customer name, the bill opens right after the order.
+- Sell by weight or litre (dairy, sweets, farsan) and a dairy shop quick setup.
+- Change my password on the Security page; the platform account may use a simple password (8+ characters) because its sign-in always has a second step.
+- Docs moved from Notion into this folder.
+
+### Next
+
+1. Release v2.3.2 (everything above that is not yet live).
+2. Phase 1: rename what users see to AllInOne POS.
+3. Phase 2: capability registry and licence capabilities.
+4. Phases 3 to 10 as in [architecture.md](architecture.md): module folders and schemas, generic core (Item, Sale), stock ledger and barcodes, grocery R1 (scan-first POS, shared product catalog, MRP pricing), purchase, batch/expiry and khata, pharmacy, offers and multi-store (DMart style), connectors.
+
+### Decisions (26-27 Nov)
+
+- Modular monolith on PostgreSQL (JSONB for custom fields, one schema per module); no NoSQL or microservices for billing.
+- Capabilities are the plugins; an outlet type is a template of capabilities and settings.
+- Grocery is a separate plan and price. Grocery before pharmacy. Khata in phase 7.
+- Shared product catalog with last known MRP; DMart-style pricing: price rules set in advance, cashiers pick discounts from a fixed list only.
+
+### How work is done now
+
+- Aider (local LLM) writes the code for every task, big or small; Claude writes the tests (xUnit, Vitest, Playwright) and short specs. A task passes only when the tests pass.
+- Tasks go into `E:\Projects\tasks\queue`; the runner merges each passing task. When a run fails, leftover changes are saved with git stash automatically.
+- A scheduled check runs every hour, fixes failures and re-queues them, and sends a message only when something failed or needs a decision.
+
+### Open items
+
+- Ask GS1 India about DataKart access (cost and API) before the first grocery client.
+- Mahesh: fill the legal text placeholders, new licence key pair before the first customer, power-cut test on a real mini PC, brochure and demo video, close dead PRs and branches.
+
+Everything below is the history up to 17 Nov 2026.
+
 ## v1.7 design: hybrid edge, like Petpooja Offline (15 Nov 2026)
 
 - Shop mini PC runs the same Docker images (POS, kitchen, database) and bills without internet.
