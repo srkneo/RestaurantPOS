@@ -5,6 +5,7 @@ All project information lives here as Markdown, in the repo. Notion is no longer
 ## Plan and design
 
 - [Architecture blueprint and plan](architecture.md): modular monolith, capability plugins, outlet templates, phases 0 to 10
+- [Build plan](build-plan.md): how each phase is built, phases 1 to 3 task by task
 - [Supermarket (DMart style) features and needs](supermarket-dmart-style.md): checkout, weighing, pricing, stock, returns, counter control, many stores
 - [Roadmap, decisions and workflow](roadmap-decisions.md): history of versions and decisions (moved from Notion)
 
