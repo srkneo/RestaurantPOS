@@ -47,6 +47,7 @@ import HelpPage from './about/HelpPage';
 import AppFooter from './about/AppFooter';
 import ServerWatch from './about/ServerWatch';
 import ResetPasswordPage from './components/ResetPasswordPage';
+import SupportDayLoginPage from './components/SupportDayLoginPage';
 import SignupPage from './components/SignupPage';
 import LegalPage from './components/LegalPage';
 import PricingPage from './components/PricingPage';
@@ -151,6 +152,7 @@ function Layout() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/support-day-login" element={<SupportDayLoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/terms" element={<LegalPage kind="terms" />} />
         <Route path="/privacy" element={<LegalPage kind="privacy" />} />
