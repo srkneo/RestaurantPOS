@@ -8,6 +8,7 @@ Agreed 26 Nov 2026. The product grows from Restaurant POS into **AllInOne POS**:
 - **Capabilities are the plugins**, not business types. Each capability is a module with its own backend, tables, screens and tests, built once and shared:
   tables and KDS, tokens, weight (sell by kg/litre), barcode, batch and expiry, khata (credit), purchase, promotions, prescription, multi-store.
 - **An outlet type is a template**: a bundle of capabilities plus settings, custom fields and a bill template. Restaurant, bakery, dairy, grocery, pharmacy and supermarket are templates. Any template can be changed per client with no code change.
+- **Only the platform owner chooses the outlet type and features**, when creating the restaurant (pick a type for its default features, or tick features one by one). The restaurant owner cannot change them; they only set operational options (time zone, tokens, receipt, GST).
 - **The licence and plan carry capabilities.** The server enforces them; the UI shows only what is switched on. Grocery is sold as a separate plan.
 
 ## Core domain

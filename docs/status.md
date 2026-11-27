@@ -20,7 +20,7 @@ Rules: one new task per hourly run, only when tasks/queue has no task files and 
 
 ## Phase 2: capability registry
 - C1 capability list in code (keys, names, depends on): todo
-- C2 outlet templates in code (restaurant, cafe, takeaway counter, bakery, dairy) = capabilities + settings presets: todo
+- C2 outlet types (templates) owned by the PLATFORM, not the owner: restaurant, cafe, takeaway counter, cloud kitchen, bakery, dairy; each = capabilities + settings preset: todo
 - C3 capabilities per restaurant (JSON column) + migration backfilling what each restaurant uses today: todo
 - C4 plans carry allowed capabilities: todo
 - C5 shop PC lease carries capabilities, signed; old leases keep today's behaviour: todo
@@ -31,7 +31,9 @@ Rules: one new task per hourly run, only when tasks/queue has no task files and 
 - C7d tables, kitchen screen, tokens: todo
 - C7e QR ordering and feedback: todo
 - C8 GET /api/me/capabilities, frontend context, hide menus and routes: todo
-- C9 platform screen: template and capabilities per restaurant, audit logged: todo
+- C9 platform Add restaurant: choose the outlet type BEFORE creating; the feature checklist is pre-filled from the type and each feature can be ticked or unticked (custom); saved with the new restaurant; audit logged: todo
+- C9b platform edit restaurant: change outlet type or single features later (only the platform), audit logged; existing restaurants become type "custom" with exactly the features they use today: todo
+- C9c owner Settings: remove the quick setup (outlet type) buttons and every switch a capability controls (simple counter, kitchen screen, QR ordering, loyalty, reservations...); show "Outlet type: <type> (set by your provider)"; the server refuses (403) owner changes to platform-controlled settings; the owner keeps operational settings (time zone, tokens, receipt, GST): todo
 - C10 Playwright smoke: restaurant flow unchanged: todo
 - RELEASE: v2.5.0 (phase 2)
 
