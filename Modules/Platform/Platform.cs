@@ -89,6 +89,8 @@ namespace POSSystem.Models
         public bool TakeawayEnabled { get; set; } = true;
         public OrderType DefaultOrderType { get; set; } = OrderType.DineIn;
         public bool KitchenScreenEnabled { get; set; } = true;
+        // Simple counter (bakery, sweet shop): dine-in needs no table, takeaway needs no name, and the bill opens as soon as the order is placed.
+        public bool SimpleCounter { get; set; }
 
         // QR table ordering: guests order from the table's QR code (off until the owner turns it on).
         public bool QrOrderingEnabled { get; set; }
@@ -118,7 +120,7 @@ namespace POSSystem.Models
         public int PaperWidth { get; set; } = 80;
         public string PrintLanguage { get; set; } = "en";
 
-        public static readonly string[] Presets = { "dine-in", "cafe", "takeaway-counter" };
+        public static readonly string[] Presets = { "dine-in", "cafe", "takeaway-counter", "bakery" };
 
         // Ready-made setups for common outlet types; quantity limit and first token are kept.
         public OutletSettings WithPreset(string preset)
@@ -127,13 +129,16 @@ namespace POSSystem.Models
             switch (preset)
             {
                 case "dine-in":
-                    s.DineInEnabled = true; s.TakeawayEnabled = true; s.DefaultOrderType = OrderType.DineIn; s.TakeawayNeedsName = true; s.KitchenScreenEnabled = true;
+                    s.DineInEnabled = true; s.TakeawayEnabled = true; s.DefaultOrderType = OrderType.DineIn; s.TakeawayNeedsName = true; s.KitchenScreenEnabled = true; s.SimpleCounter = false;
                     break;
                 case "cafe":
-                    s.DineInEnabled = true; s.TakeawayEnabled = true; s.DefaultOrderType = OrderType.Takeaway; s.TakeawayNeedsName = true; s.KitchenScreenEnabled = true;
+                    s.DineInEnabled = true; s.TakeawayEnabled = true; s.DefaultOrderType = OrderType.Takeaway; s.TakeawayNeedsName = true; s.KitchenScreenEnabled = true; s.SimpleCounter = false;
                     break;
                 case "takeaway-counter":
-                    s.DineInEnabled = false; s.TakeawayEnabled = true; s.DefaultOrderType = OrderType.Takeaway; s.TakeawayNeedsName = false; s.KitchenScreenEnabled = true;
+                    s.DineInEnabled = false; s.TakeawayEnabled = true; s.DefaultOrderType = OrderType.Takeaway; s.TakeawayNeedsName = false; s.KitchenScreenEnabled = true; s.SimpleCounter = false;
+                    break;
+                case "bakery":
+                    s.DineInEnabled = true; s.TakeawayEnabled = true; s.DefaultOrderType = OrderType.Takeaway; s.TakeawayNeedsName = false; s.KitchenScreenEnabled = true; s.SimpleCounter = true;
                     break;
                 default:
                     throw new ArgumentException($"Unknown preset '{preset}'. Use one of: {string.Join(", ", Presets)}.");

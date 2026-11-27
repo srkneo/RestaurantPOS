@@ -241,6 +241,8 @@
   "settings.preset.dine-in": "Restaurant with tables",
   "settings.preset.cafe": "Cafe",
   "settings.preset.takeaway-counter": "Takeaway counter",
+  "settings.preset.bakery": "Bakery / sweet shop",
+  "settings.simpleCounter": "Simple counter: no table or customer name, the bill opens right after the order",
   "settings.presetApplied": "Setup applied.",
   "settings.orderTypes": "Order types",
   "settings.dineInEnabled": "Dine-in orders",

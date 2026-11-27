@@ -266,6 +266,8 @@ const POSMenu = () => {
   }));
 
   const tableInfo = orderType === 'DineIn' ? tables.find((tb) => String(tb.id) === selectedTable) : null;
+  // Simple counter (bakery): no table, no customer name, and the bill opens as soon as the order is placed.
+  const simple = orderSettings?.simpleCounter === true;
   // Running tab: the table already has an open order, so these items become its next round.
   // A printed but unpaid bill (Billed) is a running tab too: new items join the same token and the bill is worked out again.
   const tab = !editing && (tableInfo?.status === 'Occupied' || tableInfo?.status === 'Billed') && tableInfo.orderId ? tableInfo : null;
@@ -299,11 +301,11 @@ const POSMenu = () => {
 
   const placeOrder = async () => {
     // A table with a printed, unpaid bill takes more items on the same token (see tab above).
-    if (!editing && orderType === 'DineIn' && !selectedTable) {
+    if (!editing && orderType === 'DineIn' && !selectedTable && !simple) {
       showToast(t('pos.needTable'), 'error');
       return;
     }
-    if (!editing && orderType === 'Takeaway' && orderSettings?.takeawayNeedsName !== false && !customerName.trim()) {
+    if (!editing && orderType === 'Takeaway' && orderSettings?.takeawayNeedsName !== false && !simple && !customerName.trim()) {
       showToast(t('pos.needName'), 'error');
       return;
     }
@@ -313,7 +315,7 @@ const POSMenu = () => {
     }
     const newOrder = editing ? null : {
       orderType,
-      table: orderType === 'DineIn' ? Number(selectedTable) : null,
+      table: orderType === 'DineIn' && selectedTable ? Number(selectedTable) : null,
       customerName: customerName.trim() || null,
       customerPhone: customerPhone.trim() || null,
       items: lines(),
@@ -365,6 +367,7 @@ const POSMenu = () => {
         setLastPlaced({ id: data.orderId, tokenNumber: data.tokenNumber });
         refreshTables();
         resetOrder();
+        if (simple && !isWaiter) setBillOrderId(data.orderId);
       }
     } catch {
       if (!editing) {
@@ -417,7 +420,7 @@ const POSMenu = () => {
           ))}
         </div>
         <div className="pos-filters">
-          {orderType === 'DineIn' ? (
+          {simple ? null : orderType === 'DineIn' ? (
             <div className="pos-field-table">
               <label htmlFor="pos-table" className="form-label">{t('pos.table')}</label>
               {/* One picker: shows the chosen table and opens the grid with every table's state. */}

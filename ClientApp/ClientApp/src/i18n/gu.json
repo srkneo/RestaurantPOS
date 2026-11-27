@@ -241,6 +241,8 @@
   "settings.preset.dine-in": "ટેબલવાળું રેસ્ટોરન્ટ",
   "settings.preset.cafe": "કાફે",
   "settings.preset.takeaway-counter": "પાર્સલ કાઉન્ટર",
+  "settings.preset.bakery": "બેકરી / મીઠાઈની દુકાન",
+  "settings.simpleCounter": "સાદું કાઉન્ટર: ટેબલ કે ગ્રાહકનું નામ નહીં, ઓર્ડર પછી તરત બિલ ખુલે",
   "settings.presetApplied": "સેટઅપ લાગુ કર્યું.",
   "settings.orderTypes": "ઓર્ડર પ્રકાર",
   "settings.dineInEnabled": "ટેબલ પર ઓર્ડર",

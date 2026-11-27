@@ -9,7 +9,7 @@ namespace POSSystem.Platform
     public record StoreProfileRequest(string? RestaurantName, string? OutletName, string? Address, string? Phone, string? Gstin, string? Fssai, string? ReceiptFooter);
     public record StoreSummaryDto(string RestaurantName, string OutletName, bool HasLogo);
     public record OutletSettingsDto(string TimeZone, int BusinessDayStartHour, bool DineInEnabled, bool TakeawayEnabled, OrderType DefaultOrderType,
-        bool TakeawayNeedsName, int MaxItemQuantity, int FirstToken, bool KitchenScreenEnabled, string? MenuTextSize = null);
+        bool TakeawayNeedsName, int MaxItemQuantity, int FirstToken, bool KitchenScreenEnabled, string? MenuTextSize = null, bool? SimpleCounter = null);
     public record PresetRequest(string? Preset);
 
     // Validation and mapping for the store profile and outlet settings. Endpoints only load, call these, and save.
@@ -75,7 +75,7 @@ namespace POSSystem.Platform
         {
             var s = outlet.GetSettings();
             return new OutletSettingsDto(outlet.TimeZone, outlet.BusinessDayStartHour, s.DineInEnabled, s.TakeawayEnabled, s.DefaultOrderType,
-                s.TakeawayNeedsName, s.MaxItemQuantity, s.FirstToken, s.KitchenScreenEnabled, s.MenuTextSize);
+                s.TakeawayNeedsName, s.MaxItemQuantity, s.FirstToken, s.KitchenScreenEnabled, s.MenuTextSize, s.SimpleCounter);
         }
 
         public static void Apply(Outlet outlet, OutletSettingsDto dto)
@@ -90,6 +90,7 @@ namespace POSSystem.Platform
             s.KitchenScreenEnabled = dto.KitchenScreenEnabled;
             // Left out by older screens: keep what is saved.
             if (dto.MenuTextSize != null) s.MenuTextSize = dto.MenuTextSize;
+            if (dto.SimpleCounter is bool simpleCounter) s.SimpleCounter = simpleCounter;
             outlet.Settings = s.ToJson();
             outlet.TimeZone = dto.TimeZone.Trim();
             outlet.BusinessDayStartHour = dto.BusinessDayStartHour;

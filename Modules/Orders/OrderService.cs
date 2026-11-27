@@ -79,12 +79,19 @@ namespace POSSystem.Services
 
             if (orderType == OrderType.DineIn)
             {
-                if (orderRequest.Table is not > 0) throw new ArgumentException("Choose a table for a dine-in order.");
-                var tableExists = await _context.RestaurantTables.AnyAsync(t => t.Id == orderRequest.Table.Value && t.IsActive);
-                if (!tableExists) throw new ArgumentException("That table does not exist or is not in use.");
-                tableId = orderRequest.Table.Value;
+                // A simple counter (bakery) serves dine-in guests without table numbers.
+                if (orderRequest.Table is not > 0)
+                {
+                    if (!settings.SimpleCounter) throw new ArgumentException("Choose a table for a dine-in order.");
+                }
+                else
+                {
+                    var tableExists = await _context.RestaurantTables.AnyAsync(t => t.Id == orderRequest.Table.Value && t.IsActive);
+                    if (!tableExists) throw new ArgumentException("That table does not exist or is not in use.");
+                    tableId = orderRequest.Table.Value;
+                }
             }
-            else if (settings.TakeawayNeedsName && customerName == null)
+            else if (settings.TakeawayNeedsName && !settings.SimpleCounter && customerName == null)
             {
                 throw new ArgumentException("Enter the customer's name for a takeaway order.");
             }

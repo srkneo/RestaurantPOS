@@ -833,6 +833,8 @@
   "settings.preset.dine-in": "टेबल वाला रेस्टोरेंट",
   "settings.preset.cafe": "कैफ़े",
   "settings.preset.takeaway-counter": "पार्सल काउंटर",
+  "settings.preset.bakery": "बेकरी / मिठाई की दुकान",
+  "settings.simpleCounter": "सादा काउंटर: टेबल या ग्राहक का नाम नहीं, ऑर्डर के तुरंत बाद बिल खुले",
   "settings.presetApplied": "सेटअप लागू हो गया।",
   "settings.orderTypes": "ऑर्डर के प्रकार",
   "settings.dineInEnabled": "यहीं खाने के ऑर्डर",
