@@ -51,6 +51,7 @@ import SignupPage from './components/SignupPage';
 import LegalPage from './components/LegalPage';
 import PricingPage from './components/PricingPage';
 import SubscriptionBanner from './licence/SubscriptionBanner';
+import SupportBanner from './ui/SupportBanner';
 
 const POS_ROLES = ['cashier', 'manager', 'admin'];
 // Captain mode: waiters use only the POS screen (take orders, add rounds), never billing.
@@ -130,6 +131,7 @@ function AppHeader() {
     {!can(PLATFORM_ROLES) && <LicenceBanner />}
     {can(ADMIN_ROLES) && <BackupBanner />}
     {can(ADMIN_ROLES) && <SubscriptionBanner />}
+    <SupportBanner />
     </>
   );
 }
