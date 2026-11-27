@@ -7,6 +7,7 @@ For restaurants that keep bills on their own PC (no internet needed for billing)
 - Shows the licence status, customer, plan and expiry, and the **device code** of this PC.
 - A new install has a **30-day trial**. To activate, send the device code to support; enter the licence key you get back.
 - The licence renews itself whenever the PC is online and works **7 days without internet**. Warnings start 15 days before expiry; after expiry no new orders, but old bills stay viewable and exportable.
+- **Support day code (v2.3.3):** when support has to help on this PC, they give you today's code. On the sign-in page tap **Support: sign in with today's code** and type it. The code works only today (India time) and only on this PC, also without internet. The support session ends after 2 hours; payments, refunds, staff and passwords stay blocked, and it is written to the audit log. After updating to v2.3.3 the PC needs one licence renewal (internet once) before day codes work. You can switch support access off in Settings.
 
 ## Menu from the cloud
 
