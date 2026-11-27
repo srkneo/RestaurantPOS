@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import WeightDialog, { measureText } from './WeightDialog';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import * as signalR from '@microsoft/signalr';
 import { useT } from '../i18n/I18nContext';
@@ -27,6 +28,7 @@ export function VegMark({ isVeg }) {
 }
 
 const POSMenu = () => {
+  const [weighing, setWeighing] = useState(null);
   const t = useT();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -194,7 +196,7 @@ const POSMenu = () => {
         setCustomerPhone(order.customerPhone || '');
         setCart(order.items.map((i) => ({
           key: lineKey(i.menuItemId, i.variantId, i.addOnIds), id: i.menuItemId, name: i.itemName, price: Number(i.unitPrice),
-          quantity: i.quantity, note: i.note || '', variantId: i.variantId ?? null, addOnIds: i.addOnIds ?? [], options: i.options ?? null,
+          quantity: i.quantity, note: i.note || '', variantId: i.variantId ?? null, addOnIds: i.addOnIds ?? [], options: i.options ?? null, measure: i.measure ?? null,
         })));
       } catch {
         if (active) showToast(tRef.current('common.error'), 'error');
@@ -239,8 +241,14 @@ const POSMenu = () => {
     });
   };
 
+  const addWeighed = (item, measure) => {
+    const line = { id: item.id, name: `${item.name} (${measureText(measure, item.sellUnit)})`, price: Math.round(Number(item.price) * measure * 100) / 100, measure, variantId: null, addOnIds: [], options: null, key: `${item.id}-w-${Date.now()}-${Math.random()}`, quantity: 1, note: '' };
+    setCart((prev) => [...prev, line]);
+  };
+
   // Tapping an item: straight into the order, or first the size and extras when it has any.
   const tapItem = (item) => {
+    if (item.sellUnit === 'kg' || item.sellUnit === 'litre') { setWeighing(item); return; }
     if ((item.variants?.length ?? 0) > 0 || (item.addOns?.length ?? 0) > 0) {
       setChoosing(item);
       return;
@@ -263,6 +271,7 @@ const POSMenu = () => {
     menuItemId: l.id, quantity: l.quantity, note: l.note?.trim() || null,
     ...(l.variantId ? { variantId: l.variantId } : {}),
     ...(l.addOnIds?.length ? { addOnIds: l.addOnIds } : {}),
+    ...(l.measure ? { measure: l.measure } : {}),
   }));
 
   const tableInfo = orderType === 'DineIn' ? tables.find((tb) => String(tb.id) === selectedTable) : null;
@@ -577,6 +586,7 @@ const POSMenu = () => {
         onConfirm={() => { setCart([]); setConfirmClear(false); }} />
       <ItemOptionsDialog item={choosing} onCancel={() => setChoosing(null)}
         onAdd={(line) => { addLine(line); setChoosing(null); }} />
+      <WeightDialog item={weighing} onCancel={() => setWeighing(null)} onAdd={(m) => { addWeighed(weighing, m); setWeighing(null); }} />
       <BillDialog orderId={billOrderId} onClose={() => setBillOrderId(null)} />
       {tableGrid && (
         <div className="pos-table-grid-backdrop" role="presentation" onClick={() => setTableGrid(false)}>
