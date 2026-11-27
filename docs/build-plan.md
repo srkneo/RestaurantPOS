@@ -31,14 +31,16 @@ Today's modules: Billing, Inventory, Loyalty, Menu, Orders, Platform, Reservatio
 | Task | What | Tests |
 |---|---|---|
 | C1 | Capability list in code: key, name, description, depends on. First keys: tables, kitchen-screen, tokens, reservations, qr-ordering, feedback, loyalty, stock, recipes, combos, sell-by-weight, simple-counter, shifts, credit-notes, tips, expenses. | every dependency exists; no cycles |
-| C2 | Outlet templates in code: restaurant, cafe, takeaway counter, bakery, dairy; each = capabilities + settings preset (moves today's presets from settings into templates). | each template only uses known keys; presets give the same settings as today |
+| C2 | Outlet types (templates) owned by the platform: restaurant, cafe, takeaway counter, cloud kitchen, bakery, dairy; each = capabilities + settings preset (moves today's presets out of the owner's settings). | each type only uses known keys; presets give the same settings as today |
 | C3 | Store capabilities per restaurant (JSON list column) + migration that gives every existing restaurant everything it uses today. | migration backfill; new restaurant gets its template |
 | C4 | Plan carries capabilities: subscription plans list allowed capabilities; the restaurant gets the intersection. | a capability outside the plan cannot be turned on |
 | C5 | Shop PC licence lease carries the capabilities, signed; the shop PC enforces them offline. | changed lease fails the signature check; old leases without the list keep today's behaviour |
 | C6 | Server check: endpoint filter RequireCapability("x") returning 403 with a clear message. | off gives 403, on gives 200 |
 | C7a-e | Apply the filter one module per task: reservations; loyalty; stock and recipes; tables, kitchen screen and tokens; QR ordering and feedback. | per module: off 403, on 200; whole suite green |
 | C8 | GET /api/me/capabilities; frontend capability context; menus and routes hidden when off. | Vitest: nav hides off items; direct URL shows "not in your plan" |
-| C9 | Platform screen: per restaurant choose template, turn capabilities on or off (within the plan); every change in the audit log. | Vitest + server test for audit |
+| C9 | Platform Add restaurant: choose the outlet type before creating; the feature checklist is pre-filled from the type and each feature can be ticked or unticked (custom). | create with type; create with custom features; owner role cannot create (403) |
+| C9b | Platform edit restaurant: change the type or single features later, only the platform, audit logged. Existing restaurants become type custom with exactly the features they use today. | audit row; backfill keeps features; owner cannot change (403) |
+| C9c | Owner Settings: no outlet type buttons and no capability switches; shows the outlet type as set by the provider; server refuses owner changes to platform-controlled settings; owner keeps time zone, tokens, receipt, GST. | 403 for controlled settings; operational settings still save |
 | C10 | Release and check on staging with a copy of a real restaurant. | Playwright smoke: restaurant flow unchanged |
 
 ## Phase 3: modules and database schemas (about 16 tasks, medium risk)
