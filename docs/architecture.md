@@ -63,6 +63,36 @@ Order chosen: grocery before pharmacy; khata in phase 7.
 - Later: label printing, offers, weighing scale and price-embedded barcodes.
 - Hardware: barcode scanner, thermal printer, cash drawer; later a label printer and a scale.
 
+## Shared product catalog
+
+Decided 27 Nov 2026. Part of grocery R1 (phase 6). Owners should not type every product by hand.
+
+- **One master catalog owned by the platform**, read by every shop: barcode (EAN-13), name (English and Gujarati), brand, pack size, unit, category, HSN, GST rate, **last known MRP** (with the date it was seen).
+- **No selling prices in the catalog.** Selling price and the shop's own MRP live in each shop's product list. A new batch can carry a new MRP, so the shop confirms MRP at purchase entry.
+- **Scan flow:** scan, then look in the shop's own products, then in the master catalog. If found, the form is pre-filled and the owner only types the price (and confirms MRP).
+- **Starter pack:** a new shop picks categories (staples, snacks, soaps, ...) and imports them in one click, then fills prices in an Excel sheet.
+- **Storage and speed:** even 500,000 products is about 100-150 MB in PostgreSQL with indexes. Barcode lookup by a unique index (under 1 ms); name search with pg_trgm (part words and spelling mistakes). Own `catalog` schema, no tenant id.
+- **Shop PC (offline):** downloads a compressed copy (tens of MB) or only its chosen categories, so lookups work without internet.
+- **Sources:**
+  1. Open Food Facts (free, about 15,000 Indian food products in 2025). Open Database Licence: credit them and share fixes to their data back.
+  2. GS1 India DataKart (official national product data, tens of millions of barcodes). Needs retailer registration; cost and API terms to be asked before the first grocery client.
+  3. Our own shops: every new product an owner adds (barcode, name, brand, size, never prices) goes to a review list; the platform owner approves it and every shop gets it. Over time this is the biggest source.
+- No product images at first; later thumbnails in object storage.
+
+## Pricing, offers and cashier discounts
+
+Decided 27 Nov 2026, following how DMart works: prices are set in advance, the cashier does not invent discounts.
+
+- **Selling price is never above MRP** (law); the system blocks it.
+- **Price rules, set by the owner or manager:**
+  - per product: a fixed price, or MRP minus X%
+  - per category or brand: for example all soaps at 8% off MRP
+  - per date range: for example a Diwali offer
+- **Offers engine (phase 9):** buy X get Y, combos, quantity price (3 for 99), bill-value offers (above 1,000 get an item free).
+- **Cashier discounts from a fixed list only**, for example "Senior citizen 5%", "Damaged pack 10%", "Staff 10%". The owner sets each discount and which roles may use it; above its limit a manager must approve (the existing bill approval flow); every discount is logged with the cashier's name; no free typing of amounts.
+- **Bill:** MRP, our price and the saving on each line, a "D" mark on offer items, and "You saved X" at the bottom.
+- **GST:** prices include GST, as printed on the pack; the bill works out the tax from the price after discounts.
+
 ## Other outlet types on the roadmap
 
 Tea, juice and ice-cream stalls, food court or canteen, Gujarati thali, farsan by weight, advance and party orders, phone and home delivery orders.
