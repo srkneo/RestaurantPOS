@@ -771,6 +771,9 @@ namespace RestaurantPOS.Migrations
                     b.Property<bool>("IsPlatformAdmin")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsSupport")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 

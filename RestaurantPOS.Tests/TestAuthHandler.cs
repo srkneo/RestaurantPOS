@@ -25,6 +25,9 @@ namespace RestaurantPOS.Tests
                 new Claim("outlet_id", outlet)
             };
             var identity = new ClaimsIdentity(claims, "Test");
+            // Optional second role (a Support session is admin + support).
+            if (Request.Headers.TryGetValue("X-Test-Extra-Role", out var extra) && !string.IsNullOrEmpty(extra.ToString()))
+                identity.AddClaim(new Claim(ClaimTypes.Role, extra.ToString()));
             // Optional: act as a real staff account (needed by "my account" endpoints such as 2-step sign-in).
             if (Request.Headers.TryGetValue("X-Test-User", out var userId) && !string.IsNullOrEmpty(userId.ToString()))
                 identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, userId.ToString()));
