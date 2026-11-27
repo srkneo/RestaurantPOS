@@ -171,6 +171,7 @@ export default function SettingsPage() {
                         {checkbox('takeawayNeedsName', 'set-needname', 'settings.takeawayNeedsName')}
                         {checkbox('kitchenScreenEnabled', 'set-kitchen', 'settings.kitchenScreenEnabled')}
                         {checkbox('simpleCounter', 'set-simple', 'settings.simpleCounter')}
+                        {checkbox('allowSupportAccess', 'set-support', 'settings.allowSupportAccess')}
                         <h2 className="h5 mb-0">{t('settings.tokens')}</h2>
                         <Field
                             id="set-firsttoken"
