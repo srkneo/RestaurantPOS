@@ -120,7 +120,7 @@ namespace POSSystem.Models
         public int PaperWidth { get; set; } = 80;
         public string PrintLanguage { get; set; } = "en";
 
-        public static readonly string[] Presets = { "dine-in", "cafe", "takeaway-counter", "bakery" };
+        public static readonly string[] Presets = { "dine-in", "cafe", "takeaway-counter", "bakery", "dairy" };
 
         // Ready-made setups for common outlet types; quantity limit and first token are kept.
         public OutletSettings WithPreset(string preset)
@@ -139,6 +139,9 @@ namespace POSSystem.Models
                     break;
                 case "bakery":
                     s.DineInEnabled = true; s.TakeawayEnabled = true; s.DefaultOrderType = OrderType.Takeaway; s.TakeawayNeedsName = false; s.KitchenScreenEnabled = true; s.SimpleCounter = true;
+                    break;
+                case "dairy":
+                    s.DineInEnabled = false; s.TakeawayEnabled = true; s.DefaultOrderType = OrderType.Takeaway; s.TakeawayNeedsName = false; s.KitchenScreenEnabled = true; s.SimpleCounter = true;
                     break;
                 default:
                     throw new ArgumentException($"Unknown preset '{preset}'. Use one of: {string.Join(", ", Presets)}.");

@@ -12,6 +12,10 @@ namespace POSSystem.Models
         public decimal UnitPrice { get; set; }
         public int Quantity { get; set; }
 
+        // Weighed items: the amount in one unit of Quantity, in kg or litres (ItemName then reads "Paneer (250 g)"); empty for pieces.
+        [Microsoft.EntityFrameworkCore.Precision(10, 3)]
+        public decimal? Measure { get; set; }
+
         // Kitchen instruction for this line, e.g. "Jain" or "less spicy".
         [MaxLength(200)]
         public string? Note { get; set; }
