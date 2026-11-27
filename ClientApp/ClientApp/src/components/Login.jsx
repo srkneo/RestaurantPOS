@@ -95,6 +95,7 @@ const Login = () => {
         {challenge
           ? <button type="button" className="btn btn-link" onClick={startAgain}>{t('login.startAgain')}</button>
           : <Link to="/reset-password" className="text-center">{t('login.forgot')}</Link>}
+        {!challenge && <Link to="/support-day-login" className="text-center small text-body-secondary">{t('login.supportDayCode')}</Link>}
         {!challenge && signupOpen && <Link to="/signup" className="text-center">{t('signup.link')}</Link>}
         {!challenge && signupOpen && <Link to="/pricing" className="text-center">{t('pricing.link')}</Link>}
       </form>

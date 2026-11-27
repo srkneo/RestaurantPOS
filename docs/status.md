@@ -5,8 +5,8 @@ Details of each task: docs/build-plan.md in the repo. Task files are named v2.4-
 Rules: one new task per hourly run, only when tasks/queue has no task files and nothing failed. Mark a task done when its PR merged (runner-summary.txt shows "merged").
 
 ## In progress
-- SUP1 support login (cloud): queued (SUP1f)
-- SUP2 shop PC password of the day: todo (after SUP1 is done; changes the signed licence lease: write tests for signature, old leases still valid, code valid only today for that device)
+- SUP1 support login (cloud): done (SUP1f, PR #249)
+- SUP2 shop PC password of the day: done (SUP2b)
 
 ## Release
 - RELEASE: v2.3.3 (SUP1, SUP2)

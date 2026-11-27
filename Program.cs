@@ -88,6 +88,7 @@ try
     app.MapAppTwoFactorEndpoints();
     app.MapPasswordChangeEndpoints();
     app.MapSupportAccessEndpoints();
+    app.MapSupportDayLoginEndpoints();
     app.MapStaffEndpoints();
     app.MapMenuEndpoints();
     app.MapMenuImportEndpoints();

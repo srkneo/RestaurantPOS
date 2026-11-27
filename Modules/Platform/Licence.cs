@@ -7,7 +7,8 @@ namespace POSSystem.Platform
 {
     // What the cloud signs for one shop PC. PaidUntil is the end of the paid period (a trial is 30 days);
     // LeaseUntil is a short lease (7 days) that the shop PC renews from the cloud whenever it is online.
-    public record LicencePayload(string LicenceId, string Customer, string Plan, DateTime IssuedAt, DateTime LeaseUntil, DateTime PaidUntil);
+    // SupportSecret (v2.3.3) lets this PC check support's code of the day (see SupportDayCode). Leases signed before v2.3.3 have none and stay valid.
+    public record LicencePayload(string LicenceId, string Customer, string Plan, DateTime IssuedAt, DateTime LeaseUntil, DateTime PaidUntil, string? SupportSecret = null);
 
     // The file kept on the shop PC: the payload (base64 of JSON) and the signature over exactly those bytes (base64).
     public record LicenceFile(string Payload, string Signature);

@@ -173,7 +173,9 @@ namespace POSSystem.Platform
             await _db.SaveChangesAsync(ct);
 
             var lease = now.AddDays(LeaseDays);
-            var payload = new LicencePayload(licence.Id.ToString(), licence.Customer, licence.Plan, now, lease < licence.PaidUntil ? lease : licence.PaidUntil, licence.PaidUntil);
+            // The support secret is made from the private key, the licence and this PC, so the platform can show the same day code later.
+            var payload = new LicencePayload(licence.Id.ToString(), licence.Customer, licence.Plan, now, lease < licence.PaidUntil ? lease : licence.PaidUntil, licence.PaidUntil,
+                SupportDayCode.SecretFor(privateKeyText, licence.Id, deviceId));
             using var privateKey = Licence.PrivateKeyFromBase64(privateKeyText);
             var reset = licence.OwnerResetHash is not null && licence.OwnerResetExpires > now
                 ? new OwnerResetInfoDto(licence.OwnerResetHash, licence.OwnerResetExpires.Value) : null;

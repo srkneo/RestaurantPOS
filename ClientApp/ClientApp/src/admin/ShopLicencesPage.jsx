@@ -30,6 +30,7 @@ export default function ShopLicencesPage() {
   const [confirmReset, setConfirmReset] = useState(null);
   const [updating, setUpdating] = useState(null);
   const [resetCode, setResetCode] = useState(null);
+  const [dayCode, setDayCode] = useState(null);
   const [updateForm, setUpdateForm] = useState({ mode: 'auto', version: '' });
   const [search, setSearch] = useState('');
 
@@ -111,6 +112,17 @@ export default function ShopLicencesPage() {
     if (licence.updateMode === 'early') return t('licences.updates.early');
     if (licence.updateMode === 'pinned') return t('licences.updates.pinned', { version: licence.pinnedVersion || '' });
     return t('licences.updates.auto');
+  };
+
+  // Today's support code for one shop PC (only today, only that PC); typed on the shop PC's sign-in page.
+  const makeDayCode = async (licence) => {
+    try {
+      const res = await send(`/api/platform/licences/${licence.id}/support-code`, 'GET');
+      if (res.ok) setDayCode({ ...(await res.json()), customer: licence.customer });
+      else showToast((await readErrors(res)).general || t('common.error'), 'error');
+    } catch {
+      showToast(t('common.error'), 'error');
+    }
   };
 
   // A one-time code for an owner who forgot the password on the shop PC; support reads it out on the phone.
@@ -246,6 +258,7 @@ export default function ShopLicencesPage() {
                     <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openExtend(licence)}>{t('licences.extend')}</button>
                     <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => openUpdates(licence)}>{t('licences.updates')}</button>
                     <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => makeOwnerReset(licence)}>{t('licences.ownerReset')}</button>
+                    <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => makeDayCode(licence)} disabled={!licence.deviceBound || licence.revoked}>{t('licences.dayCode')}</button>
                     <LicenceMenuLink licence={licence} onSaved={load} />
                     {licence.revoked
                       ? <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => act(licence, 'restore', 'licences.restored')}>{t('licences.restore')}</button>
@@ -293,6 +306,9 @@ export default function ShopLicencesPage() {
       <ConfirmDialog open={resetCode !== null} title={t('licences.ownerResetTitle', { name: resetCode?.customer ?? '' })}
         message={t('licences.ownerResetText', { code: resetCode?.code ?? '', time: parseServerDate(resetCode?.expiresAt)?.toLocaleString() ?? '' })}
         confirmLabel={t('licences.ownerResetDone')} onConfirm={() => setResetCode(null)} onCancel={() => setResetCode(null)} />
+      <ConfirmDialog open={dayCode !== null} title={t('licences.dayCodeTitle', { name: dayCode?.customer ?? '' })}
+        message={t('licences.dayCodeText', { code: dayCode?.code ?? '', device: dayCode?.deviceCode ?? '', day: dayCode?.day ?? '' })}
+        confirmLabel={t('licences.ownerResetDone')} onConfirm={() => setDayCode(null)} onCancel={() => setDayCode(null)} />
       <FormDialog open={updating !== null} title={t('licences.updatesTitle', { name: updating?.customer ?? '' })} submitLabel={t('licences.updatesSave')} busy={busy}
         error={errors.general !== undefined ? (errors.general || t('common.error')) : null}
         onCancel={() => setUpdating(null)} onSubmit={submitUpdates}>
