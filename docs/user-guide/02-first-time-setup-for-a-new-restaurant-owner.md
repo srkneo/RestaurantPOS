@@ -58,6 +58,7 @@ What it is for: the dishes, prices and categories the POS shows.
 - **Fastest way: menu from a photo.** Tap **Scan menu**, take or upload a photo of your paper menu. The app reads the dishes and prices into a table. Check and correct them, then save. Nothing is saved until you confirm.
 - **Categories**: add (e.g. Starters, Thali, Drinks). A category can have serving hours (e.g. Breakfast 7–11 am); outside them its dishes are hidden on the POS.
 - **Items**: name, price, category, GST rate (usually 5%), veg/non-veg, description, kitchen station. The **Available** switch hides an item that is sold out today.
+- **Sold by**: Piece (normal), **Per kg** or **Per litre**. For paneer, sweets, farsan or chaas, set the price per kg or litre; the POS then asks how much and works out the line price.
 - **Sizes & extras**: e.g. Pizza Regular/Large, extra cheese +₹30.
 - **Combo**: a set meal made of other items.
 - **Recipe**: what stock one portion uses (page 6).
@@ -66,6 +67,20 @@ What it is for: the dishes, prices and categories the POS shows.
 
 > 📷 Screenshot: Menu page with Sizes & extras, Combo, Recipe buttons
 > 
+
+## Quick setups for counters
+
+On **Admin ▾ → Settings**, two more quick setups:
+
+- **Bakery / sweet shop**: dine-in or takeaway, no table, no customer name. The bill opens right after the order.
+- **Dairy shop**: takeaway only, same simple counter. Use **Sold by: Per kg / Per litre** on items such as paneer, dahi or chaas.
+
+Both turn on **Simple counter** (no table or customer name, the bill opens right after the order). You can turn it on or off by hand too.
+
+## Sign-in security – Admin ▾ → Security
+
+- **Authenticator app** (owner and manager): after the password, a 6-digit code from Google Authenticator or a similar app. Works offline. You get 10 one-time backup codes: print them and keep them away from your phone.
+- **Change password**: type the current password, then the new one twice. Your other devices are signed out; this one stays signed in.
 
 ## 6. Staff – Admin ▾ → Staff
 

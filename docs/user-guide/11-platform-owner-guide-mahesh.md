@@ -2,6 +2,16 @@
 
 Only for the platform owner account. Sign in with the platform email; when the server has a Telegram bot set up, a **6-digit code** is sent to your Telegram and you type it to finish signing in (5 minutes, 5 tries).
 
+## Sign-in security – Platform menu → Security
+
+- **Authenticator app**: turn it on so sign-in works even when Telegram is down. Save the 10 backup codes somewhere other than your phone.
+- **Change password**: the platform account may use a simple password of **8 or more characters** (no capitals, digits or symbols needed), because sign-in always needs the second step. Other devices are signed out.
+- If Telegram is down and no app is set up: see "Platform sign-in code does not arrive" in `deploy/RUNBOOK.md`.
+
+## Link a shop PC to a cloud restaurant
+
+On **Platform → Licences**, open a licence and choose the cloud restaurant. That shop PC then takes its menu and store settings from the cloud every 5 minutes (see page 10).
+
 ## Platform – all restaurants
 
 - List of restaurants with status, outlets, staff, last order and **Subscription** (trial / active / overdue / stopped / free use). Search and pages.
