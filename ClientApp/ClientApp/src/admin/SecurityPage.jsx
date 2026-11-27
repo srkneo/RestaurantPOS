@@ -17,6 +17,9 @@ export default function SecurityPage() {
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
   const [askOff, setAskOff] = useState(false);
+  const [pw, setPw] = useState({ current: '', next: '', again: '' });
+  const [pwErrors, setPwErrors] = useState({});
+  const [pwBusy, setPwBusy] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -121,6 +124,40 @@ export default function SecurityPage() {
           )}
         </section>
       )}
+      <section className="pos-card p-3 p-md-4 d-flex flex-column gap-3" style={{ maxWidth: 680 }}>
+        <h2 className="h5 mb-0">{t('sec.passwordTitle')}</h2>
+        <Field id="pw-current" label={t('sec.currentPassword')} error={pwErrors.currentpassword} autoComplete="current-password">
+          <input id="pw-current" className="form-control" style={{ maxWidth: 220 }} inputMode="text" autoComplete="current-password"
+            value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} />
+        </Field>
+        <Field id="pw-new" label={t('sec.newPassword')} error={pwErrors.newpassword} autoComplete="new-password">
+          <input id="pw-new" className="form-control" style={{ maxWidth: 220 }} inputMode="text" autoComplete="new-password"
+            value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} />
+        </Field>
+        <Field id="pw-again" label={t('sec.confirmPassword')} error={pwErrors.again} autoComplete="new-password">
+          <input id="pw-again" className="form-control" style={{ maxWidth: 220 }} inputMode="text" autoComplete="new-password"
+            value={pw.again} onChange={(e) => setPw({ ...pw, again: e.target.value })} />
+        </Field>
+        <button type="button" className="btn btn-primary align-self-start" disabled={pwBusy} onClick={async () => {
+          if (pw.next !== pw.again) {
+            setPwErrors({ again: t('sec.passwordMismatch') });
+            return;
+          }
+          setPwBusy(true);
+          try {
+            const res = await send('/api/auth/password', 'POST', { currentPassword: pw.current, newPassword: pw.next });
+            if (res.ok) {
+              setPw({ current: '', next: '', again: '' });
+              setPwErrors({});
+              showToast(t('sec.passwordChanged'));
+            } else {
+              setPwErrors(await readErrors(res));
+            }
+          } finally {
+            setPwBusy(false);
+          }
+        }}>{t('sec.changePassword')}</button>
+      </section>
       <ConfirmDialog open={askOff} danger title={t('sec.offTitle')} message={t('sec.offText')} confirmLabel={t('sec.offYes')}
         onCancel={() => setAskOff(false)} onConfirm={turnOff} />
     </main>
