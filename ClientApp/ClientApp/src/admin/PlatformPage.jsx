@@ -24,6 +24,7 @@ export default function PlatformPage() {
     const [busy, setBusy] = useState(false);
     const [confirm, setConfirm] = useState(null);
     const [demoFor, setDemoFor] = useState(null);
+    const [supportFor, setSupportFor] = useState(null);
     const [search, setSearch] = useState('');
     const [paying, setPaying] = useState(null);
     const [payForm, setPayForm] = useState({ plan: 'monthly', amount: '', reference: '' });
@@ -101,6 +102,14 @@ export default function PlatformPage() {
             const errors = await readErrors(res);
             showToast(errors.general || t('common.error'), 'error');
         }
+    };
+
+    const openSupport = async () => {
+        const tenant = supportFor;
+        setSupportFor(null);
+        const res = await send(`/api/platform/tenants/${tenant.id}/support-login`, 'POST', {});
+        if (res.ok) window.location.assign('/');
+        else showToast((await readErrors(res)).support ?? t('common.error'), 'danger');
     };
 
     const changeStatus = async (tenant, active) => {
@@ -215,6 +224,9 @@ export default function PlatformPage() {
                                         {!tenant.lastOrderAt && (
                                             <button type="button" className="btn btn-outline-primary btn-sm px-3 ms-2" onClick={() => setDemoFor(tenant)}>{t('platform.demo')}</button>
                                         )}
+                                        {tenant.isActive && (
+                                            <button type="button" className="btn btn-outline-danger btn-sm px-3 ms-2" onClick={() => setSupportFor(tenant)}>{t('platform.support')}</button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -264,6 +276,8 @@ export default function PlatformPage() {
                 confirmLabel={t('platform.disable')} danger onConfirm={() => changeStatus(confirm, false)} onCancel={() => setConfirm(null)} />
             <ConfirmDialog open={demoFor !== null} title={t('platform.demoTitle', { name: demoFor?.name ?? '' })} message={t('platform.demoHint')}
                 confirmLabel={t('platform.demo')} onConfirm={fillDemo} onCancel={() => setDemoFor(null)} />
+            <ConfirmDialog open={supportFor !== null} title={t('platform.supportTitle')} message={t('platform.supportHint')}
+                confirmLabel={t('platform.supportOpen')} onConfirm={openSupport} onCancel={() => setSupportFor(null)} />
         </main>
     );
 }
