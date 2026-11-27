@@ -34,6 +34,8 @@ On **Platform → Licences**, open a licence and choose the cloud restaurant. Th
 
 Issue, renew or stop licences for shop PCs by device code; search and pages.
 
+**Day code (v2.3.3):** the **Day code** button on a licence shows today's support code for that shop PC (works only today, India time, and only on that PC; the button is off for a licence without a PC or a stopped one). Read it out or type it yourself on the shop PC's sign-in page under **Support: sign in with today's code**. It opens a 2-hour support session there (payments, refunds, staff and passwords blocked; audit-logged), even when the PC is offline. How it works: each renewal puts a support secret, made from the licence private key, the licence and the PC, into the signed lease; the code is an HMAC of that secret with the PC and the date. Leases signed before v2.3.3 stay valid but have no secret, so a PC needs one renewal after the update. Endpoints: GET /api/platform/licences/{id}/support-code (platform only) and POST /api/auth/support-day-login (shop PC).
+
 ## Support
 
 Your company name (Vyom Solutions), phone, WhatsApp, email, support hours and website. Every restaurant sees these on About/Help and the pricing page; shop PCs get them at their next licence renewal.
