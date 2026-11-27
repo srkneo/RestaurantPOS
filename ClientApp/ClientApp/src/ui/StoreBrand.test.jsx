@@ -22,7 +22,7 @@ describe('Store name in the header', () => {
   it('falls back to the app name', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, json: async () => ({}) })));
     const { container } = render(<I18nProvider><StoreBrand /></I18nProvider>);
-    expect(await screen.findByText('Restaurant POS')).toBeInTheDocument();
+    expect(await screen.findByText('AllInOne POS')).toBeInTheDocument();
     expect(container.querySelector('img')).toBeNull();
   });
 });
