@@ -86,6 +86,7 @@ try
     app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") }).AllowAnonymous();
     app.MapPosAuth();
     app.MapAppTwoFactorEndpoints();
+    app.MapPasswordChangeEndpoints();
     app.MapStaffEndpoints();
     app.MapMenuEndpoints();
     app.MapMenuImportEndpoints();
