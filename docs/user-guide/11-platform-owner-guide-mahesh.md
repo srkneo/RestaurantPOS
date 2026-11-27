@@ -40,6 +40,8 @@ Issue, renew or stop licences for shop PCs by device code; search and pages.
 
 Your company name (Vyom Solutions), phone, WhatsApp, email, support hours and website. Every restaurant sees these on About/Help and the pricing page; shop PCs get them at their next licence renewal.
 
+The product name shown on About is **AllInOne POS** until you save another one here. If you saved "RestaurantPOS" earlier, change Product name to AllInOne POS and save; the sign-in page, browser tab and installed app already say AllInOne POS (v2.4).
+
 ## Releasing a new version (from your phone)
 
 - Claude writes task files; the **POS queue** on your PC builds, tests and merges them.

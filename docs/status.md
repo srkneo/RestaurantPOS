@@ -6,13 +6,13 @@ Rules: one new task per hourly run, only when tasks/queue has no task files and 
 
 ## In progress
 - SUP1 support login (cloud): done (SUP1f, PR #249)
-- SUP2 shop PC password of the day: done (SUP2b)
+- SUP2 shop PC password of the day: done (SUP2b, PR #252; SUP2 failed: test used a second restaurant, the shop PC uses restaurant 1)
 
 ## Release
-- RELEASE: v2.3.3 (SUP1, SUP2)
+- RELEASE: v2.3.3 (SUP1, SUP2): done (release.req written 28 Nov 02:45 IST)
 
 ## Phase 1: rename to AllInOne POS
-- RN1 app name in one i18n key (app.name) on all screens, title, PWA manifest, index.html: todo
+- RN1 app name in one i18n key (app.name) on all screens, title, PWA manifest, index.html: done
 - RN2 printed and sent texts (bill and KOT footer, licence texts, Telegram and email, authenticator issuer): todo
 - RN3 root README and docs titles: todo
 - RN4 checklist for Mahesh (repo, folder, Docker images, runner paths): todo (write docs/rename-checklist.md only)
