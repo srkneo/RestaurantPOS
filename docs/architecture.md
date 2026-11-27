@@ -93,6 +93,10 @@ Decided 27 Nov 2026, following how DMart works: prices are set in advance, the c
 - **Bill:** MRP, our price and the saving on each line, a "D" mark on offer items, and "You saved X" at the bottom.
 - **GST:** prices include GST, as printed on the pack; the bill works out the tax from the price after discounts.
 
+## Supermarket (DMart style)
+
+The full feature list is in [supermarket-dmart-style.md](supermarket-dmart-style.md). Where it lands: fast checkout, PLU, shelf labels and cashier shifts in phase 6; purchase, GRN, stock take, batch and expiry, returns in phase 7; offers, barcode label scales, auto replenishment, many stores and a warehouse in phase 9.
+
 ## Other outlet types on the roadmap
 
 Tea, juice and ice-cream stalls, food court or canteen, Gujarati thali, farsan by weight, advance and party orders, phone and home delivery orders.
