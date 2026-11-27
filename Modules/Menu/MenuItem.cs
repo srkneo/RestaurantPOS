@@ -33,6 +33,10 @@ namespace POSSystem.Models
         // GST rate in percent (restaurants usually 5).
         public decimal TaxRate { get; set; } = 5m;
 
+        // What the price is for: one piece (default), one kg or one litre. Weighed items are sold in any amount (250 g, 1.5 L).
+        [MaxLength(10)]
+        public string SellUnit { get; set; } = "piece";
+
         public int SortOrder { get; set; }
 
         // Deleted items leave the menu but old orders and bills keep them.

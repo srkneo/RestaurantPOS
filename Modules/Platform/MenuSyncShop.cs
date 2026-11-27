@@ -106,7 +106,7 @@ namespace POSSystem.Platform
                 row.Name = c.Name; row.Price = c.Price; row.Category = c.Category; row.Description = c.Description;
                 row.CategoryId = c.CategoryId is int cat && categoryIds.TryGetValue(cat, out var localCat) ? localCat : null;
                 row.StationId = c.StationId is int st && stationIds.TryGetValue(st, out var localSt) ? localSt : null;
-                row.IsVeg = c.IsVeg; row.TaxRate = c.TaxRate; row.SortOrder = c.SortOrder; row.IsDeleted = false;
+                row.IsVeg = c.IsVeg; row.TaxRate = c.TaxRate; row.SortOrder = c.SortOrder; row.IsDeleted = false; row.SellUnit = c.SellUnit;
                 keptItems.Add(row);
             }
             foreach (var row in items.Where(x => !keptItems.Contains(x))) row.IsDeleted = true;

@@ -24,7 +24,7 @@ namespace POSSystem.Platform
     public record SyncCategory(int Id, string Name, int SortOrder, bool IsActive, string? AvailableFrom, string? AvailableTo);
     public record SyncStation(int Id, string Name, int SortOrder, bool IsActive);
     public record SyncItem(int Id, string Name, decimal Price, int? CategoryId, string Category, int? StationId, string? Description,
-        bool IsVeg, bool IsAvailable, decimal TaxRate, int SortOrder);
+        bool IsVeg, bool IsAvailable, decimal TaxRate, int SortOrder, string SellUnit = "piece");
     public record SyncOption(int Id, int MenuItemId, string Name, decimal Price, int SortOrder, bool IsAvailable);
     public record SyncComboPart(int ComboItemId, int PartItemId, int Quantity);
 
@@ -50,7 +50,7 @@ namespace POSSystem.Platform
             var stations = (await db.KitchenStations.IgnoreQueryFilters().AsNoTracking().Where(x => x.TenantId == tenantId).OrderBy(x => x.Id).ToListAsync(ct))
                 .Select(x => new SyncStation(x.Id, x.Name, x.SortOrder, x.IsActive)).ToList();
             var items = (await db.MenuItems.IgnoreQueryFilters().AsNoTracking().Where(x => x.TenantId == tenantId && !x.IsDeleted).OrderBy(x => x.Id).ToListAsync(ct))
-                .Select(x => new SyncItem(x.Id, x.Name, x.Price, x.CategoryId, x.Category, x.StationId, x.Description, x.IsVeg, x.IsAvailable, x.TaxRate, x.SortOrder)).ToList();
+                .Select(x => new SyncItem(x.Id, x.Name, x.Price, x.CategoryId, x.Category, x.StationId, x.Description, x.IsVeg, x.IsAvailable, x.TaxRate, x.SortOrder, x.SellUnit)).ToList();
             var itemIds = items.Select(x => x.Id).ToHashSet();
             var variants = (await db.ItemVariants.IgnoreQueryFilters().AsNoTracking().Where(x => x.TenantId == tenantId).OrderBy(x => x.Id).ToListAsync(ct))
                 .Where(x => itemIds.Contains(x.MenuItemId))

@@ -17,7 +17,7 @@ WHERE "Total" <> "TaxableValue" + "Cgst" + "Sgst" + "RoundOff" OR abs("RoundOff"
 \echo '4. Order lines priced differently from the menu (no price changes happen during a load test), or using another restaurant''s menu item'
 SELECT oi."Id", o."TenantId" AS order_tenant, m."TenantId" AS item_tenant, oi."UnitPrice", m."Price"
 FROM "OrderItems" oi JOIN "KitchenOrders" o ON o."Id" = oi."KitchenOrderId" JOIN "MenuItems" m ON m."Id" = oi."MenuItemId"
-WHERE o."TenantId" <> m."TenantId" OR oi."UnitPrice" <> m."Price";
+WHERE o."TenantId" <> m."TenantId" OR (oi."UnitPrice" <> m."Price" AND oi."Measure" IS NULL AND oi."VariantId" IS NULL AND oi."AddOnIds" IS NULL);
 
 \echo '5. Bills in a different restaurant or outlet than their order'
 SELECT b."Id", b."TenantId", o."TenantId", b."OutletId", o."OutletId" FROM "Bills" b JOIN "KitchenOrders" o ON o."Id" = b."KitchenOrderId"

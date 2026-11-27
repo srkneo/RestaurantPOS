@@ -361,7 +361,7 @@ namespace POSSystem.Services
         private static OrderItem CopyLine(OrderItem item, int quantity, int round) => new()
         {
             TenantId = item.TenantId, MenuItemId = item.MenuItemId, ItemName = item.ItemName, UnitPrice = item.UnitPrice,
-            Quantity = quantity, Note = item.Note, VariantId = item.VariantId, AddOnIds = item.AddOnIds, Options = item.Options,
+            Quantity = quantity, Note = item.Note, VariantId = item.VariantId, AddOnIds = item.AddOnIds, Options = item.Options, Measure = item.Measure,
             StationId = item.StationId, StationName = item.StationName, Round = round, Includes = item.Includes,
         };
 

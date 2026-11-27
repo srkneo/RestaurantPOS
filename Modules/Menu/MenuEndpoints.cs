@@ -14,9 +14,9 @@ namespace POSSystem.Menu
     public record CategoryDto(int Id, string Name, int SortOrder, bool IsActive, string? AvailableFrom = null, string? AvailableTo = null);
     public record CategoryRequest(string? Name, int SortOrder, bool IsActive = true, string? AvailableFrom = null, string? AvailableTo = null);
     public record MenuItemAdminDto(int Id, string Name, decimal Price, int? CategoryId, string Category, string? Description,
-        bool IsVeg, bool IsAvailable, decimal TaxRate, int SortOrder, int? StationId = null);
+        bool IsVeg, bool IsAvailable, decimal TaxRate, int SortOrder, int? StationId = null, string SellUnit = "piece");
     public record MenuItemRequest(string? Name, decimal Price, int? CategoryId, string? Description, bool IsVeg, bool IsAvailable, decimal TaxRate, int SortOrder,
-        int? StationId = null);
+        int? StationId = null, string? SellUnit = null);
     public record AvailabilityRequest(bool IsAvailable);
 
     public static class MenuEndpoints
@@ -136,7 +136,7 @@ namespace POSSystem.Menu
         }
 
         private static MenuItemAdminDto ToDto(MenuItem m) =>
-            new(m.Id, m.Name, m.Price, m.CategoryId, m.Category, m.Description, m.IsVeg, m.IsAvailable, m.TaxRate, m.SortOrder, m.StationId);
+            new(m.Id, m.Name, m.Price, m.CategoryId, m.Category, m.Description, m.IsVeg, m.IsAvailable, m.TaxRate, m.SortOrder, m.StationId, m.SellUnit);
 
         private static void Apply(MenuItem item, MenuItemRequest req, MenuCategory category)
         {
@@ -150,6 +150,8 @@ namespace POSSystem.Menu
             item.TaxRate = req.TaxRate;
             item.SortOrder = req.SortOrder;
             item.StationId = req.StationId is > 0 ? req.StationId : null;
+            // Left out by older screens: keep what is saved. Anything unknown means by the piece.
+            if (req.SellUnit != null) item.SellUnit = req.SellUnit is "kg" or "litre" ? req.SellUnit : "piece";
         }
 
         private static CategoryDto CategoryToDto(MenuCategory c) =>

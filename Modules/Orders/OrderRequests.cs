@@ -26,6 +26,8 @@ public class OrderItemRequest
     // Size and extras of the item (see Menu/MenuOptionsEndpoints.cs). Prices always come from the menu.
     public int? VariantId { get; set; }
     public List<int>? AddOnIds { get; set; }
+    // Weighed items only: how much, in kg or litres (0.25 = 250 g). The price still comes from the menu.
+    public decimal? Measure { get; set; }
 }
 
 public class StatusUpdateRequest

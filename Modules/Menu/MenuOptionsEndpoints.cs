@@ -18,7 +18,7 @@ namespace POSSystem.Menu
     // What the POS gets for each item: the item plus its sizes and extras.
     public record PosMenuItemDto(int Id, string Name, decimal Price, string Category, int? CategoryId, string? Description,
         bool IsVeg, bool IsAvailable, decimal TaxRate, int SortOrder, bool IsDeleted, int OutletId,
-        List<MenuOptionDto> Variants, List<MenuOptionDto> AddOns, string? Includes = null);
+        List<MenuOptionDto> Variants, List<MenuOptionDto> AddOns, string? Includes = null, string SellUnit = "piece");
 
     public static class MenuOptions
     {
@@ -49,7 +49,7 @@ namespace POSSystem.Menu
             var o = options.TryGetValue(m.Id, out var found) ? found : new MenuOptionsDto(new(), new());
             return new PosMenuItemDto(m.Id, m.Name, m.Price, m.Category, m.CategoryId, m.Description, m.IsVeg, m.IsAvailable,
                 m.TaxRate, m.SortOrder, m.IsDeleted, m.OutletId, o.Variants, o.AddOns,
-                includes != null && includes.TryGetValue(m.Id, out var parts) ? parts : null);
+                includes != null && includes.TryGetValue(m.Id, out var parts) ? parts : null, m.SellUnit);
         }
 
         public static Dictionary<string, string[]> Validate(MenuOptionsRequest req)
@@ -133,6 +133,22 @@ namespace POSSystem.Menu
                 throw new ArgumentException($"{item.Name} has no sizes.");
             }
 
+            // Sold by weight or volume: the menu price is per kg or litre, the line is that price times the amount.
+            decimal? measure = null;
+            if (item.SellUnit is "kg" or "litre")
+            {
+                if (line.Measure is not decimal amount || amount <= 0 || amount > MaxMeasure)
+                    throw new ArgumentException($"Enter how much {item.Name} (more than 0, at most {MaxMeasure} {item.SellUnit}).");
+                measure = Math.Round(amount, 3, MidpointRounding.AwayFromZero);
+                if (measure <= 0) throw new ArgumentException($"Enter how much {item.Name}.");
+                name = $"{name} ({MeasureText(measure.Value, item.SellUnit)})";
+                price = Math.Round(price * measure.Value, 2, MidpointRounding.AwayFromZero);
+            }
+            else if (line.Measure != null)
+            {
+                throw new ArgumentException($"{item.Name} is sold by the piece.");
+            }
+
             var chosen = (line.AddOnIds ?? new List<int>()).Distinct().ToList();
             if (chosen.Count > MaxAddOns) throw new ArgumentException($"Too many extras for {item.Name}.");
             var extras = new List<ItemAddOn>();
@@ -153,9 +169,20 @@ namespace POSSystem.Menu
                 Quantity = line.Quantity,
                 Note = string.IsNullOrWhiteSpace(line.Note) ? null : line.Note.Trim(),
                 VariantId = variant?.Id,
+                Measure = measure,
                 AddOnIds = extras.Count > 0 ? string.Join(",", extras.Select(a => a.Id)) : null,
                 Options = extras.Count > 0 ? string.Join(", ", extras.Select(a => a.Name)) : null
             };
+        }
+
+        public const decimal MaxMeasure = 100m;
+
+        // 0.25 kg -> "250 g", 1.5 kg -> "1.5 kg", 0.2 litre -> "200 ml", 2 litre -> "2 L".
+        public static string MeasureText(decimal amount, string unit)
+        {
+            var c = System.Globalization.CultureInfo.InvariantCulture;
+            if (amount < 1m) return (amount * 1000m).ToString("0.#", c) + (unit == "litre" ? " ml" : " g");
+            return amount.ToString("0.###", c) + (unit == "litre" ? " L" : " kg");
         }
 
         // The name printed on the bill: the item (with its size) and its extras, within the bill's 100 characters.

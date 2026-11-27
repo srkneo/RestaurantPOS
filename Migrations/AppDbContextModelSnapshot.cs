@@ -1895,6 +1895,11 @@ namespace RestaurantPOS.Migrations
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)");
 
+                    b.Property<string>("SellUnit")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
@@ -1970,6 +1975,10 @@ namespace RestaurantPOS.Migrations
 
                     b.Property<int>("KitchenOrderId")
                         .HasColumnType("integer");
+
+                    b.Property<decimal?>("Measure")
+                        .HasPrecision(10, 3)
+                        .HasColumnType("numeric(10,3)");
 
                     b.Property<int>("MenuItemId")
                         .HasColumnType("integer");
