@@ -87,6 +87,7 @@ try
     app.MapPosAuth();
     app.MapAppTwoFactorEndpoints();
     app.MapPasswordChangeEndpoints();
+    app.MapSupportAccessEndpoints();
     app.MapStaffEndpoints();
     app.MapMenuEndpoints();
     app.MapMenuImportEndpoints();
@@ -139,6 +140,7 @@ try
     app.UsePosAuth();
     app.UseRequestUserInLogs();
     app.UseMenuSyncGuard();
+    app.UseSupportGuard();
     // OB8: sign-ins, password, staff and platform changes go to the security event log.
     app.UseSecurityEvents();
     app.UseRateLimiter();
