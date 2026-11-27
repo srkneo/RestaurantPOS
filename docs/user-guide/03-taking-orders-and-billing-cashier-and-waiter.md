@@ -30,6 +30,16 @@ If the bill was already printed but not paid, the new items still join the **sam
 
 Order type **Takeaway**, enter the customer name (and phone if your settings ask), add dishes, place. Tell the customer the token number; it appears on the token screen when ready.
 
+## Bakery, sweet shop or dairy counter
+
+When the shop uses the **Bakery** or **Dairy** quick setup (Simple counter):
+
+1. Tap the items. Choose Dine-in or Takeaway (dairy is takeaway only). No table and no customer name are asked.
+2. Tap **Place order**. The bill opens straight away: take payment and print.
+3. The POS is ready for the next customer.
+
+**Items sold by weight or volume** (paneer, sweets, chaas): tapping the item asks **How much?** Tap **250 g / 500 g / 1 kg** (or **250 ml / 500 ml / 1 L**), or type the amount and tap **Add**. The bill line shows the amount, e.g. "Chaas (500 ml)", and its price.
+
 ## Making the bill
 
 1. From the POS or the Orders page open the order and tap **Bill**.
