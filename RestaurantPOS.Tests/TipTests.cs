@@ -47,6 +47,7 @@ namespace RestaurantPOS.Tests
             var settings = outlet.GetSettings();
             settings.TaxMode = TaxMode.None;
             outlet.Settings = settings.ToJson();
+            outlet.BusinessDayStartHour = TestBusinessDay.SafeStartHour(outlet.TimeZone, DateTime.UtcNow);
             var category = new MenuCategory { Name = "Meals", SortOrder = 1 };
             db.MenuCategories.Add(category);
             var table = new RestaurantTable { TableNumber = "T9", QRCodeString = "t1-t9", SortOrder = 70 };
