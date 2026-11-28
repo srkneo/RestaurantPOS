@@ -42,3 +42,9 @@ Known failure patterns in the task queue and how to fix them. Claude adds to thi
 
 ## Aider rewrites algorithms its own way
 - C1: the spec described WithDependencies and Validate in words; Aider threw on a missing dependency instead of adding it, and checked unknown key / duplicate / dependency per key instead of in three passes (3 tries failed). Fix: for small algorithms where order or behaviour matters, put the exact method body in the spec as a code block and say "copy exactly".
+
+## Rush-hour guard
+- Off while there are no live customers (Mahesh, 28 Nov 2026): the file is tasks/peak-guard.off. When Mahesh says real customers are live, rename it back to peak-guard.on so releases wait until after 15:00 / 23:00 IST.
+
+## Editing the status file
+- Re-read roadmap-status.md just before writing it and change only your own lines; Claude in chat also edits it. A whole-file write from an old copy loses the other side's changes (happened 28 Nov).

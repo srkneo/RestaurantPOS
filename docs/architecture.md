@@ -29,6 +29,7 @@ Catalog item (today's MenuItem), Sale (today's Order), Payment, Stock ledger (mo
 
 - Backend module interface (services, endpoints, migrations, menu entries, feature flags).
 - Capability registry: `Modules/Platform/Capabilities.cs` lists every capability (key, name, description, depends on). Keys are lowercase kebab-case (`tables`, `kitchen-screen`, `qr-ordering` ...); `Capabilities.Validate` checks a list (unknown key, listed twice, missing dependency) and `Capabilities.WithDependencies` adds what a list needs. Outlet types (C2), the per-restaurant list (C3), plans (C4), the shop PC lease (C5) and the RequireCapability filter (C6) all use these keys.
+- Audit log: `AppDbContext.Audit.cs` writes `AuditLogs` (Details is JSON, a jsonb column on PostgreSQL). `Modules/Platform/AuditLogQuery.cs` reads it for GET /api/admin/audit (owner, `?take=1..500&type=<EntityType>`) and GET /api/platform/tenants/{id}/audit (platform); each row has `support` = true for support sign-ins and changes made by a support user. Screen: `admin/ActivityLogPage.jsx` (/admin/activity and /platform/tenants/:id/activity).
 - Frontend route and menu registry, lazy loaded per module.
 - Hardware layer: printer, barcode scanner, weighing scale, cash drawer.
 - Connectors: outbox, webhooks and a connector API for Tally, Swiggy/Zomato, GST e-invoice and other POS systems.
