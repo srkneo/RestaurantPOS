@@ -1,4 +1,4 @@
-# Restaurant POS - Daily Startup Checklist
+# AllInOne POS - Daily Startup Checklist
 
 **1. Start the Database (PostgreSQL via Docker)**
 
