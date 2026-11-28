@@ -28,6 +28,7 @@ Catalog item (today's MenuItem), Sale (today's Order), Payment, Stock ledger (mo
 ## Extension points
 
 - Backend module interface (services, endpoints, migrations, menu entries, feature flags).
+- Capability registry: `Modules/Platform/Capabilities.cs` lists every capability (key, name, description, depends on). Keys are lowercase kebab-case (`tables`, `kitchen-screen`, `qr-ordering` ...); `Capabilities.Validate` checks a list (unknown key, listed twice, missing dependency) and `Capabilities.WithDependencies` adds what a list needs. Outlet types (C2), the per-restaurant list (C3), plans (C4), the shop PC lease (C5) and the RequireCapability filter (C6) all use these keys.
 - Frontend route and menu registry, lazy loaded per module.
 - Hardware layer: printer, barcode scanner, weighing scale, cash drawer.
 - Connectors: outbox, webhooks and a connector API for Tally, Swiggy/Zomato, GST e-invoice and other POS systems.

@@ -12,7 +12,7 @@ Rules: one new task per hourly run, only when tasks/queue has no task files and 
 - RELEASE: v2.3.3 (SUP1, SUP2): done (tagged 28 Nov 02:43 IST)
 
 ## Fixes first
-- FIX2 audit Details must be JSON (production 500 on support login, 28 Nov 10:44): SupportAccess.cs and SupportDayLogin.cs wrote plain text into AuditLogs.Details, a json column in PostgreSQL; in-memory tests did not catch it. Hotfix queued by Claude as v2.4-0FIX2-audit-json.txt: queued
+- FIX2 audit Details must be JSON (production 500 on support login, 28 Nov 10:44): SupportAccess.cs and SupportDayLogin.cs wrote plain text into AuditLogs.Details, a json column in PostgreSQL; in-memory tests did not catch it. Hotfix queued by Claude as v2.4-0FIX2-audit-json.txt: done (PR #258)
 - RELEASE: v2.4.1 (FIX2 hotfix)
 - FIX1 flaky test DayCloseTests.Shift_CountsCashSalesAndMovements_AndShowsShortOnClose: failed in CI at 04:00 IST (22:30 UTC), exactly the business-day start hour (4 AM), so the shift and its sales fell into different business days. Make the test independent of the time of day (fixed clock / set the business day explicitly / create the data relative to the business-day start). Test-only change; also scan the other DayClose and shift tests for the same pattern: done (FIX1, PR #254)
 
@@ -24,7 +24,7 @@ Rules: one new task per hourly run, only when tasks/queue has no task files and 
 - RELEASE: v2.4.0 (phase 1: RN1-RN4, FIX1): done (release.req written 28 Nov 09:42 IST)
 
 ## Phase 2: capability registry
-- C1 capability list in code (keys, names, depends on): queued (v2.4-C1-capabilities.txt, 28 Nov 10:45 IST)
+- C1 capability list in code (keys, names, depends on): done (C1b)
 - C2 outlet types (templates) owned by the PLATFORM, not the owner: restaurant, cafe, takeaway counter, cloud kitchen, bakery, dairy; each = capabilities + settings preset: todo
 - C3 capabilities per restaurant (JSON column) + migration backfilling what each restaurant uses today: todo
 - C4 plans carry allowed capabilities: todo

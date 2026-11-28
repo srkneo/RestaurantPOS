@@ -39,3 +39,6 @@ Known failure patterns in the task queue and how to fix them. Claude adds to thi
 
 ## In-memory tests miss PostgreSQL column types
 - AuditLogs.Details (and other json/jsonb columns) must get valid JSON: use JsonSerializer.Serialize(new { ... }). The in-memory database accepts any text, so only PostgreSQL rejects it (production 500, 28 Nov). Tests that write such columns must parse the value with JsonDocument.Parse, or run in the Postgres test classes.
+
+## Aider rewrites algorithms its own way
+- C1: the spec described WithDependencies and Validate in words; Aider threw on a missing dependency instead of adding it, and checked unknown key / duplicate / dependency per key instead of in three passes (3 tries failed). Fix: for small algorithms where order or behaviour matters, put the exact method body in the spec as a code block and say "copy exactly".
