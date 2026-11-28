@@ -137,7 +137,11 @@ try
             app.Logger.LogWarning("Slow request {Method} {Path} {Status} {Ms} ms", context.Request.Method, context.Request.Path, context.Response.StatusCode, ms);
     });
 
-    app.UseExceptionHandler();
+    // A query value of the wrong type (take=abc) is the caller's mistake: 400, not 500 (UI1b).
+    app.UseExceptionHandler(new ExceptionHandlerOptions
+    {
+        StatusCodeSelector = ex => ex is Microsoft.AspNetCore.Http.BadHttpRequestException bad ? bad.StatusCode : StatusCodes.Status500InternalServerError
+    });
     app.UsePosAuth();
     app.UseRequestUserInLogs();
     app.UseMenuSyncGuard();

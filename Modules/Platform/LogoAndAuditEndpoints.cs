@@ -64,24 +64,17 @@ namespace POSSystem.Platform
                 return Results.NoContent();
             }).RequireAuthorization(p => p.RequireRole("admin")).WithName("DeleteStoreLogo").WithSummary("Remove the outlet logo");
 
-            // Owner only: latest changes first, with the email of who made them.
-            app.MapGet("/api/admin/audit", async (int? take, AppDbContext db, UserManager<AppUser> users) =>
+            // Owner only (also in a support session): latest changes first, who made them, optional filter by type (EntityType).
+            app.MapGet("/api/admin/audit", async (int? take, string? type, AppDbContext db, UserManager<AppUser> users) =>
+                Results.Ok(await AuditLogQuery.ReadAsync(db.AuditLogs, take, type, users)))
+                .RequireAuthorization(p => p.RequireRole("admin")).WithName("GetAuditLog").WithSummary("Latest changes: who changed what and when");
+
+            // Platform owner: the same log for one restaurant (Platform -> Restaurants -> Activity log).
+            app.MapGet("/api/platform/tenants/{id:int}/audit", async (int id, int? take, string? type, AppDbContext db, UserManager<AppUser> users) =>
             {
-                var count = Math.Clamp(take ?? 100, 1, 500);
-                var logs = await db.AuditLogs.OrderByDescending(l => l.Id).Take(count).ToListAsync();
-                var ids = logs.Where(l => l.CreatedBy != null).Select(l => l.CreatedBy!).Distinct().ToList();
-                var emails = await users.Users.Where(u => ids.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.Email ?? u.UserName ?? u.Id);
-                return Results.Ok(logs.Select(l => new
-                {
-                    l.Id,
-                    l.CreatedAt,
-                    By = l.CreatedBy == null ? "system" : emails.GetValueOrDefault(l.CreatedBy, l.CreatedBy),
-                    l.Action,
-                    l.EntityType,
-                    l.EntityId,
-                    l.Details
-                }));
-            }).RequireAuthorization(p => p.RequireRole("admin")).WithName("GetAuditLog").WithSummary("Latest changes: who changed what and when");
+                if (!await db.Tenants.AnyAsync(t => t.Id == id)) return Results.NotFound();
+                return Results.Ok(await AuditLogQuery.ReadAsync(db.AuditLogs.IgnoreQueryFilters().Where(l => l.TenantId == id), take, type, users));
+            }).RequireAuthorization(p => p.RequireRole(AuthSetup.PlatformRole)).WithName("GetTenantAuditLog").WithSummary("Platform: latest changes of one restaurant");
 
             return app;
         }
