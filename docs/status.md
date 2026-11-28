@@ -9,6 +9,7 @@ Rules: one new task per hourly run, only when tasks/queue has no task files and 
 - SUP2 shop PC password of the day: done (SUP2b, PR #252)
 
 ## Release
+- RELEASE: v2.4.2 (UI1 activity log, RN5 business wording, C1-C3; asked by Mahesh 28 Nov 18:00): done (release.req written by Claude in chat)
 - RELEASE: v2.3.3 (SUP1, SUP2): done (tagged 28 Nov 02:43 IST)
 
 ## Fixes first
@@ -30,8 +31,8 @@ Rules: one new task per hourly run, only when tasks/queue has no task files and 
 ## Phase 2: capability registry
 - C1 capability list in code (keys, names, depends on): done (C1b, PR #259)
 - C2 outlet types (templates) owned by the PLATFORM, not the owner: restaurant, cafe, takeaway counter, cloud kitchen, bakery, dairy; each = capabilities + settings preset: done (C2, PR #263)
-- C3 capabilities per restaurant (JSON column) + migration backfilling what each restaurant uses today: done (C3)
-- C4 plans carry allowed capabilities: todo
+- C3 capabilities per restaurant (JSON column) + migration backfilling what each restaurant uses today: done (PR #264)
+- C4 plans carry allowed capabilities: done (C4)
 - C5 shop PC lease carries capabilities, signed; old leases keep today's behaviour: todo
 - C6 RequireCapability endpoint filter (403 with message): todo
 - C7a reservations behind the filter: todo
