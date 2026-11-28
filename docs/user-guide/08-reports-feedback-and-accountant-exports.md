@@ -29,3 +29,7 @@ What it is for: what guests think.
 ## Credit notes
 
 If a paid bill must be cancelled (e.g. refund), a manager makes a **credit note** with a reason and refund method. The original bill stays; the credit note cancels it in reports and Tally.
+
+## Activity log
+
+**Admin → Activity log** (owner only; managers, cashiers, waiters and kitchen staff do not see it) lists every change, newest first: **when**, **who** (the staff email, or *system*), **what** (for example *Changed · Menu item #5*) and the **details** (for example *Price: 18 → 20*). Use **Type** to show one kind of change only (menu items, tables, staff, cancellations, support ...). Rows of a **support session** are highlighted in yellow with a *Support* badge, so you always see what support did in your restaurant. The page shows the latest 500 changes, 20 per page.
