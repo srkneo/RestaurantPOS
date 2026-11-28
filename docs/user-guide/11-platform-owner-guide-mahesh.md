@@ -28,6 +28,7 @@ On **Platform → Licences**, open a licence and choose the cloud business. That
 - After the paid-up date: 7 days **overdue** (warning banner only), then **stopped**: no new orders or bills, everything still viewable.
 - Every day at **10 AM** Telegram lists restaurants whose trial/plan ends within 3 days, unpaid ones and ones stopped that day (needs the Telegram settings on the server).
 - Businesses created before subscriptions are **free use**.
+- **Features per plan** (server setting, optional): `Plans__monthly__Capabilities=tables,kitchen-screen,tokens` limits what a business on that plan may use (also `Plans__trial__...`, `Plans__yearly__...`). Without the setting a plan allows every feature. A business gets only the features that are both on its own list and in its plan; free use businesses keep all. The features are not switched off on the screens yet (coming in the next steps).
 
 > 📷 Screenshot: Platform page with Subscription column and Payment dialog
 > 

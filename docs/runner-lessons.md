@@ -55,3 +55,6 @@ Known failure patterns in the task queue and how to fix them. Claude adds to thi
 ## Readonly example pages mislead Aider (UI1b, 28 Nov)
 - UI1-page: FeedbackListPage (server answers `{ items, count }`) was readonly, so Aider read `data.items` / `data.count` although the audit API answers a plain array: nothing rendered, 3 tries failed. Fix: give the exact component code ("copy exactly") and do not list an example whose response shape differs.
 - Vitest: when the heading is shown during loading, `await findByRole('heading')` does not wait for the data. Wait for loaded content (`await screen.findAllByRole('row')`) before synchronous getAllBy queries.
+
+## Sending files to the PC
+- device_commit_files may upload an older cached copy when a file name in /mnt/user-data/outputs is reused. Always write a NEW file name for changed content (for example release-v2.4.2.req) and read the file back on the PC before relying on it (28 Nov: release.req said 2.3.2 instead of 2.4.2).
