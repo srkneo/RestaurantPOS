@@ -29,6 +29,7 @@ describe('Pricing page', () => {
     expect(screen.getByText(/30 days free trial/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Start free trial' })).toHaveAttribute('href', '/signup');
     expect(await screen.findByRole('link', { name: 'Ask for a demo on WhatsApp' })).toHaveAttribute('href', expect.stringContaining('https://wa.me/919825012345?text='));
+    expect(screen.getByRole('link', { name: 'Ask for a demo on WhatsApp' })).toHaveAttribute('href', expect.stringContaining(encodeURIComponent('Hello, I would like a demo of AllInOne POS.')));
     expect(screen.getByRole('link', { name: 'Call +91 98250 12345' })).toHaveAttribute('href', 'tel:+919825012345');
   });
 
