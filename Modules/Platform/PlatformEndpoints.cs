@@ -52,7 +52,8 @@ namespace POSSystem.Platform
             var errors = await ValidateAsync(req, users);
             if (errors.Count > 0) return (null, errors);
 
-            var tenant = new Tenant { Name = req.RestaurantName!.Trim(), IsActive = true };
+            // C3: a new restaurant gets the restaurant outlet type's capabilities until C9 lets the platform choose the type.
+            var tenant = new Tenant { Name = req.RestaurantName!.Trim(), IsActive = true, Capabilities = TenantCapabilities.ForType(OutletTypes.Restaurant) };
             db.Tenants.Add(tenant);
             await db.SaveChangesAsync();
 
