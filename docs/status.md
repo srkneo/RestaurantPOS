@@ -18,7 +18,7 @@ Rules: one new task per hourly run, only when tasks/queue has no task files and 
 
 - UI1 Activity log page: there is an API (GET /api/admin/audit) but no screen. Add "Activity log" under the Admin menu for the OWNER only (role admin, also in a support session; managers, cashiers, waiters and kitchen get 403): newest first, who, when, what (action, item, details shown readably from the JSON), filter by type, support sessions highlighted; the platform owner gets the same log per restaurant on Platform -> Restaurants. Tests: list, filter, manager and cashier get 403, another restaurant's log is never shown, Playwright: a support login appears in the log: done (UI1b, PR #261)
 
-- RN5 rename "restaurant" to "business" in everything users see (Mahesh, 28 Nov): platform list "Restaurants" -> "Businesses", "Add restaurant" -> "Add business", column "Restaurant" -> "Business", owner screens "Restaurant name" -> "Business name", messages, Telegram texts, emails, bills where it says restaurant; English, Gujarati (બિઝનેસ / વ્યવસાય) and Hindi (व्यवसाय); keep "Outlets"; code, database, API paths and C# names stay as they are (Tenant/Restaurant). Search all i18n files and .jsx/.cs user-facing strings; update tests that expect the old words; update the user guide and docs to say business: done (RN5)
+- RN5 rename "restaurant" to "business" in everything users see (Mahesh, 28 Nov): platform list "Restaurants" -> "Businesses", "Add restaurant" -> "Add business", column "Restaurant" -> "Business", owner screens "Restaurant name" -> "Business name", messages, Telegram texts, emails, bills where it says restaurant; English, Gujarati (બિઝનેસ / વ્યવસાય) and Hindi (व्यवसाय); keep "Outlets"; code, database, API paths and C# names stay as they are (Tenant/Restaurant). Search all i18n files and .jsx/.cs user-facing strings; update tests that expect the old words; update the user guide and docs to say business: done (PR #262)
 
 ## Phase 1: rename to AllInOne POS
 - RN1 app name in one i18n key (app.name) on all screens, title, PWA manifest, index.html: done (PR #253)
@@ -29,7 +29,7 @@ Rules: one new task per hourly run, only when tasks/queue has no task files and 
 
 ## Phase 2: capability registry
 - C1 capability list in code (keys, names, depends on): done (C1b, PR #259)
-- C2 outlet types (templates) owned by the PLATFORM, not the owner: restaurant, cafe, takeaway counter, cloud kitchen, bakery, dairy; each = capabilities + settings preset: todo
+- C2 outlet types (templates) owned by the PLATFORM, not the owner: restaurant, cafe, takeaway counter, cloud kitchen, bakery, dairy; each = capabilities + settings preset: done (C2)
 - C3 capabilities per restaurant (JSON column) + migration backfilling what each restaurant uses today: todo
 - C4 plans carry allowed capabilities: todo
 - C5 shop PC lease carries capabilities, signed; old leases keep today's behaviour: todo
