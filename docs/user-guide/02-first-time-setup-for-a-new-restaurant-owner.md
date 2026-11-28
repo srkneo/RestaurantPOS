@@ -1,5 +1,7 @@
 # 2. First-time setup for a new restaurant (owner)
 
+Screens, messages and bills say **business** (for example **Business name**, **Platform → Businesses**): a restaurant, cafe, bakery or dairy is each one business.
+
 Do these once, in this order. **Admin ▾ → Setup** shows a checklist that ticks itself as you finish each step.
 
 > 📷 Screenshot: Setup checklist
@@ -9,7 +11,7 @@ Do these once, in this order. **Admin ▾ → Setup** shows a checklist that tic
 
 What it is for: everything printed at the top and bottom of the bill.
 
-1. Enter the restaurant and outlet name, address and phone.
+1. Enter the business name and outlet name, address and phone.
 2. Enter your **GSTIN** (needed for GST bills) and **FSSAI** number.
 3. Upload your **logo** (it prints on bills and shows on screens).
 4. Write the **receipt footer**, e.g. "Thank you, visit again".
