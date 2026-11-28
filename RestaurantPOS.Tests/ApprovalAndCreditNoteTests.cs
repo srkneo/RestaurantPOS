@@ -50,6 +50,7 @@ namespace RestaurantPOS.Tests
             var settings = outlet.GetSettings();
             settings.TaxMode = TaxMode.Regular;
             outlet.Settings = settings.ToJson();
+            outlet.BusinessDayStartHour = TestBusinessDay.SafeStartHour(outlet.TimeZone, DateTime.UtcNow);
             outlet.Gstin = "24ABCDE1234F1Z5";
             var category = new MenuCategory { Name = "Mains", SortOrder = 1 };
             db.MenuCategories.Add(category);

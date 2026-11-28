@@ -23,7 +23,9 @@ namespace RestaurantPOS.Tests
 
         public ExpenseTests(WebApplicationFactory<Program> factory) => _factory = factory;
 
-        private WebApplicationFactory<Program> Build()
+        private WebApplicationFactory<Program> Build() => TestBusinessDay.AwayFromDayStart(BuildFactory());
+
+        private WebApplicationFactory<Program> BuildFactory()
         {
             var dbName = Guid.NewGuid().ToString();
             return _factory.WithWebHostBuilder(builder =>
