@@ -17,6 +17,9 @@ namespace POSSystem.Models
         [MaxLength(10)] public string? Plan { get; set; }
         public DateOnly? PaidUntil { get; set; }
         [MaxLength(20)] public string? OwnerPhone { get; set; }
+
+        // C3: capability keys this restaurant may use, as a JSON list (see TenantCapabilities). Null = every capability (restaurants added before C3).
+        [MaxLength(1000)] public string? Capabilities { get; set; }
     }
 
     // One location of a restaurant. Orders, menu and tables belong to an outlet.
