@@ -25,7 +25,7 @@ describe('Licence menu link', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Menu: own' }));
     expect(await screen.findByRole('option', { name: 'Anand Cafe' })).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Copy the menu from this cloud restaurant'), { target: { value: '2' } });
+    fireEvent.change(screen.getByLabelText('Copy the menu from this cloud business'), { target: { value: '2' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save menu source' }));
 
     await waitFor(() => expect(onSaved).toHaveBeenCalled());

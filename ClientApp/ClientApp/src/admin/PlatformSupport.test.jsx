@@ -33,7 +33,7 @@ describe('Platform support login', () => {
     const row = (await screen.findByText('My Restaurant')).closest('tr');
     fireEvent.click(within(row).getByRole('button', { name: 'Support login' }));
     const dialog = await screen.findByRole('dialog');
-    expect(within(dialog).getByText('Open this restaurant as Support?')).toBeInTheDocument();
+    expect(within(dialog).getByText('Open this business as Support?')).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Open as support' }));
     await waitFor(() => expect(calls.some((c) => c.url === '/api/platform/tenants/1/support-login' && c.method === 'POST')).toBe(true));
     await waitFor(() => expect(window.location.assign).toHaveBeenCalledWith('/'));
