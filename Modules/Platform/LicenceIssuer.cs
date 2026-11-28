@@ -172,10 +172,19 @@ namespace POSSystem.Platform
             licence.LastVersion = version.Length <= 40 ? version : version[..40];
             await _db.SaveChangesAsync(ct);
 
+            // C5: a shop PC linked to a cloud restaurant gets that restaurant's capabilities (its own list AND its plan), signed with the lease.
+            // Not linked, or the restaurant no longer exists = no list = every capability (today's behaviour).
+            string[]? capabilities = null;
+            if (licence.TenantId is int tenantId)
+            {
+                var tenant = await _db.Tenants.AsNoTracking().FirstOrDefaultAsync(t => t.Id == tenantId, ct);
+                if (tenant != null) capabilities = PlanCapabilities.Effective(tenant, _config).ToArray();
+            }
+
             var lease = now.AddDays(LeaseDays);
             // The support secret is made from the private key, the licence and this PC, so the platform can show the same day code later.
             var payload = new LicencePayload(licence.Id.ToString(), licence.Customer, licence.Plan, now, lease < licence.PaidUntil ? lease : licence.PaidUntil, licence.PaidUntil,
-                SupportDayCode.SecretFor(privateKeyText, licence.Id, deviceId));
+                SupportDayCode.SecretFor(privateKeyText, licence.Id, deviceId), capabilities);
             using var privateKey = Licence.PrivateKeyFromBase64(privateKeyText);
             var reset = licence.OwnerResetHash is not null && licence.OwnerResetExpires > now
                 ? new OwnerResetInfoDto(licence.OwnerResetHash, licence.OwnerResetExpires.Value) : null;

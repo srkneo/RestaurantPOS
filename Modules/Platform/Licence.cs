@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text.Json;
 
@@ -8,7 +10,8 @@ namespace POSSystem.Platform
     // What the cloud signs for one shop PC. PaidUntil is the end of the paid period (a trial is 30 days);
     // LeaseUntil is a short lease (7 days) that the shop PC renews from the cloud whenever it is online.
     // SupportSecret (v2.3.3) lets this PC check support's code of the day (see SupportDayCode). Leases signed before v2.3.3 have none and stay valid.
-    public record LicencePayload(string LicenceId, string Customer, string Plan, DateTime IssuedAt, DateTime LeaseUntil, DateTime PaidUntil, string? SupportSecret = null);
+    // Capabilities (C5): what this PC may use, signed with the lease. Leases signed before C5 have none = every capability.
+    public record LicencePayload(string LicenceId, string Customer, string Plan, DateTime IssuedAt, DateTime LeaseUntil, DateTime PaidUntil, string? SupportSecret = null, string[]? Capabilities = null);
 
     // The file kept on the shop PC: the payload (base64 of JSON) and the signature over exactly those bytes (base64).
     public record LicenceFile(string Payload, string Signature);
@@ -48,6 +51,15 @@ namespace POSSystem.Platform
             {
                 return null;
             }
+        }
+
+        // C5: the capabilities a signed lease allows, in registry order. No payload or no list (leases signed before C5) = every capability,
+        // which is today's behaviour; unknown keys are dropped; an empty list allows nothing.
+        public static IReadOnlyList<string> CapabilitiesOf(LicencePayload? payload)
+        {
+            if (payload?.Capabilities is null) return Capabilities.Keys;
+            var set = new HashSet<string>(payload.Capabilities.Where(k => k != null), StringComparer.Ordinal);
+            return Capabilities.Keys.Where(k => set.Contains(k)).ToList();
         }
 
         // lastSeenUtc is the latest time this PC has ever seen (kept in the database). A clock set back behind it is caught here.
