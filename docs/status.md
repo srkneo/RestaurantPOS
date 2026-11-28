@@ -17,8 +17,8 @@ Rules: one new task per hourly run, only when tasks/queue has no task files and 
 ## Phase 1: rename to AllInOne POS
 - RN1 app name in one i18n key (app.name) on all screens, title, PWA manifest, index.html: done (PR #253)
 - RN2 printed and sent texts (bill and KOT footer, licence texts, Telegram and email, authenticator issuer): done (PR #255)
-- RN3 root README and docs titles: done
-- RN4 checklist for Mahesh (repo, folder, Docker images, runner paths): todo (write docs/rename-checklist.md only)
+- RN3 root README and docs titles: done (PR #256)
+- RN4 checklist for Mahesh (repo, folder, Docker images, runner paths): done (docs/rename-checklist.md)
 - RELEASE: v2.4.0 (phase 1)
 
 ## Phase 2: capability registry

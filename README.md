@@ -2,7 +2,7 @@
 
 One point-of-sale system for restaurants, cafes, bakeries, dairies, grocery (kirana) shops, supermarkets and more: billing counter, kitchen screen, token screen, menu, tables, stock, reservations, loyalty, staff, GST bills, day close and reports. It runs in any browser (tablet, phone, laptop or PC), in the cloud or offline on a shop PC.
 
-The GitHub repo is still called `srkneo/RestaurantPOS`; the repo, folder and Docker image names change later (see the rename checklist task RN4 in [docs/status.md](docs/status.md)).
+The GitHub repo is still called `srkneo/RestaurantPOS`; the repo, folder and Docker image names change later (see [docs/rename-checklist.md](docs/rename-checklist.md)).
 
 ## Start here
 

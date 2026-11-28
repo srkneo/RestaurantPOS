@@ -14,6 +14,7 @@ All project information lives here as Markdown, in the repo. Notion is no longer
 ## Running it
 
 - [Daily startup checklist](daily-startup-checklist.md)
+- [Rename checklist (repo, folder, Docker images, runner)](rename-checklist.md)
 - [Server runbook](../deploy/RUNBOOK.md)
 - [Load test](../loadtest/README.md)
 
