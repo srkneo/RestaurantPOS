@@ -15,7 +15,7 @@ Written 27 Nov 2026. How the plan in [architecture.md](architecture.md) and the 
 
 ## Small screens and fixes between phases
 
-- UI1 Activity log page: owner (Admin → Activity log) and platform (Platform → Restaurants → Activity log) read the audit log, newest first, filter by type, support sessions highlighted (done).
+- UI1 Activity log page: owner (Admin → Activity log) and platform (Platform → Businesses → Activity log) read the audit log, newest first, filter by type, support sessions highlighted (done).
 
 ## Phase 1: rename to AllInOne POS (about 4 tasks, low risk)
 
@@ -25,6 +25,7 @@ Written 27 Nov 2026. How the plan in [architecture.md](architecture.md) and the 
 | RN2 | Printed and sent texts: bill and KOT footers, licence and trial texts, Telegram and email messages, authenticator app issuer name (existing app entries keep working; only the label changes). | bill print text; issuer in the setup URI |
 | RN3 | Root README and docs titles. | none (docs) |
 | RN4 | Checklist only, done by Mahesh at a quiet time: GitHub repo name, E:\Projects folder, Docker image names, runner script paths, GitHub Actions. | manual |
+| RN5 | Users see business, not restaurant: screens (en/gu/hi), server messages, legal texts, user guide. Code, database, API paths, field keys (restaurantname) and the outlet type name stay. | businessWords.test.js, BusinessWordsTests, e2e business-words.spec.ts (done) |
 
 Do NOT rename in phase 1: database names, OpenTelemetry service name and Loki labels (Grafana alerts depend on them), C# namespaces.
 

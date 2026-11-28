@@ -39,7 +39,7 @@ describe('Signup', () => {
     }));
     renderPage();
     expect(await screen.findByText(/30 days free/)).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Restaurant name'), { target: { value: 'Patel Cafe' } });
+    fireEvent.change(screen.getByLabelText('Business name'), { target: { value: 'Patel Cafe' } });
     fireEvent.change(screen.getByLabelText('Your name'), { target: { value: 'Kiran Patel' } });
     fireEvent.change(screen.getByLabelText('Email (you sign in with it)'), { target: { value: 'kiran@cafe.local' } });
     fireEvent.change(screen.getByLabelText('Mobile number'), { target: { value: '9825012345' } });

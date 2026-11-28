@@ -9,14 +9,14 @@ Only for the platform owner account. Sign in with the platform email; when the s
 - **Change password**: the platform account may use a simple password of **8 or more characters** (no capitals, digits or symbols needed), because sign-in always needs the second step. Other devices are signed out.
 - If Telegram is down and no app is set up: see "Platform sign-in code does not arrive" in `deploy/RUNBOOK.md`.
 
-## Link a shop PC to a cloud restaurant
+## Link a shop PC to a cloud business
 
-On **Platform → Licences**, open a licence and choose the cloud restaurant. That shop PC then takes its menu and store settings from the cloud every 5 minutes (see page 10).
+On **Platform → Licences**, open a licence and choose the cloud business. That shop PC then takes its menu and store settings from the cloud every 5 minutes (see page 10).
 
 ## Platform – all restaurants
 
 - List of restaurants with status, outlets, staff, last order and **Subscription** (trial / active / overdue / stopped / free use). Search and pages.
-- **Add restaurant**: restaurant and outlet name, owner name, email and password. It gets 10 tables.
+- **Add business**: business and outlet name, owner name, email and password. It gets 10 tables.
 - **Demo data**: fills an empty restaurant with a sample menu and orders for demos. For a fresh demo, add a new restaurant and fill it.
 - **Disable / Enable**: a disabled restaurant's staff cannot sign in.
 - **Activity log**: the same log the owner sees (who changed what and when, support sessions highlighted) for one restaurant, read-only. Endpoint: GET /api/platform/tenants/{id}/audit (platform only).
@@ -27,7 +27,7 @@ On **Platform → Licences**, open a licence and choose the cloud restaurant. Th
 - Self-signup gives a **30-day trial**.
 - After the paid-up date: 7 days **overdue** (warning banner only), then **stopped**: no new orders or bills, everything still viewable.
 - Every day at **10 AM** Telegram lists restaurants whose trial/plan ends within 3 days, unpaid ones and ones stopped that day (needs the Telegram settings on the server).
-- Restaurants created before subscriptions are **free use**.
+- Businesses created before subscriptions are **free use**.
 
 > 📷 Screenshot: Platform page with Subscription column and Payment dialog
 > 

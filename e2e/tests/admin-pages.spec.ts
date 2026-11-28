@@ -18,7 +18,7 @@ test('owner names the store and adds a table the POS can use', async ({ page }) 
   await page.getByRole('button', { name: 'Admin', exact: true }).click();
   await page.getByRole('link', { name: 'Store', exact: true }).click();
   const name = `E2E Dining ${suffix}`;
-  await page.getByLabel('Restaurant name').fill(name);
+  await page.getByLabel('Business name').fill(name);
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(page.getByText('Store profile saved.')).toBeVisible();
   await page.reload();

@@ -40,5 +40,6 @@ ASP.NET Core 10 minimal APIs, EF Core, PostgreSQL, React (Vite), SignalR, NLog, 
 
 - **Docs change in the same task as the code**: user guide for anything a user sees, architecture or build plan when the design changes, and `docs/status.md`. A change without its docs update is not finished.
 - Tests: happy path and negative cases; never weaken or delete a test to make a change pass.
+- Words users see say **business**, not restaurant (screens in en/gu/hi, messages, Telegram, emails, bills, docs). Code, database, API paths and C# names keep Restaurant/Tenant; the outlet type names (restaurant, cafe, bakery...) stay.
 - Never put secrets in the repo. Never edit production data by hand.
 - Releases go out outside restaurant rush hours (11:30-15:00 and 19:00-23:00 IST).

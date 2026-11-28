@@ -310,7 +310,7 @@ namespace RestaurantPOS.Tests
 
             var res = await DayLogin(f, new { code });
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
-            Assert.Equal("This restaurant has turned off support access.", await Message(res));
+            Assert.Equal("This business has turned off support access.", await Message(res));
             using var scope = f.Services.CreateScope();
             var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
             Assert.Null(await users.FindByEmailAsync($"support-t{tenantId}@support.local"));

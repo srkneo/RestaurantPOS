@@ -102,7 +102,7 @@ namespace POSSystem.Platform
                 var licence = await db.ShopLicences.FirstOrDefaultAsync(x => x.Id == id, ct);
                 if (licence is null) return Results.NotFound(new { message = "Licence not found." });
                 if (request.TenantId is int tenantId && !await db.Tenants.AnyAsync(t => t.Id == tenantId, ct))
-                    return Results.BadRequest(new { message = "That restaurant does not exist." });
+                    return Results.BadRequest(new { message = "That business does not exist." });
                 licence.TenantId = request.TenantId;
                 await db.SaveChangesAsync(ct);
                 return Results.Ok(issuer.Describe(licence));

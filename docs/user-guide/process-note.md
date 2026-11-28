@@ -17,7 +17,7 @@ One app for the whole restaurant: the billing counter (POS), the kitchen screen,
 > 📷 Screenshot: sign-in page
 > 
 
-**New restaurant?** On the sign-in page tap **New restaurant? Start a 30-day free trial** (cloud only). Fill in the restaurant name, your name, email, mobile and password. The trial starts at once and you land on the setup checklist. **See prices and features** shows the plans.
+**New business?** On the sign-in page tap **New business? Start a 30-day free trial** (cloud only). Fill in the business name, your name, email, mobile and password. The trial starts at once and you land on the setup checklist. **See prices and features** shows the plans.
 
 ## Languages
 

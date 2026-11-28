@@ -35,7 +35,7 @@ describe('Platform page', () => {
   it('lists restaurants with status, staff and last order', async () => {
     const calls = mockApi();
     renderPage();
-    expect(await screen.findByRole('heading', { name: 'Restaurants' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Businesses' })).toBeInTheDocument();
     expect(calls[0].url).toBe('/api/platform/tenants');
 
     const active = (await screen.findByText('My Restaurant')).closest('tr');
@@ -48,26 +48,26 @@ describe('Platform page', () => {
     expect(within(disabled).getByText('No orders yet')).toBeInTheDocument();
     expect(within(disabled).getByRole('button', { name: 'Enable' })).toBeInTheDocument();
 
-    expect(screen.queryByText('No restaurants yet.')).not.toBeInTheDocument();
+    expect(screen.queryByText('No businesses yet.')).not.toBeInTheDocument();
   });
 
   it('shows a message when there are no restaurants', async () => {
     mockApi(undefined, []);
     renderPage();
-    expect(await screen.findByText('No restaurants yet.')).toBeInTheDocument();
+    expect(await screen.findByText('No businesses yet.')).toBeInTheDocument();
   });
 
   it('adds a restaurant after checking the fields', async () => {
     const calls = mockApi({ ok: true, status: 201, json: async () => ({}) });
     renderPage();
-    fireEvent.click(await screen.findByRole('button', { name: 'Add restaurant' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Add business' }));
     const dialog = screen.getByRole('dialog');
 
     fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
     expect(within(dialog).getAllByText('Fill in this field.')).toHaveLength(5);
     expect(calls.some((c) => c.options?.method === 'POST')).toBe(false);
 
-    fill(dialog, 'Restaurant name', ' Anand Thali House ');
+    fill(dialog, 'Business name', ' Anand Thali House ');
     fill(dialog, 'First outlet name', 'Station Road');
     fill(dialog, "Owner's name", 'Ravi Patel');
     fill(dialog, "Owner's email (used to sign in)", ' ravi@thali.local ');
@@ -75,7 +75,7 @@ describe('Platform page', () => {
     expect(within(dialog).getByLabelText("Owner's first password")).toHaveAttribute('type', 'password');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
 
-    expect(await screen.findByText('Restaurant added. The owner can sign in now.')).toBeInTheDocument();
+    expect(await screen.findByText('Business added. The owner can sign in now.')).toBeInTheDocument();
     const post = calls.find((c) => c.options?.method === 'POST');
     expect(post.url).toBe('/api/platform/tenants');
     expect(JSON.parse(post.options.body)).toEqual({
@@ -91,9 +91,9 @@ describe('Platform page', () => {
   it('shows the server error next to the field', async () => {
     mockApi({ ok: false, status: 400, json: async () => ({ errors: { owneremail: ['This email is already used by another account.'] } }) });
     renderPage();
-    fireEvent.click(await screen.findByRole('button', { name: 'Add restaurant' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Add business' }));
     const dialog = screen.getByRole('dialog');
-    fill(dialog, 'Restaurant name', 'A');
+    fill(dialog, 'Business name', 'A');
     fill(dialog, 'First outlet name', 'B');
     fill(dialog, "Owner's name", 'C');
     fill(dialog, "Owner's email (used to sign in)", 'used@thali.local');

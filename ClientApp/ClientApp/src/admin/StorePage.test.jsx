@@ -34,7 +34,7 @@ describe('Store profile page', () => {
     const calls = mockApi();
     renderPage();
     expect(await screen.findByDisplayValue('My Restaurant')).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Restaurant name'), { target: { value: 'Shree Krishna Dining' } });
+    fireEvent.change(screen.getByLabelText('Business name'), { target: { value: 'Shree Krishna Dining' } });
     fireEvent.change(screen.getByLabelText('GSTIN'), { target: { value: '24AAACC1206D1ZM' } });
     fireEvent.change(screen.getByLabelText('Bill footer'), { target: { value: 'Thank you, visit again' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));

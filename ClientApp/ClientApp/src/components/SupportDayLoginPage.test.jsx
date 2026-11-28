@@ -71,10 +71,10 @@ describe('SupportDayLoginPage', () => {
   });
 
   it('shows the server message when support access is switched off', async () => {
-    mockApi({ ok: false, status: 400, json: async () => ({ message: 'This restaurant has turned off support access.' }) });
+    mockApi({ ok: false, status: 400, json: async () => ({ message: 'This business has turned off support access.' }) });
     renderPage();
     submit('ABCD-EFGH');
-    expect(await screen.findByRole('alert')).toHaveTextContent('This restaurant has turned off support access.');
+    expect(await screen.findByRole('alert')).toHaveTextContent('This business has turned off support access.');
   });
 
   it('shows an error when the server cannot be reached', async () => {
