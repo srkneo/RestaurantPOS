@@ -32,8 +32,8 @@ Rules: one new task per hourly run, only when tasks/queue has no task files and 
 - C1 capability list in code (keys, names, depends on): done (C1b, PR #259)
 - C2 outlet types (templates) owned by the PLATFORM, not the owner: restaurant, cafe, takeaway counter, cloud kitchen, bakery, dairy; each = capabilities + settings preset: done (C2, PR #263)
 - C3 capabilities per restaurant (JSON column) + migration backfilling what each restaurant uses today: done (PR #264)
-- C4 plans carry allowed capabilities: done (C4)
-- C5 shop PC lease carries capabilities, signed; old leases keep today's behaviour: todo
+- C4 plans carry allowed capabilities: done (PR #265)
+- C5 shop PC lease carries capabilities, signed; old leases keep today's behaviour: done (C5)
 - C6 RequireCapability endpoint filter (403 with message): todo
 - C7a reservations behind the filter: todo
 - C7b loyalty: todo

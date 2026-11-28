@@ -17,6 +17,10 @@ When the platform owner links this shop PC's licence to a restaurant in the clou
 - On the PC, the Menu page shows a banner and editing is locked. **Sold out** still works on the PC.
 - Items removed in the cloud are hidden on the PC; old bills keep their names.
 
+## Features
+
+- The features this PC may use (tables, kitchen screen, stock, loyalty ...) come with the licence, signed by the cloud, so they also work offline. A PC linked to a cloud business gets that business's features; a change by your provider reaches the PC the next time it is online. A PC that is not linked keeps every feature, as before.
+
 ## Updates
 
 - The PC updates itself at **3:30 AM** if a newer version is out (shop PCs wait 2 days after a release so cloud users try it first).
