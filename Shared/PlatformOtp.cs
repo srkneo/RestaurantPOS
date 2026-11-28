@@ -82,7 +82,7 @@ namespace POSSystem.Data
         {
             var code = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
             var challenge = WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(24));
-            var text = $"RestaurantPOS platform sign-in code: {code}\n"
+            var text = $"AllInOne POS platform sign-in code: {code}\n"
                 + $"It works for {Minutes} minutes. Sign-in for {user.Email} from {ip ?? "unknown address"}.\n"
                 + "If this was not you, do not share the code and change the platform password.";
             if (!await _sender.SendAsync(text, ct)) return null;

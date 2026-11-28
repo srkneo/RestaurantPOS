@@ -27,7 +27,7 @@ namespace POSSystem.Alerts
             services.AddSingleton<ILoggerProvider>(new ErrorAlertLoggerProvider(queue));
             services.AddHttpClient("telegram-alerts");
             services.AddHostedService(sp => new ErrorAlertSender(
-                queue, sp.GetRequiredService<IHttpClientFactory>(), token, chat, config["Alerts:Name"] ?? "RestaurantPOS"));
+                queue, sp.GetRequiredService<IHttpClientFactory>(), token, chat, config["Alerts:Name"] ?? ErrorAlertSender.DefaultName));
             return services;
         }
     }
@@ -96,6 +96,9 @@ namespace POSSystem.Alerts
 
     public class ErrorAlertSender : BackgroundService
     {
+        // v2.4 RN2: Telegram error alerts start with this name unless Alerts:Name is set on the server.
+        public const string DefaultName = "AllInOne POS";
+
         private readonly ErrorAlertQueue _queue;
         private readonly IHttpClientFactory _http;
         private readonly string _token;

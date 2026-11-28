@@ -76,7 +76,7 @@ namespace POSSystem.Data
 
     public static class AppTwoFactorEndpoints
     {
-        public const string Issuer = "Restaurant POS";
+        public const string Issuer = "AllInOne POS";
         // The platform owner too: with the app on, sign-in no longer depends on the Telegram code arriving.
         private static readonly string[] Roles = { "admin", "manager", "platform" };
 

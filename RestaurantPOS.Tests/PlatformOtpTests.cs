@@ -84,6 +84,8 @@ namespace RestaurantPOS.Tests
             var challenge = await Challenge(client);
             Assert.Single(sender.Sent);
             Assert.Contains(PlatformEmail, sender.Sent[0]);
+            Assert.StartsWith("AllInOne POS platform sign-in code: ", sender.Sent[0]);
+            Assert.DoesNotContain("RestaurantPOS", sender.Sent[0]);
             Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/platform/tenants")).StatusCode);
 
             var wrong = await client.PostAsync("/api/auth/login/code", Json(new { challenge, code = "000000" == sender.LastCode ? "111111" : "000000" }));
