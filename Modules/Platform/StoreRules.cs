@@ -28,7 +28,7 @@ namespace POSSystem.Platform
             var errors = new Dictionary<string, string[]>();
             var restaurant = Clean(req.RestaurantName);
             var outlet = Clean(req.OutletName);
-            if (restaurant == null || restaurant.Length > 200) errors["restaurantname"] = new[] { "Enter the restaurant name (up to 200 characters)." };
+            if (restaurant == null || restaurant.Length > 200) errors["restaurantname"] = new[] { "Enter the business name (up to 200 characters)." };
             if (outlet == null || outlet.Length > 200) errors["outletname"] = new[] { "Enter the outlet name (up to 200 characters)." };
             if (Clean(req.Address) is { Length: > 300 }) errors["address"] = new[] { "The address can be at most 300 characters." };
             var phone = Clean(req.Phone);

@@ -85,10 +85,10 @@ namespace POSSystem.Platform
                 var outlet = tenant is null ? null : await db.Outlets.IgnoreQueryFilters().Where(o => o.TenantId == tenant.Id).OrderBy(o => o.Id).FirstOrDefaultAsync(ct);
 
                 if (tenant is null || outlet is null)
-                    return Results.NotFound(new { message = "This PC has no restaurant yet." });
+                    return Results.NotFound(new { message = "This PC has no business yet." });
 
                 if (!outlet.GetSettings().AllowSupportAccess)
-                    return Results.BadRequest(new { message = "This restaurant has turned off support access." });
+                    return Results.BadRequest(new { message = "This business has turned off support access." });
 
                 if (!await roles.RoleExistsAsync(SupportAccess.Role))
                 {

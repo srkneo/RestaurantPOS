@@ -39,7 +39,7 @@ namespace POSSystem.Platform
                 if (await db.KitchenOrders.IgnoreQueryFilters().AnyAsync(o => o.TenantId == id)
                     || await db.MenuItems.IgnoreQueryFilters().AnyAsync(m => m.TenantId == id))
                 {
-                    return Results.Conflict(new { message = "This restaurant already has a menu or orders. Demo data is only for an empty restaurant." });
+                    return Results.Conflict(new { message = "This business already has a menu or orders. Demo data is only for an empty business." });
                 }
 
                 var tenantBefore = db.CurrentTenantId;

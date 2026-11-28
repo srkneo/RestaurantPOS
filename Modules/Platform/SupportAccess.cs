@@ -60,7 +60,7 @@ namespace POSSystem.Platform
                     return Results.NotFound();
 
                 if (!outlet.GetSettings().AllowSupportAccess)
-                    return Results.ValidationProblem(new Dictionary<string, string[]> { ["support"] = new[] { "This restaurant has turned off support access." } });
+                    return Results.ValidationProblem(new Dictionary<string, string[]> { ["support"] = new[] { "This business has turned off support access." } });
 
                 if (!await roles.RoleExistsAsync(Role))
                 {

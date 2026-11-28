@@ -142,7 +142,7 @@ namespace POSSystem.Platform
                 if (v.Length == 0) errors[key] = new[] { $"Enter the {label}." };
                 else if (v.Length > 200) errors[key] = new[] { $"The {label} can be at most 200 characters." };
             }
-            Name("restaurantname", req.RestaurantName, "restaurant name");
+            Name("restaurantname", req.RestaurantName, "business name");
             Name("outletname", req.OutletName, "outlet name");
             Name("ownername", req.OwnerName, "owner's name");
             if (!errors.ContainsKey("ownername") && req.OwnerName!.Trim().Length > 100)
