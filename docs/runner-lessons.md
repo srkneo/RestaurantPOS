@@ -18,7 +18,8 @@ Known failure patterns in the task queue and how to fix them. Claude adds to thi
 - An old test fixture lacks a new settings field, so a preset no longer matches: add the field to the fixture.
 - TestAuthHandler gives one role per request (X-Test-Role). For a user with two roles add X-Test-Extra-Role (TestAuthHandler supports it once SUP1 is merged). Authorization runs before custom middleware, so a test user without the endpoint's role gets 403 with an empty body.
 - Spec snippets must be correct code: never refer to a variable outside its scope (WT2: `prev` used outside the setCart callback).
-- The database is seeded with restaurant 1 (My Restaurant) and outlet 1 (HasData), also in InMemory tests. Shop-PC code that takes the first restaurant gets restaurant 1, so a test that adds its own restaurant (id 2) and expects the shop PC to use it fails (SUP2: support user not found, switched-off setting ignored, login 200). In shop-PC tests change outlet 1's settings and use tenant 1.
+- Tests that sell and then read "today" (shifts, day report, expenses) fail when CI runs at the business-day start hour (4 AM IST = 22:30 UTC): the shift and its bills land in different business days (FIX1, DayCloseTests). New tests of that kind call `TestBusinessDay.AwayFromDayStart(factory)` or set `outlet.BusinessDayStartHour = TestBusinessDay.SafeStartHour(outlet.TimeZone, DateTime.UtcNow);` in their Build().
+- A PR the PC passed but that shows `NOT merged (OPEN)` usually failed a GitHub check; this run cannot read GitHub, so tell Mahesh and fix the cause as a task.
 
 ## Keep Aider's passed work
 - When some steps of a task passed, copy those files from the failed branch's working tree into `@@file` blocks of the re-queued task, so only the failed step is redone.
