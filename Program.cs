@@ -24,7 +24,7 @@ using POSSystem.Logging;
 
 // Setup NLog for Dependency injection
 var logger = NLog.LogManager.Setup().LoadConfigurationFromFile("nlog.config").GetCurrentClassLogger();
-logger.Info("Starting the Restaurant POS server...");
+logger.Info("Starting the AllInOne POS server...");
 
 try
 {

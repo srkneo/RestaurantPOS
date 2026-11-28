@@ -5,6 +5,7 @@ Only for the platform owner account. Sign in with the platform email; when the s
 ## Sign-in security – Platform menu → Security
 
 - **Authenticator app**: turn it on so sign-in works even when Telegram is down. Save the 10 backup codes somewhere other than your phone.
+- From v2.4 the Telegram sign-in code, Telegram error alerts and new authenticator setups say **AllInOne POS**. An entry you added earlier keeps working; it may still be labelled Restaurant POS in the app (you can rename it there).
 - **Change password**: the platform account may use a simple password of **8 or more characters** (no capitals, digits or symbols needed), because sign-in always needs the second step. Other devices are signed out.
 - If Telegram is down and no app is set up: see "Platform sign-in code does not arrive" in `deploy/RUNBOOK.md`.
 

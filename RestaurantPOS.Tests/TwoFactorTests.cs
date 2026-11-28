@@ -109,6 +109,22 @@ namespace RestaurantPOS.Tests
             return (binary % 1_000_000).ToString("D6");
         }
 
+        // v2.4 RN2: new setups show AllInOne POS in the authenticator app; roles without the option get 403.
+        [Fact]
+        public async Task AuthenticatorSetup_ShowsAllInOnePos_AndOtherRolesGet403()
+        {
+            using var f = Build();
+            var id = await CreateStaff(f, "ravi@test.local", "manager");
+            var res = await As(f, "manager", id).PostAsync("/api/auth/2fa/setup", Json(new { }));
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            var uri = (await Read(res)).GetProperty("uri").GetString()!;
+            Assert.StartsWith("otpauth://totp/AllInOne%20POS:", uri);
+            Assert.Contains("&issuer=AllInOne%20POS&", uri);
+            Assert.DoesNotContain("Restaurant", uri);
+            Assert.Equal(HttpStatusCode.Forbidden, (await As(f, "cashier").PostAsync("/api/auth/2fa/setup", Json(new { }))).StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, (await As(f, "waiter").PostAsync("/api/auth/2fa/setup", Json(new { }))).StatusCode);
+        }
+
         [Fact]
         public async Task AuthenticatorApp_TurnOn_SignIn_BackupCode_TurnOff()
         {
@@ -121,7 +137,7 @@ namespace RestaurantPOS.Tests
 
             var setup = await Read(await me.PostAsync("/api/auth/2fa/setup", Json(new { })));
             var key = setup.GetProperty("key").GetString()!;
-            Assert.StartsWith("otpauth://totp/", setup.GetProperty("uri").GetString());
+            Assert.StartsWith("otpauth://totp/AllInOne%20POS:", setup.GetProperty("uri").GetString());
             Assert.Contains("<svg", setup.GetProperty("qrSvg").GetString());
 
             Assert.Equal(HttpStatusCode.BadRequest, (await me.PostAsync("/api/auth/2fa/enable", Json(new { code = "000000" }))).StatusCode);

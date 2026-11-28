@@ -80,6 +80,7 @@ Both turn on **Simple counter** (no table or customer name, the bill opens right
 ## Sign-in security – Admin ▾ → Security
 
 - **Authenticator app** (owner and manager): after the password, a 6-digit code from Google Authenticator or a similar app. Works offline. You get 10 one-time backup codes: print them and keep them away from your phone.
+  The entry in the app is called **AllInOne POS**. An entry set up before v2.4 may say Restaurant POS and keeps working.
 - **Change password**: type the current password, then the new one twice. Your other devices are signed out; this one stays signed in.
 
 ## 6. Staff – Admin ▾ → Staff

@@ -12,11 +12,11 @@ Rules: one new task per hourly run, only when tasks/queue has no task files and 
 - RELEASE: v2.3.3 (SUP1, SUP2): done (tagged 28 Nov 02:43 IST)
 
 ## Fixes first
-- FIX1 flaky test DayCloseTests.Shift_CountsCashSalesAndMovements_AndShowsShortOnClose: failed in CI at 04:00 IST (22:30 UTC), exactly the business-day start hour (4 AM), so the shift and its sales fell into different business days. Make the test independent of the time of day (fixed clock / set the business day explicitly / create the data relative to the business-day start). Test-only change; also scan the other DayClose and shift tests for the same pattern: done
+- FIX1 flaky test DayCloseTests.Shift_CountsCashSalesAndMovements_AndShowsShortOnClose: failed in CI at 04:00 IST (22:30 UTC), exactly the business-day start hour (4 AM), so the shift and its sales fell into different business days. Make the test independent of the time of day (fixed clock / set the business day explicitly / create the data relative to the business-day start). Test-only change; also scan the other DayClose and shift tests for the same pattern: done (FIX1, PR #254)
 
 ## Phase 1: rename to AllInOne POS
-- RN1 app name in one i18n key (app.name) on all screens, title, PWA manifest, index.html: queued (PR #253 passed on the PC but is NOT merged, still OPEN on GitHub)
-- RN2 printed and sent texts (bill and KOT footer, licence texts, Telegram and email, authenticator issuer): todo
+- RN1 app name in one i18n key (app.name) on all screens, title, PWA manifest, index.html: done (PR #253)
+- RN2 printed and sent texts (bill and KOT footer, licence texts, Telegram and email, authenticator issuer): done
 - RN3 root README and docs titles: todo
 - RN4 checklist for Mahesh (repo, folder, Docker images, runner paths): todo (write docs/rename-checklist.md only)
 - RELEASE: v2.4.0 (phase 1)
