@@ -1,6 +1,6 @@
 # Process note
 
-## What RestaurantPOS is
+## What AllInOne POS is
 
 One app for the whole restaurant: the billing counter (POS), the kitchen screen, the token screen for guests, the menu, tables, stock, reservations, staff, bills with GST, day close and reports. It runs in any browser on a tablet, phone, laptop or PC. There are two editions:
 

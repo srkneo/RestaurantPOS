@@ -1,6 +1,6 @@
-# User Guide – RestaurantPOS (how to use, non-technical)
+# User Guide – AllInOne POS (how to use, non-technical)
 
-This guide explains every part of RestaurantPOS in plain words: what each screen is for and how to use it step by step. It is written for restaurant owners, managers, cashiers, waiters and kitchen staff, and for Mahesh as the platform owner.
+This guide explains every part of AllInOne POS (earlier called RestaurantPOS) in plain words: what each screen is for and how to use it step by step. It is written for restaurant owners, managers, cashiers, waiters and kitchen staff, and for Mahesh as the platform owner.
 
 > Version covered: 1.9.7 (20 Nov 2026) plus the grouped menu and stock report that go out with the next release.
 > 
