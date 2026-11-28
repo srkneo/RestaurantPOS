@@ -19,6 +19,7 @@ On **Platform → Licences**, open a licence and choose the cloud restaurant. Th
 - **Add restaurant**: restaurant and outlet name, owner name, email and password. It gets 10 tables.
 - **Demo data**: fills an empty restaurant with a sample menu and orders for demos. For a fresh demo, add a new restaurant and fill it.
 - **Disable / Enable**: a disabled restaurant's staff cannot sign in.
+- **Activity log**: the same log the owner sees (who changed what and when, support sessions highlighted) for one restaurant, read-only. Endpoint: GET /api/platform/tenants/{id}/audit (platform only).
 - **Payment**: record a UPI or bank payment (monthly ₹1,000 / yearly ₹10,000, reference). The paid-up date moves forward. You can also set plan and paid-up date by hand.
 
 ### How subscriptions work

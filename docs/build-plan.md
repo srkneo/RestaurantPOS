@@ -13,6 +13,10 @@ Written 27 Nov 2026. How the plan in [architecture.md](architecture.md) and the 
 - **Release** at the end of each phase (or sooner for fixes). Shop PCs take it 2 days later.
 - **Existing clients keep what they have:** every new capability is off for them unless they already use that feature.
 
+## Small screens and fixes between phases
+
+- UI1 Activity log page: owner (Admin → Activity log) and platform (Platform → Restaurants → Activity log) read the audit log, newest first, filter by type, support sessions highlighted (done).
+
 ## Phase 1: rename to AllInOne POS (about 4 tasks, low risk)
 
 | Task | What | Tests |

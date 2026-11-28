@@ -27,6 +27,7 @@ import DayClosePage from './components/DayClosePage';
 import DayReportPage from './admin/DayReportPage';
 import ReportsPage from './admin/ReportsPage';
 import FeedbackListPage from './admin/FeedbackListPage';
+import ActivityLogPage, { PlatformActivityLogPage } from './admin/ActivityLogPage';
 import ExpensesPage from './components/ExpensesPage';
 import StockPage from './components/StockPage';
 import StockReportPage from './components/StockReportPage';
@@ -113,6 +114,7 @@ function AppHeader() {
           can(ADMIN_ROLES) && { to: '/admin/settings', label: t('nav.settings') },
           can(ADMIN_ROLES) && { to: '/admin/billing', label: t('nav.billing') },
           can(ADMIN_ROLES) && { to: '/admin/licence', label: t('nav.licence') },
+          can(ADMIN_ROLES) && { to: '/admin/activity', label: t('nav.activity') },
           can(MENU_ROLES) && { to: '/account/security', label: t('nav.security') },
         ].filter(Boolean)} />
         {can(PLATFORM_ROLES) && <NavLink to="/platform" end><Icon name="building" className="me-1" />{t('nav.platform')}</NavLink>}
@@ -183,11 +185,13 @@ function Layout() {
         <Route path="/admin/settings" element={<RequireRole roles={ADMIN_ROLES}><SettingsPage /></RequireRole>} />
         <Route path="/admin/billing" element={<RequireRole roles={ADMIN_ROLES}><BillingSettingsPage /></RequireRole>} />
         <Route path="/admin/licence" element={<RequireRole roles={ADMIN_ROLES}><LicencePage /></RequireRole>} />
+        <Route path="/admin/activity" element={<RequireRole roles={ADMIN_ROLES}><ActivityLogPage /></RequireRole>} />
         <Route path="/account/security" element={<RequireRole roles={[...MENU_ROLES, 'platform']}><SecurityPage /></RequireRole>} />
         <Route path="/platform" element={<RequireRole roles={PLATFORM_ROLES}><PlatformPage /></RequireRole>} />
         <Route path="/platform/licences" element={<RequireRole roles={PLATFORM_ROLES}><ShopLicencesPage /></RequireRole>} />
         <Route path="/platform/support" element={<RequireRole roles={PLATFORM_ROLES}><PlatformSupportPage /></RequireRole>} />
         <Route path="/platform/diagnostics" element={<RequireRole roles={PLATFORM_ROLES}><PlatformDiagnosticsPage /></RequireRole>} />
+        <Route path="/platform/tenants/:id/activity" element={<RequireRole roles={PLATFORM_ROLES}><PlatformActivityLogPage /></RequireRole>} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/help" element={<HelpPage />} />
         <Route path="/print/bill/:id" element={<RequireRole roles={POS_ROLES}><PrintBillPage /></RequireRole>} />
