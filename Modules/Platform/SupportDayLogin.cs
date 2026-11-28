@@ -125,7 +125,7 @@ namespace POSSystem.Platform
                     TenantId = tenant.Id,
                     Action = "SupportLogin",
                     EntityType = "Support",
-                    Details = "Support session started on this PC with the day code"
+                    Details = System.Text.Json.JsonSerializer.Serialize(new { support = "Support session started on this PC with the day code" })
                 });
                 await db.SaveChangesAsync(ct);
 

@@ -190,6 +190,9 @@ namespace RestaurantPOS.Tests
             Assert.True(await users.IsInRoleAsync(support, "support"));
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             Assert.True(await db.AuditLogs.IgnoreQueryFilters().AnyAsync(a => a.TenantId == tenantId && a.Action == "SupportLogin" && a.Details!.Contains("day code")));
+            var dayAudit = await db.AuditLogs.IgnoreQueryFilters().FirstAsync(a => a.TenantId == tenantId && a.Action == "SupportLogin");
+            // Details is a json column in PostgreSQL: it must be valid JSON.
+            using (System.Text.Json.JsonDocument.Parse(dayAudit.Details!)) { }
         }
 
         [Fact]
