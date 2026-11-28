@@ -36,3 +36,6 @@ Known failure patterns in the task queue and how to fix them. Claude adds to thi
 - Unit tests (xUnit for the server, Vitest for screens) for the happy path AND negative cases: wrong input, missing fields, wrong role (403), other restaurant's data (404 or 403), limits (too long, zero, negative), switched-off settings.
 - A Playwright test in e2e/tests/<feature>.spec.ts for every user-facing feature: the main flow plus at least one negative case (an error shown, a blocked action). The E2E tests run on GitHub on every push; a release only goes out when the E2E run for the current master passed.
 - Never weaken or delete an existing test to make a task pass; if an old test is wrong because the feature changed it on purpose, update it and say so in the task title.
+
+## In-memory tests miss PostgreSQL column types
+- AuditLogs.Details (and other json/jsonb columns) must get valid JSON: use JsonSerializer.Serialize(new { ... }). The in-memory database accepts any text, so only PostgreSQL rejects it (production 500, 28 Nov). Tests that write such columns must parse the value with JsonDocument.Parse, or run in the Postgres test classes.

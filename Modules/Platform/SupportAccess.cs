@@ -96,7 +96,7 @@ namespace POSSystem.Platform
                     TenantId = id,
                     Action = "SupportLogin",
                     EntityType = "Support",
-                    Details = "Support session started by " + (caller.FindFirstValue(ClaimTypes.Email) ?? "the platform owner")
+                    Details = System.Text.Json.JsonSerializer.Serialize(new { support = "Support session started by " + (caller.FindFirstValue(ClaimTypes.Email) ?? "the platform owner") })
                 });
                 await db.SaveChangesAsync();
 
