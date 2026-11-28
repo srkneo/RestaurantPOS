@@ -221,6 +221,7 @@ export default function PlatformPage() {
                                             ? <button type="button" className="btn btn-outline-danger btn-sm px-3" onClick={() => setConfirm(tenant)}>{t('platform.disable')}</button>
                                             : <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => changeStatus(tenant, true)}>{t('platform.enable')}</button>}
                                         <button type="button" className="btn btn-outline-primary btn-sm px-3 ms-2" onClick={() => openPay(tenant)}>{t('platform.payment')}</button>
+                                        <a className="btn btn-outline-secondary btn-sm px-3 ms-2" href={`/platform/tenants/${tenant.id}/activity`}>{t('platform.activity')}</a>
                                         {!tenant.lastOrderAt && (
                                             <button type="button" className="btn btn-outline-primary btn-sm px-3 ms-2" onClick={() => setDemoFor(tenant)}>{t('platform.demo')}</button>
                                         )}
